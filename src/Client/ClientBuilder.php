@@ -42,6 +42,37 @@ class ClientBuilder
         );
     }
 
+    public function setClient(ClientInterface $client): self
+    {
+        $this->client = $client;
+        
+        return $this;
+    }
+
+    public function getRequestFactory(): RequestFactoryInterface
+    {
+        return $this->requestFactory;
+    }
+
+    public function setRequestFactory(RequestFactoryInterface $requestFactory): self
+    {
+        $this->requestFactory = $requestFactory;
+
+        return $this;
+    }
+
+    public function getStreamFactory(): StreamFactoryInterface
+    {
+        return $this->streamFactory;
+    }
+
+    public function setStreamFactory(StreamFactoryInterface $streamFactory): self
+    {
+        $this->streamFactory = $streamFactory;
+
+        return $this;
+    }
+
     public function addPlugin(Plugin $plugin): void
     {
         $this->plugins[] = $plugin;
