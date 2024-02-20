@@ -13,6 +13,7 @@ omit_containers: [db]
 use_dns_when_possible: true
 composer_version: "2"
 web_environment: []
+disable_upload_dirs_warning: true
 
 # Key features of DDEV's config.yaml:
 
