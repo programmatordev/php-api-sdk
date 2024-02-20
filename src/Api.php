@@ -79,7 +79,7 @@ class Api
 
     private function createUri(string $path, array $query = []): string
     {
-        $uri = $this->reduceDoubleSlashes($this->getBaseUrl() . $path);
+        $uri = $this->reduceDuplicateSlashes($this->getBaseUrl() . $path);
 
         if (!empty($query)) {
             $uri = \sprintf('%s?%s', $uri, \http_build_query($query));
