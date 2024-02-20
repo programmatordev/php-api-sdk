@@ -3,7 +3,7 @@
 namespace ProgrammatorDev\Api;
 
 use Http\Client\Exception;
-use ProgrammatorDev\Api\Client\ClientBuilder;
+use ProgrammatorDev\Api\Builder\ClientBuilder;
 use ProgrammatorDev\Api\Exception\MissingConfigException;
 use ProgrammatorDev\Api\Helper\StringHelperTrait;
 use ProgrammatorDev\YetAnotherPhpValidator\Exception\ValidationException;

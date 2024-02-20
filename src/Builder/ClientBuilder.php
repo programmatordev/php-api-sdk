@@ -1,6 +1,6 @@
 <?php
 
-namespace ProgrammatorDev\Api\Client;
+namespace ProgrammatorDev\Api\Builder;
 
 use Http\Client\Common\HttpMethodsClient;
 use Http\Client\Common\Plugin;
@@ -73,8 +73,15 @@ class ClientBuilder
         return $this;
     }
 
-    public function addPlugin(Plugin $plugin): void
+    public function addPlugin(Plugin $plugin): self
     {
-        $this->plugins[] = $plugin;
+        $this->plugins[$plugin::class] = $plugin;
+
+        return $this;
+    }
+
+    public function getPlugins(): array
+    {
+        return $this->plugins;
     }
 }
