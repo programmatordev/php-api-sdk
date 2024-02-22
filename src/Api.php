@@ -37,7 +37,7 @@ class Api
     ): ResponseInterface
     {
         if (!$this->getBaseUrl()) {
-            throw new MissingConfigException('A base URL must be set');
+            throw new MissingConfigException('A base URL must be set.');
         }
 
         return $this->clientBuilder->getClient()->send(
@@ -46,6 +46,18 @@ class Api
             $headers,
             $body
         );
+    }
+
+    public function getClientBuilder(): ?ClientBuilder
+    {
+        return $this->clientBuilder;
+    }
+
+    public function setClientBuilder(ClientBuilder $clientBuilder): self
+    {
+        $this->clientBuilder = $clientBuilder;
+
+        return $this;
     }
 
     protected function getBaseUrl(): ?string
@@ -61,18 +73,6 @@ class Api
         Validator::url()->assert($baseUrl);
 
         $this->baseUrl = $baseUrl;
-
-        return $this;
-    }
-
-    protected function getClientBuilder(): ?ClientBuilder
-    {
-        return $this->clientBuilder;
-    }
-
-    protected function setClientBuilder(ClientBuilder $clientBuilder): self
-    {
-        $this->clientBuilder = $clientBuilder;
 
         return $this;
     }

@@ -36,7 +36,7 @@ class ClientBuilderTest extends AbstractTestCase
         $this->assertInstanceOf(Psr17Factory::class, $clientBuilder->getStreamFactory());
     }
 
-    public function testSetters()
+    public function testGettersAndSetters()
     {
         $client = new Psr18Client();
         $requestFactory = $streamFactory = new Psr17Factory();
