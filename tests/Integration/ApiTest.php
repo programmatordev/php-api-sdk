@@ -2,6 +2,8 @@
 
 namespace ProgrammatorDev\Api\Test\Integration;
 
+use Http\Client\Common\Plugin\AuthenticationPlugin;
+use Http\Message\Authentication;
 use Http\Mock\Client;
 use Nyholm\Psr7\Response;
 use ProgrammatorDev\Api\Api;
@@ -49,6 +51,16 @@ class ApiTest extends AbstractTestCase
                 return parent::setBaseUrl($baseUrl);
             }
 
+            public function getAuthentication(): ?Authentication
+            {
+                return parent::getAuthentication();
+            }
+
+            public function setAuthentication(?Authentication $authentication): Api
+            {
+                return parent::setAuthentication($authentication);
+            }
+
             public function addPostRequestHandler(callable $handler, int $priority = 0): Api
             {
                 return parent::addPostRequestHandler($handler, $priority);
@@ -69,9 +81,11 @@ class ApiTest extends AbstractTestCase
     {
         $this->class->setBaseUrl(self::BASE_URL);
         $this->class->setClientBuilder(new ClientBuilder());
+        $this->class->setAuthentication(new Authentication\Bearer('token'));
 
         $this->assertSame(self::BASE_URL, $this->class->getBaseUrl());
         $this->assertInstanceOf(ClientBuilder::class, $this->class->getClientBuilder());
+        $this->assertInstanceOf(Authentication::class, $this->class->getAuthentication());
     }
 
     public function testRequest()
@@ -105,6 +119,22 @@ class ApiTest extends AbstractTestCase
         $this->expectExceptionMessage('The value is not a valid URL address, "invalid" given.');
 
         $this->class->setBaseUrl('invalid');
+    }
+
+    public function testAuthentication()
+    {
+        $this->class->setBaseUrl(self::BASE_URL);
+        $this->class->setAuthentication(new Authentication\Bearer('token'));
+
+        $this->class->request(
+            method: 'GET',
+            path: '/path'
+        );
+
+        $this->assertArrayHasKey(
+            AuthenticationPlugin::class,
+            $this->class->getClientBuilder()->getPlugins()
+        );
     }
 
     public function testPostRequestHandler()
