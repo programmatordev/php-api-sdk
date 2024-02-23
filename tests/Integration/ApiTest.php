@@ -11,6 +11,7 @@ use ProgrammatorDev\Api\Event\ResponseEvent;
 use ProgrammatorDev\Api\Exception\MissingConfigException;
 use ProgrammatorDev\Api\Test\AbstractTestCase;
 use ProgrammatorDev\Api\Test\MockResponse;
+use ProgrammatorDev\YetAnotherPhpValidator\Exception\ValidationException;
 use Psr\Http\Message\StreamInterface;
 
 class ApiTest extends AbstractTestCase
@@ -96,6 +97,14 @@ class ApiTest extends AbstractTestCase
             method: 'GET',
             path: '/path'
         );
+    }
+
+    public function testInvalidBaseUrl()
+    {
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionMessage('The value is not a valid URL address, "invalid" given.');
+
+        $this->class->setBaseUrl('invalid');
     }
 
     public function testPostRequestHandler()
