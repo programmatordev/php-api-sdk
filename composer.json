@@ -17,7 +17,8 @@
         "php-http/discovery": "^1.19",
         "programmatordev/yet-another-php-validator": "^0.6.0",
         "psr/http-client": "^1.0",
-        "psr/http-factory": "^1.0"
+        "psr/http-factory": "^1.0",
+        "symfony/event-dispatcher": "^6.4"
     },
     "require-dev": {
         "nyholm/psr7": "^1.8",
