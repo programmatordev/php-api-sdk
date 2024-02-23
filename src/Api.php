@@ -33,7 +33,7 @@ class Api
      * @throws MissingConfigException
      * @throws Exception
      */
-    public function request(
+    protected function request(
         string $method,
         string $path,
         array $query = [],

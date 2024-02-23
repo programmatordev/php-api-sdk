@@ -11,6 +11,7 @@ use ProgrammatorDev\Api\Event\ResponseEvent;
 use ProgrammatorDev\Api\Exception\MissingConfigException;
 use ProgrammatorDev\Api\Test\AbstractTestCase;
 use ProgrammatorDev\Api\Test\MockResponse;
+use Psr\Http\Message\StreamInterface;
 
 class ApiTest extends AbstractTestCase
 {
@@ -26,6 +27,17 @@ class ApiTest extends AbstractTestCase
 
         // set protected functions to public for testing
         $this->class = new class extends Api {
+            public function request(
+                string $method,
+                string $path,
+                array $query = [],
+                array $headers = [],
+                StreamInterface|string $body = null
+            ): mixed
+            {
+                return parent::request($method, $path, $query, $headers, $body);
+            }
+
             public function getBaseUrl(): ?string
             {
                 return parent::getBaseUrl();
