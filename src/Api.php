@@ -2,7 +2,9 @@
 
 namespace ProgrammatorDev\Api;
 
+use Http\Client\Common\Plugin\AuthenticationPlugin;
 use Http\Client\Exception;
+use Http\Message\Authentication;
 use ProgrammatorDev\Api\Builder\ClientBuilder;
 use ProgrammatorDev\Api\Event\PostRequestEvent;
 use ProgrammatorDev\Api\Event\ResponseEvent;
@@ -20,6 +22,8 @@ class Api
     private ?string $baseUrl = null;
 
     private ClientBuilder $clientBuilder;
+
+    private ?Authentication $authentication = null;
 
     private EventDispatcher $eventDispatcher;
 
@@ -43,6 +47,11 @@ class Api
     {
         if (!$this->getBaseUrl()) {
             throw new MissingConfigException('A base URL must be set.');
+        }
+
+        // https://docs.php-http.org/en/latest/message/authentication.html
+        if ($authentication = $this->getAuthentication()) {
+            $this->clientBuilder->addPlugin(new AuthenticationPlugin($authentication));
         }
 
         $response = $this->clientBuilder->getClient()->send(
@@ -86,6 +95,18 @@ class Api
     public function setClientBuilder(ClientBuilder $clientBuilder): self
     {
         $this->clientBuilder = $clientBuilder;
+
+        return $this;
+    }
+
+    protected function getAuthentication(): ?Authentication
+    {
+        return $this->authentication;
+    }
+
+    protected function setAuthentication(?Authentication $authentication): self
+    {
+        $this->authentication = $authentication;
 
         return $this;
     }

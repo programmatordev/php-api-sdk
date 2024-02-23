@@ -15,7 +15,7 @@ use Psr\Http\Message\StreamInterface;
 
 class ApiTest extends AbstractTestCase
 {
-    private const BASE_URL = 'https://pokeapi.co/api/v2';
+    private const BASE_URL = 'https://example.com/base/url';
 
     private $class;
 
@@ -81,7 +81,7 @@ class ApiTest extends AbstractTestCase
 
         $response = $this->class->request(
             method: 'GET',
-            path: '/pokemon'
+            path: '/path'
         );
 
         $this->assertSame(MockResponse::SUCCESS, $response);
@@ -94,7 +94,7 @@ class ApiTest extends AbstractTestCase
 
         $this->class->request(
             method: 'GET',
-            path: '/pokemon'
+            path: '/path'
         );
     }
 
@@ -107,16 +107,16 @@ class ApiTest extends AbstractTestCase
             $statusCode = $event->getResponse()->getStatusCode();
 
             if ($statusCode === 500) {
-                throw new \Exception('PostRequestEvent handler exception test.');
+                throw new \Exception('TestMessage');
             }
         });
 
         $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('PostRequestEvent handler exception test.');
+        $this->expectExceptionMessage('TestMessage');
 
         $this->class->request(
             method: 'GET',
-            path: '/pokemon'
+            path: '/path'
         );
     }
 
@@ -132,7 +132,7 @@ class ApiTest extends AbstractTestCase
 
         $response = $this->class->request(
             method: 'GET',
-            path: '/pokemon'
+            path: '/path'
         );
 
         $this->assertIsArray($response);

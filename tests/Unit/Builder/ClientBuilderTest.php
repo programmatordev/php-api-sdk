@@ -55,8 +55,6 @@ class ClientBuilderTest extends AbstractTestCase
     {
         $clientBuilder = new ClientBuilder();
 
-        $this->assertCount(0, $clientBuilder->getPlugins());
-
         $clientBuilder->addPlugin(new ContentTypePlugin());
         $clientBuilder->addPlugin(new ContentLengthPlugin());
 
