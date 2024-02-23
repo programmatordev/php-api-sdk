@@ -95,12 +95,12 @@ class ApiTest extends AbstractTestCase
             $statusCode = $event->getResponse()->getStatusCode();
 
             if ($statusCode === 500) {
-                throw new \Exception('PostRequestEvent handler exception.');
+                throw new \Exception('PostRequestEvent handler exception test.');
             }
         });
 
         $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('PostRequestEvent handler exception.');
+        $this->expectExceptionMessage('PostRequestEvent handler exception test.');
 
         $this->class->request(
             method: 'GET',
