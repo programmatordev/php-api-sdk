@@ -1,15 +1,16 @@
 <?php
 
-namespace Integration;
+namespace ProgrammatorDev\Api\Test\Integration;
 
 use Http\Mock\Client;
 use Nyholm\Psr7\Response;
 use ProgrammatorDev\Api\Api;
 use ProgrammatorDev\Api\Builder\ClientBuilder;
+use ProgrammatorDev\Api\Event\PostRequestEvent;
+use ProgrammatorDev\Api\Event\ResponseEvent;
 use ProgrammatorDev\Api\Exception\MissingConfigException;
 use ProgrammatorDev\Api\Test\AbstractTestCase;
 use ProgrammatorDev\Api\Test\MockResponse;
-use Psr\Http\Message\ResponseInterface;
 
 class ApiTest extends AbstractTestCase
 {
@@ -33,6 +34,16 @@ class ApiTest extends AbstractTestCase
             public function setBaseUrl(string $baseUrl): Api
             {
                 return parent::setBaseUrl($baseUrl);
+            }
+
+            public function addPostRequestHandler(callable $handler, int $priority = 0): Api
+            {
+                return parent::addPostRequestHandler($handler, $priority);
+            }
+
+            public function addResponseHandler(callable $handler, int $priority = 0): Api
+            {
+                return parent::addResponseHandler($handler, $priority);
             }
         };
 
@@ -61,7 +72,7 @@ class ApiTest extends AbstractTestCase
             path: '/pokemon'
         );
 
-        $this->assertInstanceOf(ResponseInterface::class, $response);
+        $this->assertSame(MockResponse::SUCCESS, $response);
     }
 
     public function testMissingBaseUrl()
@@ -73,5 +84,45 @@ class ApiTest extends AbstractTestCase
             method: 'GET',
             path: '/pokemon'
         );
+    }
+
+    public function testPostRequestHandler()
+    {
+        $this->mockClient->addResponse(new Response(status: 500));
+
+        $this->class->setBaseUrl(self::BASE_URL);
+        $this->class->addPostRequestHandler(function(PostRequestEvent $event) {
+            $statusCode = $event->getResponse()->getStatusCode();
+
+            if ($statusCode === 500) {
+                throw new \Exception('PostRequestEvent handler exception.');
+            }
+        });
+
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('PostRequestEvent handler exception.');
+
+        $this->class->request(
+            method: 'GET',
+            path: '/pokemon'
+        );
+    }
+
+    public function testResponseHandler()
+    {
+        $this->mockClient->addResponse(new Response(body: MockResponse::SUCCESS));
+
+        $this->class->setBaseUrl(self::BASE_URL);
+        $this->class->addResponseHandler(function(ResponseEvent $event) {
+            $contents = json_decode($event->getContents(), true);
+            $event->setContents($contents);
+        });
+
+        $response = $this->class->request(
+            method: 'GET',
+            path: '/pokemon'
+        );
+
+        $this->assertIsArray($response);
     }
 }
