@@ -18,7 +18,7 @@ use Psr\Http\Message\StreamInterface;
 
 class ApiTest extends AbstractTestCase
 {
-    private const BASE_URL = 'https://example.com/base/url';
+    private const BASE_URL = 'https://base.com/url';
 
     private $class;
 
