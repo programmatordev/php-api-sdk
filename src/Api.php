@@ -3,8 +3,10 @@
 namespace ProgrammatorDev\Api;
 
 use Http\Client\Common\Plugin\AuthenticationPlugin;
+use Http\Client\Common\Plugin\CachePlugin;
 use Http\Client\Exception;
 use Http\Message\Authentication;
+use ProgrammatorDev\Api\Builder\CacheBuilder;
 use ProgrammatorDev\Api\Builder\ClientBuilder;
 use ProgrammatorDev\Api\Event\PostRequestEvent;
 use ProgrammatorDev\Api\Event\ResponseEvent;
@@ -22,6 +24,8 @@ class Api
     private ?string $baseUrl = null;
 
     private ClientBuilder $clientBuilder;
+
+    private ?CacheBuilder $cacheBuilder = null;
 
     private ?Authentication $authentication = null;
 
@@ -45,13 +49,30 @@ class Api
         string|StreamInterface $body = null
     ): mixed
     {
-        if (!$this->getBaseUrl()) {
+        if (!$this->baseUrl) {
             throw new MissingConfigException('A base URL must be set.');
         }
 
-        // https://docs.php-http.org/en/latest/message/authentication.html
-        if ($authentication = $this->getAuthentication()) {
-            $this->clientBuilder->addPlugin(new AuthenticationPlugin($authentication));
+        if ($this->authentication) {
+            // https://docs.php-http.org/en/latest/message/authentication.html
+            $this->clientBuilder->addPlugin(
+                new AuthenticationPlugin($this->authentication)
+            );
+        }
+
+        if ($this->cacheBuilder) {
+            // https://docs.php-http.org/en/latest/plugins/cache.html
+            $this->clientBuilder->addPlugin(
+                new CachePlugin(
+                    $this->cacheBuilder->getPool(),
+                    $this->clientBuilder->getStreamFactory(),
+                    [
+                        'default_ttl' => $this->cacheBuilder->getTtl(),
+                        'methods' => $this->cacheBuilder->getMethods(),
+                        'respect_response_cache_directives' => $this->cacheBuilder->getResponseCacheDirectives()
+                    ]
+                )
+            );
         }
 
         $response = $this->clientBuilder->getClient()->send(
@@ -65,9 +86,7 @@ class Api
 
         $contents = $response->getBody()->getContents();
 
-        return $this->eventDispatcher
-            ->dispatch(new ResponseEvent($contents))
-            ->getContents();
+        return $this->eventDispatcher->dispatch(new ResponseEvent($contents))->getContents();
     }
 
     protected function getBaseUrl(): ?string
@@ -95,6 +114,18 @@ class Api
     public function setClientBuilder(ClientBuilder $clientBuilder): self
     {
         $this->clientBuilder = $clientBuilder;
+
+        return $this;
+    }
+
+    public function getCacheBuilder(): ?CacheBuilder
+    {
+        return $this->cacheBuilder;
+    }
+
+    public function setCacheBuilder(?CacheBuilder $cacheBuilder): self
+    {
+        $this->cacheBuilder = $cacheBuilder;
 
         return $this;
     }
