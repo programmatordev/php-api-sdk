@@ -2,20 +2,17 @@
 
 namespace ProgrammatorDev\Api\Test\Unit\Builder;
 
-use Http\Client\Common\HttpMethodsClient;
 use Http\Client\Common\Plugin\ContentLengthPlugin;
 use Http\Client\Common\Plugin\ContentTypePlugin;
-use Nyholm\Psr7\Factory\Psr17Factory;
 use ProgrammatorDev\Api\Builder\ClientBuilder;
 use ProgrammatorDev\Api\Test\AbstractTestCase;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
-use Symfony\Component\HttpClient\Psr18Client;
 
 class ClientBuilderTest extends AbstractTestCase
 {
-    public function testDiscovery()
+    public function testDefaults()
     {
         $clientBuilder = new ClientBuilder();
 
@@ -26,29 +23,31 @@ class ClientBuilderTest extends AbstractTestCase
 
     public function testDependencyInjection()
     {
-        $client = new Psr18Client();
-        $requestFactory = $streamFactory = new Psr17Factory();
+        $client = $this->createMock(ClientInterface::class);
+        $requestFactory = $this->createMock(RequestFactoryInterface::class);
+        $streamFactory = $this->createMock(StreamFactoryInterface::class);
 
         $clientBuilder = new ClientBuilder($client, $requestFactory, $streamFactory);
 
-        $this->assertInstanceOf(HttpMethodsClient::class, $clientBuilder->getClient());
-        $this->assertInstanceOf(Psr17Factory::class, $clientBuilder->getRequestFactory());
-        $this->assertInstanceOf(Psr17Factory::class, $clientBuilder->getStreamFactory());
+        $this->assertInstanceOf(ClientInterface::class, $clientBuilder->getClient());
+        $this->assertInstanceOf(RequestFactoryInterface::class, $clientBuilder->getRequestFactory());
+        $this->assertInstanceOf(StreamFactoryInterface::class, $clientBuilder->getStreamFactory());
     }
 
-    public function testGettersAndSetters()
+    public function testSetters()
     {
-        $client = new Psr18Client();
-        $requestFactory = $streamFactory = new Psr17Factory();
+        $client = $this->createMock(ClientInterface::class);
+        $requestFactory = $this->createMock(RequestFactoryInterface::class);
+        $streamFactory = $this->createMock(StreamFactoryInterface::class);
 
         $clientBuilder = new ClientBuilder();
         $clientBuilder->setClient($client);
         $clientBuilder->setRequestFactory($requestFactory);
         $clientBuilder->setStreamFactory($streamFactory);
 
-        $this->assertInstanceOf(HttpMethodsClient::class, $clientBuilder->getClient());
-        $this->assertInstanceOf(Psr17Factory::class, $clientBuilder->getRequestFactory());
-        $this->assertInstanceOf(Psr17Factory::class, $clientBuilder->getStreamFactory());
+        $this->assertInstanceOf(ClientInterface::class, $clientBuilder->getClient());
+        $this->assertInstanceOf(RequestFactoryInterface::class, $clientBuilder->getRequestFactory());
+        $this->assertInstanceOf(StreamFactoryInterface::class, $clientBuilder->getStreamFactory());
     }
 
     public function testAddPlugin()

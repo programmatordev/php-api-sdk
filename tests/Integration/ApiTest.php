@@ -2,7 +2,6 @@
 
 namespace ProgrammatorDev\Api\Test\Integration;
 
-use Http\Client\Common\Plugin\AuthenticationPlugin;
 use Http\Message\Authentication;
 use Http\Mock\Client;
 use Nyholm\Psr7\Response;
@@ -14,6 +13,7 @@ use ProgrammatorDev\Api\Exception\MissingConfigException;
 use ProgrammatorDev\Api\Test\AbstractTestCase;
 use ProgrammatorDev\Api\Test\MockResponse;
 use ProgrammatorDev\YetAnotherPhpValidator\Exception\ValidationException;
+use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\StreamInterface;
 
 class ApiTest extends AbstractTestCase
@@ -77,11 +77,15 @@ class ApiTest extends AbstractTestCase
         $this->class->setClientBuilder(new ClientBuilder($this->mockClient));
     }
 
-    public function testGettersAndSetters()
+    public function testSetters()
     {
+        $authentication = $this->createConfiguredMock(Authentication::class, [
+            'authenticate' => $this->createMock(RequestInterface::class)
+        ]);
+
         $this->class->setBaseUrl(self::BASE_URL);
         $this->class->setClientBuilder(new ClientBuilder());
-        $this->class->setAuthentication(new Authentication\Bearer('token'));
+        $this->class->setAuthentication($authentication);
 
         $this->assertSame(self::BASE_URL, $this->class->getBaseUrl());
         $this->assertInstanceOf(ClientBuilder::class, $this->class->getClientBuilder());
@@ -123,17 +127,20 @@ class ApiTest extends AbstractTestCase
 
     public function testAuthentication()
     {
+        $authentication = $this->createConfiguredMock(Authentication::class, [
+            'authenticate' => $this->createMock(RequestInterface::class)
+        ]);
+
+        $authentication
+            ->expects($this->once())
+            ->method('authenticate');
+
         $this->class->setBaseUrl(self::BASE_URL);
-        $this->class->setAuthentication(new Authentication\Bearer('token'));
+        $this->class->setAuthentication($authentication);
 
         $this->class->request(
             method: 'GET',
             path: '/path'
-        );
-
-        $this->assertArrayHasKey(
-            AuthenticationPlugin::class,
-            $this->class->getClientBuilder()->getPlugins()
         );
     }
 

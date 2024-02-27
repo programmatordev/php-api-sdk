@@ -29,9 +29,6 @@ class ClientBuilder
 
     public function getClient(): HttpMethodsClient
     {
-        $this->addPlugin(new Plugin\ContentTypePlugin());
-        $this->addPlugin(new Plugin\ContentLengthPlugin());
-
         $pluginClientFactory = new PluginClientFactory();
         $client = $pluginClientFactory->createClient($this->client, $this->plugins);
 
