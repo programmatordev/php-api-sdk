@@ -4,6 +4,8 @@ namespace ProgrammatorDev\Api;
 
 use Http\Client\Common\Plugin\AuthenticationPlugin;
 use Http\Client\Common\Plugin\CachePlugin;
+use Http\Client\Common\Plugin\ContentLengthPlugin;
+use Http\Client\Common\Plugin\ContentTypePlugin;
 use Http\Client\Exception;
 use Http\Message\Authentication;
 use ProgrammatorDev\Api\Builder\CacheBuilder;
@@ -52,6 +54,10 @@ class Api
         if (!$this->baseUrl) {
             throw new MissingConfigException('A base URL must be set.');
         }
+
+        // help servers understand the content
+        $this->clientBuilder->addPlugin(new ContentTypePlugin());
+        $this->clientBuilder->addPlugin(new ContentLengthPlugin());
 
         if ($this->authentication) {
             // https://docs.php-http.org/en/latest/message/authentication.html
