@@ -6,10 +6,12 @@ use Http\Client\Common\Plugin\AuthenticationPlugin;
 use Http\Client\Common\Plugin\CachePlugin;
 use Http\Client\Common\Plugin\ContentLengthPlugin;
 use Http\Client\Common\Plugin\ContentTypePlugin;
+use Http\Client\Common\Plugin\LoggerPlugin;
 use Http\Client\Exception;
 use Http\Message\Authentication;
 use ProgrammatorDev\Api\Builder\CacheBuilder;
 use ProgrammatorDev\Api\Builder\ClientBuilder;
+use ProgrammatorDev\Api\Builder\LoggerBuilder;
 use ProgrammatorDev\Api\Event\PostRequestEvent;
 use ProgrammatorDev\Api\Event\ResponseEvent;
 use ProgrammatorDev\Api\Exception\MissingConfigException;
@@ -28,6 +30,8 @@ class Api
     private ClientBuilder $clientBuilder;
 
     private ?CacheBuilder $cacheBuilder = null;
+
+    private ?LoggerBuilder $loggerBuilder = null;
 
     private ?Authentication $authentication = null;
 
@@ -77,6 +81,16 @@ class Api
                         'methods' => $this->cacheBuilder->getMethods(),
                         'respect_response_cache_directives' => $this->cacheBuilder->getResponseCacheDirectives()
                     ]
+                )
+            );
+        }
+
+        if ($this->loggerBuilder) {
+            // https://docs.php-http.org/en/latest/plugins/logger.html
+            $this->clientBuilder->addPlugin(
+                new LoggerPlugin(
+                    $this->loggerBuilder->getLogger(),
+                    $this->loggerBuilder->getFormatter()
                 )
             );
         }
@@ -132,6 +146,18 @@ class Api
     public function setCacheBuilder(?CacheBuilder $cacheBuilder): self
     {
         $this->cacheBuilder = $cacheBuilder;
+
+        return $this;
+    }
+
+    public function getLoggerBuilder(): ?LoggerBuilder
+    {
+        return $this->loggerBuilder;
+    }
+
+    public function setLoggerBuilder(?LoggerBuilder $loggerBuilder): self
+    {
+        $this->loggerBuilder = $loggerBuilder;
 
         return $this;
     }
