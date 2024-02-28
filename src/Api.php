@@ -11,6 +11,7 @@ use Http\Client\Exception;
 use Http\Message\Authentication;
 use ProgrammatorDev\Api\Builder\CacheBuilder;
 use ProgrammatorDev\Api\Builder\ClientBuilder;
+use ProgrammatorDev\Api\Builder\Listener\CacheLoggerListener;
 use ProgrammatorDev\Api\Builder\LoggerBuilder;
 use ProgrammatorDev\Api\Event\PostRequestEvent;
 use ProgrammatorDev\Api\Event\ResponseEvent;
@@ -63,30 +64,37 @@ class Api
         $this->clientBuilder->addPlugin(new ContentTypePlugin());
         $this->clientBuilder->addPlugin(new ContentLengthPlugin());
 
+        // https://docs.php-http.org/en/latest/message/authentication.html
         if ($this->authentication) {
-            // https://docs.php-http.org/en/latest/message/authentication.html
             $this->clientBuilder->addPlugin(
                 new AuthenticationPlugin($this->authentication)
             );
         }
 
+        // https://docs.php-http.org/en/latest/plugins/cache.html
         if ($this->cacheBuilder) {
-            // https://docs.php-http.org/en/latest/plugins/cache.html
+            $cacheOptions = [
+                'default_ttl' => $this->cacheBuilder->getTtl(),
+                'methods' => $this->cacheBuilder->getMethods(),
+                'respect_response_cache_directives' => $this->cacheBuilder->getResponseCacheDirectives(),
+                'cache_listeners' => []
+            ];
+
+            if ($this->loggerBuilder) {
+                $cacheOptions['cache_listeners'][] = new CacheLoggerListener($this->loggerBuilder);
+            }
+
             $this->clientBuilder->addPlugin(
                 new CachePlugin(
                     $this->cacheBuilder->getPool(),
                     $this->clientBuilder->getStreamFactory(),
-                    [
-                        'default_ttl' => $this->cacheBuilder->getTtl(),
-                        'methods' => $this->cacheBuilder->getMethods(),
-                        'respect_response_cache_directives' => $this->cacheBuilder->getResponseCacheDirectives()
-                    ]
+                    $cacheOptions
                 )
             );
         }
 
+        // https://docs.php-http.org/en/latest/plugins/logger.html
         if ($this->loggerBuilder) {
-            // https://docs.php-http.org/en/latest/plugins/logger.html
             $this->clientBuilder->addPlugin(
                 new LoggerPlugin(
                     $this->loggerBuilder->getLogger(),
