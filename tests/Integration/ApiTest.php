@@ -157,9 +157,30 @@ class ApiTest extends AbstractTestCase
         $this->class->setBaseUrl(self::BASE_URL);
         $this->class->setLoggerBuilder(new LoggerBuilder($logger));
 
-        $logger->expects($this->atLeastOnce())->method('info');
+        // request + response log
+        $logger->expects($this->exactly(2))->method('info');
 
         $this->class->request(
+            method: 'GET',
+            path: '/path'
+        );
+    }
+
+    public function testCacheLogger()
+    {
+        $pool = $this->createMock(CacheItemPoolInterface::class);
+        $logger = $this->createMock(LoggerInterface::class);
+
+        $this->class->setBaseUrl(self::BASE_URL);
+        $this->class->setCacheBuilder(new CacheBuilder($pool));
+        $this->class->setLoggerBuilder(new LoggerBuilder($logger));
+
+        // request + response + cache log
+        $logger->expects($this->exactly(3))->method('info');
+
+        // error suppression to hide expected warning of null cache item in CacheLoggerListener
+        // https://docs.phpunit.de/en/10.5/error-handling.html#ignoring-issue-suppression
+        @$this->class->request(
             method: 'GET',
             path: '/path'
         );
