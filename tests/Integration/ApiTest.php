@@ -166,7 +166,7 @@ class ApiTest extends AbstractTestCase
         );
     }
 
-    public function testCacheLogger()
+    public function testCacheWithLogger()
     {
         $pool = $this->createMock(CacheItemPoolInterface::class);
         $logger = $this->createMock(LoggerInterface::class);
@@ -180,6 +180,7 @@ class ApiTest extends AbstractTestCase
 
         // error suppression to hide expected warning of null cache item in CacheLoggerListener
         // https://docs.phpunit.de/en/10.5/error-handling.html#ignoring-issue-suppression
+        // TODO maybe allow user to add cache listeners to CacheBuilder and create a mock?
         @$this->class->request(
             method: 'GET',
             path: '/path'
