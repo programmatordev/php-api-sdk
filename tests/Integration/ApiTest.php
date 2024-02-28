@@ -8,6 +8,7 @@ use Nyholm\Psr7\Response;
 use ProgrammatorDev\Api\Api;
 use ProgrammatorDev\Api\Builder\CacheBuilder;
 use ProgrammatorDev\Api\Builder\ClientBuilder;
+use ProgrammatorDev\Api\Builder\LoggerBuilder;
 use ProgrammatorDev\Api\Event\PostRequestEvent;
 use ProgrammatorDev\Api\Event\ResponseEvent;
 use ProgrammatorDev\Api\Exception\MissingConfigException;
@@ -17,6 +18,7 @@ use ProgrammatorDev\YetAnotherPhpValidator\Exception\ValidationException;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\StreamInterface;
+use Psr\Log\LoggerInterface;
 
 class ApiTest extends AbstractTestCase
 {
@@ -82,6 +84,7 @@ class ApiTest extends AbstractTestCase
     public function testSetters()
     {
         $pool = $this->createMock(CacheItemPoolInterface::class);
+        $logger = $this->createMock(LoggerInterface::class);
         $authentication = $this->createConfiguredMock(Authentication::class, [
             'authenticate' => $this->createMock(RequestInterface::class)
         ]);
@@ -89,11 +92,13 @@ class ApiTest extends AbstractTestCase
         $this->class->setBaseUrl(self::BASE_URL);
         $this->class->setClientBuilder(new ClientBuilder());
         $this->class->setCacheBuilder(new CacheBuilder($pool));
+        $this->class->setLoggerBuilder(new LoggerBuilder($logger));
         $this->class->setAuthentication($authentication);
 
         $this->assertSame(self::BASE_URL, $this->class->getBaseUrl());
         $this->assertInstanceOf(ClientBuilder::class, $this->class->getClientBuilder());
         $this->assertInstanceOf(CacheBuilder::class, $this->class->getCacheBuilder());
+        $this->assertInstanceOf(LoggerBuilder::class, $this->class->getLoggerBuilder());
         $this->assertInstanceOf(Authentication::class, $this->class->getAuthentication());
     }
 
@@ -138,6 +143,21 @@ class ApiTest extends AbstractTestCase
         $this->class->setCacheBuilder(new CacheBuilder($pool));
 
         $pool->expects($this->once())->method('save');
+
+        $this->class->request(
+            method: 'GET',
+            path: '/path'
+        );
+    }
+
+    public function testLogger()
+    {
+        $logger = $this->createMock(LoggerInterface::class);
+
+        $this->class->setBaseUrl(self::BASE_URL);
+        $this->class->setLoggerBuilder(new LoggerBuilder($logger));
+
+        $logger->expects($this->atLeastOnce())->method('info');
 
         $this->class->request(
             method: 'GET',
