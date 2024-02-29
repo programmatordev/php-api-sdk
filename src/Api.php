@@ -6,6 +6,7 @@ use Http\Client\Common\Plugin\AuthenticationPlugin;
 use Http\Client\Common\Plugin\CachePlugin;
 use Http\Client\Common\Plugin\ContentLengthPlugin;
 use Http\Client\Common\Plugin\ContentTypePlugin;
+use Http\Client\Common\Plugin\HeaderDefaultsPlugin;
 use Http\Client\Common\Plugin\LoggerPlugin;
 use Http\Client\Common\Plugin\QueryDefaultsPlugin;
 use Http\Client\Exception;
@@ -30,6 +31,8 @@ class Api
     private ?string $baseUrl = null;
 
     private array $queryDefaults = [];
+
+    private array $headerDefaults = [];
 
     private ClientBuilder $clientBuilder;
 
@@ -80,6 +83,19 @@ class Api
             );
         }
 
+        // merge request header values with header defaults
+        // request header values should overwrite header defaults
+        if (!empty($this->headerDefaults)) {
+            $headers = array_merge($this->headerDefaults, $headers);
+        }
+
+        // https://docs.php-http.org/en/latest/plugins/headers.html
+        if (!empty($headers)) {
+            $this->clientBuilder->addPlugin(
+                new HeaderDefaultsPlugin($headers)
+            );
+        }
+
         // https://docs.php-http.org/en/latest/message/authentication.html
         if ($this->authentication) {
             $this->clientBuilder->addPlugin(
@@ -121,7 +137,7 @@ class Api
 
         $response = $this->clientBuilder->getClient()->send(
             $method,
-            $this->buildUri($path),
+            $this->createUri($path),
             $headers,
             $body
         );
@@ -132,6 +148,28 @@ class Api
 
         return $this->eventDispatcher->dispatch(new ResponseEvent($contents))->getContents();
     }
+
+//    private function createRequest(
+//        string $method,
+//        string $uri,
+//        array $headers = [],
+//        string|StreamInterface $body = null
+//    ): RequestInterface
+//    {
+//        $request = $this->clientBuilder->getRequestFactory()->createRequest($method, $uri);
+//
+//        foreach ($headers as $key => $value) {
+//            $request = $request->withHeader($key, $value);
+//        }
+//
+//        if ($body !== null && $body !== '') {
+//            $request = $request->withBody(
+//                \is_string($body) ? $this->clientBuilder->getStreamFactory()->createStream($body) : $body
+//            );
+//        }
+//
+//        return $request;
+//    }
 
     protected function getBaseUrl(): ?string
     {
@@ -165,6 +203,25 @@ class Api
     protected function removeQueryDefault(string $name): self
     {
         unset($this->queryDefaults[$name]);
+
+        return $this;
+    }
+
+    protected function getHeaderDefault(string $name): mixed
+    {
+        return $this->headerDefaults[$name] ?? null;
+    }
+
+    protected function addHeaderDefault(string $name, mixed $value): self
+    {
+        $this->headerDefaults[$name] = $value;
+
+        return $this;
+    }
+
+    protected function removeHeaderDefault(string $name): self
+    {
+        unset($this->headerDefaults[$name]);
 
         return $this;
     }
@@ -231,7 +288,7 @@ class Api
         return $this;
     }
 
-    private function buildUri(string $path): string
+    private function createUri(string $path): string
     {
         return $this->reduceDuplicateSlashes($this->getBaseUrl() . $path);
     }
