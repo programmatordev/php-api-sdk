@@ -6,9 +6,7 @@ use Http\Client\Common\Plugin\AuthenticationPlugin;
 use Http\Client\Common\Plugin\CachePlugin;
 use Http\Client\Common\Plugin\ContentLengthPlugin;
 use Http\Client\Common\Plugin\ContentTypePlugin;
-use Http\Client\Common\Plugin\HeaderDefaultsPlugin;
 use Http\Client\Common\Plugin\LoggerPlugin;
-use Http\Client\Common\Plugin\QueryDefaultsPlugin;
 use Http\Client\Exception;
 use Http\Message\Authentication;
 use ProgrammatorDev\Api\Builder\CacheBuilder;
@@ -21,6 +19,7 @@ use ProgrammatorDev\Api\Exception\MissingConfigException;
 use ProgrammatorDev\Api\Helper\StringHelperTrait;
 use ProgrammatorDev\YetAnotherPhpValidator\Exception\ValidationException;
 use ProgrammatorDev\YetAnotherPhpValidator\Validator;
+use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\StreamInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
@@ -70,32 +69,6 @@ class Api
         $this->clientBuilder->addPlugin(new ContentTypePlugin());
         $this->clientBuilder->addPlugin(new ContentLengthPlugin());
 
-        // merge request query values with query defaults
-        // request query values should overwrite query defaults
-        if (!empty($this->queryDefaults)) {
-            $query = array_merge($this->queryDefaults, $query);
-        }
-
-        // https://docs.php-http.org/en/latest/plugins/query.html
-        if (!empty($query)) {
-            $this->clientBuilder->addPlugin(
-                new QueryDefaultsPlugin($query)
-            );
-        }
-
-        // merge request header values with header defaults
-        // request header values should overwrite header defaults
-        if (!empty($this->headerDefaults)) {
-            $headers = array_merge($this->headerDefaults, $headers);
-        }
-
-        // https://docs.php-http.org/en/latest/plugins/headers.html
-        if (!empty($headers)) {
-            $this->clientBuilder->addPlugin(
-                new HeaderDefaultsPlugin($headers)
-            );
-        }
-
         // https://docs.php-http.org/en/latest/message/authentication.html
         if ($this->authentication) {
             $this->clientBuilder->addPlugin(
@@ -135,54 +108,35 @@ class Api
             );
         }
 
-        $response = $this->clientBuilder->getClient()->send(
-            $method,
-            $this->createUri($path),
-            $headers,
-            $body
-        );
+        // merge and overwrite query defaults
+        if (!empty($this->queryDefaults)) {
+            $query = array_merge($this->queryDefaults, $query);
+        }
 
-        $this->eventDispatcher->dispatch(new PostRequestEvent($response));
+        // merge and overwrite header defaults
+        if (!empty($this->headerDefaults)) {
+            $headers = array_merge($this->headerDefaults, $headers);
+        }
+
+        $uri = $this->createUri($path, $query);
+        $request = $this->createRequest($method, $uri, $headers, $body);
+
+        $response = $this->clientBuilder->getClient()->sendRequest($request);
+
+        $this->eventDispatcher->dispatch(new PostRequestEvent($request, $response));
 
         $contents = $response->getBody()->getContents();
 
         return $this->eventDispatcher->dispatch(new ResponseEvent($contents))->getContents();
     }
 
-//    private function createRequest(
-//        string $method,
-//        string $uri,
-//        array $headers = [],
-//        string|StreamInterface $body = null
-//    ): RequestInterface
-//    {
-//        $request = $this->clientBuilder->getRequestFactory()->createRequest($method, $uri);
-//
-//        foreach ($headers as $key => $value) {
-//            $request = $request->withHeader($key, $value);
-//        }
-//
-//        if ($body !== null && $body !== '') {
-//            $request = $request->withBody(
-//                \is_string($body) ? $this->clientBuilder->getStreamFactory()->createStream($body) : $body
-//            );
-//        }
-//
-//        return $request;
-//    }
-
     protected function getBaseUrl(): ?string
     {
         return $this->baseUrl;
     }
 
-    /**
-     * @throws ValidationException
-     */
     protected function setBaseUrl(string $baseUrl): self
     {
-        Validator::url()->assert($baseUrl);
-
         $this->baseUrl = $baseUrl;
 
         return $this;
@@ -288,8 +242,36 @@ class Api
         return $this;
     }
 
-    private function createUri(string $path): string
+    private function createRequest(
+        string $method,
+        string $uri,
+        array $headers = [],
+        string|StreamInterface $body = null
+    ): RequestInterface
     {
-        return $this->reduceDuplicateSlashes($this->getBaseUrl() . $path);
+        $request = $this->clientBuilder->getRequestFactory()->createRequest($method, $uri);
+
+        foreach ($headers as $key => $value) {
+            $request = $request->withHeader($key, $value);
+        }
+
+        if ($body !== null && $body !== '') {
+            $request = $request->withBody(
+                \is_string($body) ? $this->clientBuilder->getStreamFactory()->createStream($body) : $body
+            );
+        }
+
+        return $request;
+    }
+
+    private function createUri(string $path, array $query = []): string
+    {
+        $uri = $this->reduceDuplicateSlashes($this->baseUrl . $path);
+
+        if (!empty($query)) {
+            $uri = \sprintf('%s?%s', $uri, \http_build_query($query));
+        }
+
+        return $uri;
     }
 }

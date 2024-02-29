@@ -157,14 +157,6 @@ class ApiTest extends AbstractTestCase
         );
     }
 
-    public function testInvalidBaseUrl()
-    {
-        $this->expectException(ValidationException::class);
-        $this->expectExceptionMessage('The value is not a valid URL address, "invalid" given.');
-
-        $this->class->setBaseUrl('invalid');
-    }
-
     public function testQueryDefaults()
     {
         $this->class->addQueryDefault('test', true);
