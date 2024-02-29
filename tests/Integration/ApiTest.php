@@ -70,6 +70,21 @@ class ApiTest extends AbstractTestCase
                 return parent::removeQueryDefault($name);
             }
 
+            public function getHeaderDefault(string $name): mixed
+            {
+                return parent::getHeaderDefault($name);
+            }
+
+            public function addHeaderDefault(string $name, mixed $value): Api
+            {
+                return parent::addHeaderDefault($name, $value);
+            }
+
+            public function removeHeaderDefault(string $name): Api
+            {
+                return parent::removeHeaderDefault($name);
+            }
+
             public function getAuthentication(): ?Authentication
             {
                 return parent::getAuthentication();
@@ -157,6 +172,15 @@ class ApiTest extends AbstractTestCase
 
         $this->class->removeQueryDefault('test');
         $this->assertNull($this->class->getQueryDefault('test'));
+    }
+
+    public function testHeaderDefaults()
+    {
+        $this->class->addHeaderDefault('X-Test', true);
+        $this->assertTrue($this->class->getHeaderDefault('X-Test'));
+
+        $this->class->removeHeaderDefault('X-Test');
+        $this->assertNull($this->class->getHeaderDefault('X-Test'));
     }
 
     public function testCache()
