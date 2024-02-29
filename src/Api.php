@@ -7,6 +7,7 @@ use Http\Client\Common\Plugin\CachePlugin;
 use Http\Client\Common\Plugin\ContentLengthPlugin;
 use Http\Client\Common\Plugin\ContentTypePlugin;
 use Http\Client\Common\Plugin\LoggerPlugin;
+use Http\Client\Common\Plugin\QueryDefaultsPlugin;
 use Http\Client\Exception;
 use Http\Message\Authentication;
 use ProgrammatorDev\Api\Builder\CacheBuilder;
@@ -27,6 +28,8 @@ class Api
     use StringHelperTrait;
 
     private ?string $baseUrl = null;
+
+    private array $queryDefaults = [];
 
     private ClientBuilder $clientBuilder;
 
@@ -63,6 +66,19 @@ class Api
         // help servers understand the content
         $this->clientBuilder->addPlugin(new ContentTypePlugin());
         $this->clientBuilder->addPlugin(new ContentLengthPlugin());
+
+        // merge request query values with query defaults
+        // request query values should overwrite query defaults
+        if (!empty($this->queryDefaults)) {
+            $query = array_merge($this->queryDefaults, $query);
+        }
+
+        // https://docs.php-http.org/en/latest/plugins/query.html
+        if (!empty($query)) {
+            $this->clientBuilder->addPlugin(
+                new QueryDefaultsPlugin($query)
+            );
+        }
 
         // https://docs.php-http.org/en/latest/message/authentication.html
         if ($this->authentication) {
@@ -105,7 +121,7 @@ class Api
 
         $response = $this->clientBuilder->getClient()->send(
             $method,
-            $this->createUri($path, $query),
+            $this->buildUri($path),
             $headers,
             $body
         );
@@ -130,6 +146,25 @@ class Api
         Validator::url()->assert($baseUrl);
 
         $this->baseUrl = $baseUrl;
+
+        return $this;
+    }
+
+    protected function getQueryDefault(string $name): mixed
+    {
+        return $this->queryDefaults[$name] ?? null;
+    }
+
+    protected function addQueryDefault(string $name, mixed $value): self
+    {
+        $this->queryDefaults[$name] = $value;
+
+        return $this;
+    }
+
+    protected function removeQueryDefault(string $name): self
+    {
+        unset($this->queryDefaults[$name]);
 
         return $this;
     }
@@ -196,14 +231,8 @@ class Api
         return $this;
     }
 
-    private function createUri(string $path, array $query = []): string
+    private function buildUri(string $path): string
     {
-        $uri = $this->reduceDuplicateSlashes($this->getBaseUrl() . $path);
-
-        if (!empty($query)) {
-            $uri = \sprintf('%s?%s', $uri, \http_build_query($query));
-        }
-
-        return $uri;
+        return $this->reduceDuplicateSlashes($this->getBaseUrl() . $path);
     }
 }
