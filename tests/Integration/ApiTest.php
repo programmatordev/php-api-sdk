@@ -55,6 +55,21 @@ class ApiTest extends AbstractTestCase
                 return parent::setBaseUrl($baseUrl);
             }
 
+            public function getQueryDefault(string $name): mixed
+            {
+                return parent::getQueryDefault($name);
+            }
+
+            public function addQueryDefault(string $name, mixed $value): Api
+            {
+                return parent::addQueryDefault($name, $value);
+            }
+
+            public function removeQueryDefault(string $name): Api
+            {
+                return parent::removeQueryDefault($name);
+            }
+
             public function getAuthentication(): ?Authentication
             {
                 return parent::getAuthentication();
@@ -135,6 +150,15 @@ class ApiTest extends AbstractTestCase
         $this->class->setBaseUrl('invalid');
     }
 
+    public function testQueryDefaults()
+    {
+        $this->class->addQueryDefault('test', true);
+        $this->assertTrue($this->class->getQueryDefault('test'));
+
+        $this->class->removeQueryDefault('test');
+        $this->assertNull($this->class->getQueryDefault('test'));
+    }
+
     public function testCache()
     {
         $pool = $this->createMock(CacheItemPoolInterface::class);
@@ -206,16 +230,8 @@ class ApiTest extends AbstractTestCase
 
     public function testPostRequestHandler()
     {
-        $this->mockClient->addResponse(new Response(status: 500));
-
         $this->class->setBaseUrl(self::BASE_URL);
-        $this->class->addPostRequestHandler(function(PostRequestEvent $event) {
-            $statusCode = $event->getResponse()->getStatusCode();
-
-            if ($statusCode === 500) {
-                throw new \Exception('TestMessage');
-            }
-        });
+        $this->class->addPostRequestHandler(fn() => throw new \Exception('TestMessage'));
 
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage('TestMessage');
