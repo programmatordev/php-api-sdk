@@ -2,9 +2,9 @@
 
 namespace ProgrammatorDev\Api\Test\Unit\Builder;
 
-use Http\Client\Common\Plugin\ContentLengthPlugin;
-use Http\Client\Common\Plugin\ContentTypePlugin;
+use Http\Client\Common\Plugin;
 use ProgrammatorDev\Api\Builder\ClientBuilder;
+use ProgrammatorDev\Api\Exception\PluginException;
 use ProgrammatorDev\Api\Test\AbstractTestCase;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
@@ -52,11 +52,48 @@ class ClientBuilderTest extends AbstractTestCase
 
     public function testAddPlugin()
     {
+        $plugin = $this->createMock(Plugin::class);
         $clientBuilder = new ClientBuilder();
 
-        $clientBuilder->addPlugin(new ContentTypePlugin());
-        $clientBuilder->addPlugin(new ContentLengthPlugin());
+        $clientBuilder->addPlugin($plugin, 1);
+        $clientBuilder->addPlugin($plugin, 2);
 
         $this->assertCount(2, $clientBuilder->getPlugins());
+    }
+
+    public function testAddPluginWithSamePriority()
+    {
+        $plugin = $this->createMock(Plugin::class);
+        $clientBuilder = new ClientBuilder();
+
+        $this->expectException(PluginException::class);
+        $this->expectExceptionMessage('A plugin with priority 1 already exists.');
+
+        $clientBuilder->addPlugin($plugin, 1);
+        $clientBuilder->addPlugin($plugin, 1);
+    }
+
+    public function testPluginPriorityOrder()
+    {
+        $plugin = $this->createMock(Plugin::class);
+        $clientBuilder = new ClientBuilder();
+
+        $clientBuilder->addPlugin($plugin, 1);
+        $clientBuilder->addPlugin($plugin, 3);
+        $clientBuilder->addPlugin($plugin, 2);
+
+        // calling this method triggers plugin sorting
+        $clientBuilder->getClient();
+
+        // plugins array keys are used as priority [priority => plugin]
+        // so check if order of keys (priority) is sorted
+        $this->assertSame(
+            [
+                0 => 3,
+                1 => 2,
+                2 => 1
+            ],
+            array_keys($clientBuilder->getPlugins())
+        );
     }
 }

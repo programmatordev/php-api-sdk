@@ -7,6 +7,7 @@ use Http\Client\Common\Plugin;
 use Http\Client\Common\PluginClientFactory;
 use Http\Discovery\Psr17FactoryDiscovery;
 use Http\Discovery\Psr18ClientDiscovery;
+use ProgrammatorDev\Api\Exception\PluginException;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
@@ -29,6 +30,9 @@ class ClientBuilder
 
     public function getClient(): HttpMethodsClient
     {
+        // sort plugins by priority (key) in descending order
+        \krsort($this->plugins);
+
         $pluginClientFactory = new PluginClientFactory();
         $client = $pluginClientFactory->createClient($this->client, $this->plugins);
 
@@ -70,9 +74,15 @@ class ClientBuilder
         return $this;
     }
 
-    public function addPlugin(Plugin $plugin): self
+    public function addPlugin(Plugin $plugin, int $priority): self
     {
-        $this->plugins[$plugin::class] = $plugin;
+        if (isset($this->plugins[$priority])) {
+            throw new PluginException(
+                \sprintf('A plugin with priority %d already exists.', $priority)
+            );
+        }
+
+        $this->plugins[$priority] = $plugin;
 
         return $this;
     }

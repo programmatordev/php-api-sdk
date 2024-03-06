@@ -15,7 +15,7 @@ use ProgrammatorDev\Api\Builder\Listener\CacheLoggerListener;
 use ProgrammatorDev\Api\Builder\LoggerBuilder;
 use ProgrammatorDev\Api\Event\PostRequestEvent;
 use ProgrammatorDev\Api\Event\ResponseEvent;
-use ProgrammatorDev\Api\Exception\MissingConfigException;
+use ProgrammatorDev\Api\Exception\ConfigException;
 use ProgrammatorDev\Api\Helper\StringHelperTrait;
 use ProgrammatorDev\YetAnotherPhpValidator\Exception\ValidationException;
 use ProgrammatorDev\YetAnotherPhpValidator\Validator;
@@ -50,7 +50,7 @@ class Api
     }
 
     /**
-     * @throws MissingConfigException
+     * @throws ConfigException
      * @throws Exception
      */
     protected function request(
@@ -62,17 +62,28 @@ class Api
     ): mixed
     {
         if (!$this->baseUrl) {
-            throw new MissingConfigException('A base URL must be set.');
+            throw new ConfigException('A base URL must be set.');
+        }
+
+        // merge and overwrite query defaults
+        if (!empty($this->queryDefaults)) {
+            $query = array_merge($this->queryDefaults, $query);
+        }
+
+        // merge and overwrite header defaults
+        if (!empty($this->headerDefaults)) {
+            $headers = array_merge($this->headerDefaults, $headers);
         }
 
         // help servers understand the content
-        $this->clientBuilder->addPlugin(new ContentTypePlugin());
-        $this->clientBuilder->addPlugin(new ContentLengthPlugin());
+        $this->clientBuilder->addPlugin(new ContentTypePlugin(), 40);
+        $this->clientBuilder->addPlugin(new ContentLengthPlugin(), 32);
 
         // https://docs.php-http.org/en/latest/message/authentication.html
         if ($this->authentication) {
             $this->clientBuilder->addPlugin(
-                new AuthenticationPlugin($this->authentication)
+                new AuthenticationPlugin($this->authentication),
+                24
             );
         }
 
@@ -94,7 +105,8 @@ class Api
                     $this->cacheBuilder->getPool(),
                     $this->clientBuilder->getStreamFactory(),
                     $cacheOptions
-                )
+                ),
+                16
             );
         }
 
@@ -104,18 +116,9 @@ class Api
                 new LoggerPlugin(
                     $this->loggerBuilder->getLogger(),
                     $this->loggerBuilder->getFormatter()
-                )
+                ),
+                8
             );
-        }
-
-        // merge and overwrite query defaults
-        if (!empty($this->queryDefaults)) {
-            $query = array_merge($this->queryDefaults, $query);
-        }
-
-        // merge and overwrite header defaults
-        if (!empty($this->headerDefaults)) {
-            $headers = array_merge($this->headerDefaults, $headers);
         }
 
         $uri = $this->createUri($path, $query);

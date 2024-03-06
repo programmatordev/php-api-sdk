@@ -11,7 +11,7 @@ use ProgrammatorDev\Api\Builder\ClientBuilder;
 use ProgrammatorDev\Api\Builder\LoggerBuilder;
 use ProgrammatorDev\Api\Event\PostRequestEvent;
 use ProgrammatorDev\Api\Event\ResponseEvent;
-use ProgrammatorDev\Api\Exception\MissingConfigException;
+use ProgrammatorDev\Api\Exception\ConfigException;
 use ProgrammatorDev\Api\Test\AbstractTestCase;
 use ProgrammatorDev\Api\Test\MockResponse;
 use ProgrammatorDev\YetAnotherPhpValidator\Exception\ValidationException;
@@ -148,7 +148,7 @@ class ApiTest extends AbstractTestCase
 
     public function testMissingBaseUrl()
     {
-        $this->expectException(MissingConfigException::class);
+        $this->expectException(ConfigException::class);
         $this->expectExceptionMessage('A base URL must be set.');
 
         $this->class->request(
