@@ -10,7 +10,7 @@ use ProgrammatorDev\Api\Builder\CacheBuilder;
 use ProgrammatorDev\Api\Builder\ClientBuilder;
 use ProgrammatorDev\Api\Builder\LoggerBuilder;
 use ProgrammatorDev\Api\Event\PostRequestEvent;
-use ProgrammatorDev\Api\Event\ResponseEvent;
+use ProgrammatorDev\Api\Event\ResponseContentsEvent;
 use ProgrammatorDev\Api\Exception\ConfigException;
 use ProgrammatorDev\Api\Test\AbstractTestCase;
 use ProgrammatorDev\Api\Test\MockResponse;
@@ -263,7 +263,7 @@ class ApiTest extends AbstractTestCase
         $this->mockClient->addResponse(new Response(body: MockResponse::SUCCESS));
 
         $this->class->setBaseUrl(self::BASE_URL);
-        $this->class->addResponseHandler(function(ResponseEvent $event) {
+        $this->class->addResponseHandler(function(ResponseContentsEvent $event) {
             $contents = json_decode($event->getContents(), true);
             $event->setContents($contents);
         });

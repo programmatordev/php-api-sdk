@@ -14,7 +14,7 @@ use ProgrammatorDev\Api\Builder\ClientBuilder;
 use ProgrammatorDev\Api\Builder\Listener\CacheLoggerListener;
 use ProgrammatorDev\Api\Builder\LoggerBuilder;
 use ProgrammatorDev\Api\Event\PostRequestEvent;
-use ProgrammatorDev\Api\Event\ResponseEvent;
+use ProgrammatorDev\Api\Event\ResponseContentsEvent;
 use ProgrammatorDev\Api\Exception\ConfigException;
 use ProgrammatorDev\Api\Helper\StringHelperTrait;
 use ProgrammatorDev\YetAnotherPhpValidator\Exception\ValidationException;
@@ -130,7 +130,7 @@ class Api
 
         $contents = $response->getBody()->getContents();
 
-        return $this->eventDispatcher->dispatch(new ResponseEvent($contents))->getContents();
+        return $this->eventDispatcher->dispatch(new ResponseContentsEvent($contents))->getContents();
     }
 
     protected function getBaseUrl(): ?string
@@ -240,7 +240,7 @@ class Api
 
     protected function addResponseHandler(callable $handler, int $priority = 0): self
     {
-        $this->eventDispatcher->addListener(ResponseEvent::class, $handler, $priority);
+        $this->eventDispatcher->addListener(ResponseContentsEvent::class, $handler, $priority);
 
         return $this;
     }

@@ -4,7 +4,7 @@ namespace ProgrammatorDev\Api\Event;
 
 use Symfony\Contracts\EventDispatcher\Event;
 
-class ResponseEvent extends Event
+class ResponseContentsEvent extends Event
 {
     private mixed $contents;
 
