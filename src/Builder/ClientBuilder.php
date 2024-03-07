@@ -30,9 +30,6 @@ class ClientBuilder
 
     public function getClient(): HttpMethodsClient
     {
-        // sort plugins by priority (key) in descending order
-        \krsort($this->plugins);
-
         $pluginClientFactory = new PluginClientFactory();
         $client = $pluginClientFactory->createClient($this->client, $this->plugins);
 
@@ -83,6 +80,9 @@ class ClientBuilder
         }
 
         $this->plugins[$priority] = $plugin;
+
+        // sort plugins by priority (key) in descending order
+        \krsort($this->plugins);
 
         return $this;
     }

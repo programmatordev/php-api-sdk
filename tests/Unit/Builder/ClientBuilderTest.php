@@ -56,9 +56,20 @@ class ClientBuilderTest extends AbstractTestCase
         $clientBuilder = new ClientBuilder();
 
         $clientBuilder->addPlugin($plugin, 1);
+        $clientBuilder->addPlugin($plugin, 3);
         $clientBuilder->addPlugin($plugin, 2);
 
-        $this->assertCount(2, $clientBuilder->getPlugins());
+        $this->assertCount(3, $clientBuilder->getPlugins());
+        // plugins array keys are used as priority [priority => plugin]
+        // so check if order of keys (priority) is sorted
+        $this->assertSame(
+            [
+                0 => 3,
+                1 => 2,
+                2 => 1
+            ],
+            array_keys($clientBuilder->getPlugins())
+        );
     }
 
     public function testAddPluginWithSamePriority()
@@ -71,29 +82,5 @@ class ClientBuilderTest extends AbstractTestCase
 
         $clientBuilder->addPlugin($plugin, 1);
         $clientBuilder->addPlugin($plugin, 1);
-    }
-
-    public function testPluginPriorityOrder()
-    {
-        $plugin = $this->createMock(Plugin::class);
-        $clientBuilder = new ClientBuilder();
-
-        $clientBuilder->addPlugin($plugin, 1);
-        $clientBuilder->addPlugin($plugin, 3);
-        $clientBuilder->addPlugin($plugin, 2);
-
-        // calling this method triggers plugin sorting
-        $clientBuilder->getClient();
-
-        // plugins array keys are used as priority [priority => plugin]
-        // so check if order of keys (priority) is sorted
-        $this->assertSame(
-            [
-                0 => 3,
-                1 => 2,
-                2 => 1
-            ],
-            array_keys($clientBuilder->getPlugins())
-        );
     }
 }
