@@ -20,6 +20,7 @@ use ProgrammatorDev\Api\Helper\StringHelperTrait;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\StreamInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class Api
 {
@@ -41,10 +42,13 @@ class Api
 
     private EventDispatcher $eventDispatcher;
 
+    private OptionsResolver $optionsResolver;
+
     public function __construct()
     {
         $this->clientBuilder ??= new ClientBuilder();
         $this->eventDispatcher = new EventDispatcher();
+        $this->optionsResolver = new OptionsResolver();
     }
 
     /**

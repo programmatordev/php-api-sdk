@@ -80,7 +80,6 @@ class ClientBuilder
         }
 
         $this->plugins[$priority] = $plugin;
-
         // sort plugins by priority (key) in descending order
         \krsort($this->plugins);
 
