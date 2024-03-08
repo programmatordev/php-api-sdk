@@ -7,7 +7,6 @@ use Http\Client\Common\Plugin\CachePlugin;
 use Http\Client\Common\Plugin\ContentLengthPlugin;
 use Http\Client\Common\Plugin\ContentTypePlugin;
 use Http\Client\Common\Plugin\LoggerPlugin;
-use Http\Client\Exception;
 use Http\Message\Authentication;
 use ProgrammatorDev\Api\Builder\CacheBuilder;
 use ProgrammatorDev\Api\Builder\ClientBuilder;
@@ -17,6 +16,7 @@ use ProgrammatorDev\Api\Event\PostRequestEvent;
 use ProgrammatorDev\Api\Event\ResponseContentsEvent;
 use ProgrammatorDev\Api\Exception\ConfigException;
 use ProgrammatorDev\Api\Helper\StringHelperTrait;
+use Psr\Http\Client\ClientExceptionInterface as ClientException;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\StreamInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
@@ -52,8 +52,8 @@ class Api
     }
 
     /**
-     * @throws ConfigException
-     * @throws Exception
+     * @throws ConfigException If a base URL has not been set.
+     * @throws ClientException
      */
     protected function request(
         string $method,
@@ -75,6 +75,21 @@ class Api
             $headers = array_merge($this->headerDefaults, $headers);
         }
 
+        $this->configurePlugins();
+
+        $uri = $this->buildUri($path, $query);
+        $request = $this->buildRequest($method, $uri, $headers, $body);
+        $response = $this->clientBuilder->getClient()->sendRequest($request);
+
+        $this->eventDispatcher->dispatch(new PostRequestEvent($request, $response));
+
+        $contents = $response->getBody()->getContents();
+
+        return $this->eventDispatcher->dispatch(new ResponseContentsEvent($contents))->getContents();
+    }
+
+    private function configurePlugins(): void
+    {
         // help servers understand the content
         $this->clientBuilder->addPlugin(new ContentTypePlugin(), 40);
         $this->clientBuilder->addPlugin(new ContentLengthPlugin(), 32);
@@ -120,17 +135,6 @@ class Api
                 8
             );
         }
-
-        $uri = $this->buildUri($path, $query);
-        $request = $this->createRequest($method, $uri, $headers, $body);
-
-        $response = $this->clientBuilder->getClient()->sendRequest($request);
-
-        $this->eventDispatcher->dispatch(new PostRequestEvent($request, $response));
-
-        $contents = $response->getBody()->getContents();
-
-        return $this->eventDispatcher->dispatch(new ResponseContentsEvent($contents))->getContents();
     }
 
     protected function getBaseUrl(): ?string
@@ -269,7 +273,7 @@ class Api
         return $uri;
     }
 
-    private function createRequest(
+    private function buildRequest(
         string $method,
         string $uri,
         array $headers = [],
