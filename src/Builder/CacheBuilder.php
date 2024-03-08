@@ -2,6 +2,7 @@
 
 namespace ProgrammatorDev\Api\Builder;
 
+use ProgrammatorDev\Api\Method;
 use Psr\Cache\CacheItemPoolInterface;
 
 class CacheBuilder
@@ -9,7 +10,7 @@ class CacheBuilder
     public function __construct(
         private CacheItemPoolInterface $pool,
         private ?int $ttl = 60,
-        private array $methods = ['GET', 'HEAD'],
+        private array $methods = [Method::GET, Method::HEAD],
         private array $responseCacheDirectives = ['no-cache', 'max-age']
     ) {}
 
