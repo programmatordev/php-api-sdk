@@ -84,14 +84,14 @@ class Api
         $this->eventDispatcher->dispatch(new PostRequestEvent($request, $response));
 
         $contents = $response->getBody()->getContents();
-
         return $this->eventDispatcher->dispatch(new ResponseContentsEvent($contents))->getContents();
     }
 
     private function configurePlugins(): void
     {
-        // help servers understand the content
+        // https://docs.php-http.org/en/latest/plugins/content-type.html
         $this->clientBuilder->addPlugin(new ContentTypePlugin(), 40);
+        // https://docs.php-http.org/en/latest/plugins/content-length.html
         $this->clientBuilder->addPlugin(new ContentLengthPlugin(), 32);
 
         // https://docs.php-http.org/en/latest/message/authentication.html
