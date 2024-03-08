@@ -91,6 +91,7 @@ class Api
     {
         // https://docs.php-http.org/en/latest/plugins/content-type.html
         $this->clientBuilder->addPlugin(new ContentTypePlugin(), 40);
+
         // https://docs.php-http.org/en/latest/plugins/content-length.html
         $this->clientBuilder->addPlugin(new ContentLengthPlugin(), 32);
 
