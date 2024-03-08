@@ -102,6 +102,11 @@ class ApiTest extends AbstractTestCase
             {
                 return parent::addResponseHandler($handler, $priority);
             }
+
+            public function buildPath(string $path, array $parameters): string
+            {
+                return parent::buildPath($path, $parameters);
+            }
         };
 
         // set mock client
@@ -272,5 +277,15 @@ class ApiTest extends AbstractTestCase
         );
 
         $this->assertIsArray($response);
+    }
+
+    public function testBuildPath()
+    {
+        $path = $this->class->buildPath('/path/{parameter1}/multiple/{parameter2}', [
+            'parameter1' => 'with',
+            'parameter2' => 'parameters'
+        ]);
+
+        $this->assertSame('/path/with/multiple/parameters', $path);
     }
 }

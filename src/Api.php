@@ -67,12 +67,10 @@ class Api
             throw new ConfigException('A base URL must be set.');
         }
 
-        // merge and overwrite query defaults
         if (!empty($this->queryDefaults)) {
             $query = array_merge($this->queryDefaults, $query);
         }
 
-        // merge and overwrite header defaults
         if (!empty($this->headerDefaults)) {
             $headers = array_merge($this->headerDefaults, $headers);
         }
@@ -123,7 +121,7 @@ class Api
             );
         }
 
-        $uri = $this->createUri($path, $query);
+        $uri = $this->buildUri($path, $query);
         $request = $this->createRequest($method, $uri, $headers, $body);
 
         $response = $this->clientBuilder->getClient()->sendRequest($request);
@@ -247,6 +245,30 @@ class Api
         return $this;
     }
 
+    protected function buildPath(string $path, array $parameters): string
+    {
+        foreach ($parameters as $parameter => $value) {
+            $path = \str_replace(
+                \sprintf('{%s}', $parameter),
+                $value,
+                $path
+            );
+        }
+
+        return $path;
+    }
+
+    private function buildUri(string $path, array $query = []): string
+    {
+        $uri = $this->reduceDuplicateSlashes($this->baseUrl . $path);
+
+        if (!empty($query)) {
+            $uri = \sprintf('%s?%s', $uri, \http_build_query($query));
+        }
+
+        return $uri;
+    }
+
     private function createRequest(
         string $method,
         string $uri,
@@ -267,16 +289,5 @@ class Api
         }
 
         return $request;
-    }
-
-    private function createUri(string $path, array $query = []): string
-    {
-        $uri = $this->reduceDuplicateSlashes($this->baseUrl . $path);
-
-        if (!empty($query)) {
-            $uri = \sprintf('%s?%s', $uri, \http_build_query($query));
-        }
-
-        return $uri;
     }
 }
