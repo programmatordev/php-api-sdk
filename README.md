@@ -33,28 +33,29 @@ require_once 'vendor/autoload.php';
 
 ## Basic Usage
 
-Simple usage looks like:
+Just extend your API library with the `Api` class and have fun coding:
 
 ```php
 use ProgrammatorDev\Api\Api;
-use ProgrammatorDev\Api\Method;
 
-class PokeApi extends Api
+class YourApi extends Api
 {
     public function __construct() 
     {
         parent::__construct();
         
-        $this->setBaseUrl('https://pokeapi.co/api/v2');
+        // minimum required config
+        $this->setBaseUrl('https://api.example.com/v1');
     }
     
-    public function getPokemon(int|string $idOrName): string
+    public function getRecords(int $page = 1): string
     {
         return $this->request(
-            method: Method::GET,
-            path: $this->buildPath('/pokemon/{idOrName}', [
-                'idOrName' => $idOrName
-            ])
+            method: 'GET',
+            path: '/records',
+            query: [
+               'page' => $page
+            ]       
         );
     }
 }
