@@ -98,9 +98,9 @@ class ApiTest extends AbstractTestCase
                 return parent::addPostRequestHandler($handler, $priority);
             }
 
-            public function addResponseHandler(callable $handler, int $priority = 0): Api
+            public function addResponseContentsHandler(callable $handler, int $priority = 0): Api
             {
-                return parent::addResponseHandler($handler, $priority);
+                return parent::addResponseContentsHandler($handler, $priority);
             }
 
             public function buildPath(string $path, array $parameters): string
@@ -266,7 +266,7 @@ class ApiTest extends AbstractTestCase
         $this->mockClient->addResponse(new Response(body: MockResponse::SUCCESS));
 
         $this->class->setBaseUrl(self::BASE_URL);
-        $this->class->addResponseHandler(function(ResponseContentsEvent $event) {
+        $this->class->addResponseContentsHandler(function(ResponseContentsEvent $event) {
             $contents = json_decode($event->getContents(), true);
             $event->setContents($contents);
         });

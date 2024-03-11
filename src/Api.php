@@ -68,11 +68,11 @@ class Api
         }
 
         if (!empty($this->queryDefaults)) {
-            $query = array_merge($this->queryDefaults, $query);
+            $query = \array_merge($this->queryDefaults, $query);
         }
 
         if (!empty($this->headerDefaults)) {
-            $headers = array_merge($this->headerDefaults, $headers);
+            $headers = \array_merge($this->headerDefaults, $headers);
         }
 
         $this->configurePlugins();
@@ -243,7 +243,7 @@ class Api
         return $this;
     }
 
-    protected function addResponseHandler(callable $handler, int $priority = 0): self
+    protected function addResponseContentsHandler(callable $handler, int $priority = 0): self
     {
         $this->eventDispatcher->addListener(ResponseContentsEvent::class, $handler, $priority);
 
