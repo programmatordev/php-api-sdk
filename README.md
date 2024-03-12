@@ -72,28 +72,27 @@ Getter and setter for the base URL.
 Base URL is the common part of the API URL and will be used in all requests.
 
 ```php
-$this->getBaseUrl(): string
-```
-
-```php
 $this->setBaseUrl(string $baseUrl): self
 ```
 
-For example, if you have an endpoint https://api.example.com/v1/users, then https://api.example.com/v1 is the base URL:
-
 ```php
-$this->setBaseUrl('https://api.example.com/v1');
-$baseUrl = $this->getBaseUrl(); // returns "https://api.exampel.com/v1";
+$this->getBaseUrl(): string
 ```
 
 ### Requests
 
-This method is used to send a request to an API. 
-It takes an HTTP `method` (like GET or POST), a `path` (the API endpoint), an array of `query` parameters, 
-an array of `headers`, and a `body` as arguments.
+This method is used to send a request to an API.
 
 ```php
-$this->request(string $method, string $path, array $query [], array $headers = [], StreamInterface|string $body = null): mixed
+use Psr\Http\Message\StreamInterface;
+
+$this->request(
+    string $method, 
+    string $path, 
+    array $query [], 
+    array $headers = [], 
+    StreamInterface|string $body = null
+): mixed
 ```
 
 > [!NOTE]
@@ -137,7 +136,7 @@ By default, this method will return a `string` as it will be the response of the
 If you want to change how the response is handled in all requests (for example, decode a JSON string into an array), 
 check the [`addResponseContentsHandler`]() method in the [Events]() section.
 
-## Query Defaults
+### Query Defaults
 
 These methods are used for handling default query parameters. 
 Default query parameters are applied to every API request.
@@ -154,7 +153,7 @@ $this->getQueryDefault(string $name): mixed
 $this->removeQueryDefault(string $name): self
 ```
 
-For example, if you want to add a language parameter on all requests:
+For example, if you want to add a language query parameter in all requests:
 
 ```php
 use ProgrammatorDev\Api\Api;
@@ -196,6 +195,123 @@ class YourApi extends Api
 > [!NOTE]
 > A `query` parameter with the same name, passed in the `request` method, will overwrite a query default.
 > Check the `getCategories` method in the example above.
+
+### Header Defaults
+
+These methods are used for handling default headers.
+Default headers are applied to every API request.
+
+```php
+$this->addHeaderDefault(string $name, mixed $value): self
+```
+
+```php
+$this->getHeaderDefault(string $name): mixed
+```
+
+```php
+$this->removeHeaderDefault(string $name): self
+```
+
+For example, if you want to add a language header value in all requests:
+
+```php
+use ProgrammatorDev\Api\Api;
+
+class YourApi extends Api
+{
+    public function __construct(string $language = 'en') 
+    {
+        parent::__construct();
+        
+        $this->setBaseUrl('https://api.example.com/v1');
+        $this->addHeaderDefault('X-LANGUAGE', $language);
+    }
+    
+    public function getPosts(): string
+    {
+        // GET https://api.example.com/v1/posts with an 'X-LANGUAGE' => 'en' header value
+        return $this->request(
+            method: 'GET',
+            path: '/posts'
+        );
+    }
+    
+    public function getCategories(): string
+    {
+        // a header with the same name, passed in the request method, will overwrite a header default
+        // GET https://api.example.com/v1/categories with an 'X-LANGUAGE' => 'pt' header value
+        return $this->request(
+            method: 'GET',
+            path: '/categories',
+            headers: [
+                'X-LANGUAGE' => 'pt'
+            ]
+        );
+    }
+}
+```
+
+> [!NOTE]
+> A header with the same name, passed in the `request` method, will overwrite a header default.
+> Check the `getCategories` method in the example above.
+
+### Authentication
+
+Getter and setter for API authentication. 
+Uses the [authentication component](https://docs.php-http.org/en/latest/message/authentication.html) from [PHP HTTP](https://docs.php-http.org/en/latest/index.html).
+
+```php
+use Http\Message\Authentication;
+
+$this->setAuthentication(?Authentication $authentication): self;
+```
+
+```php
+use Http\Message\Authentication;
+
+$this->getAuthentication(): ?Authentication;
+```
+
+Available authentication methods:
+- [`BasicAuth`](https://docs.php-http.org/en/latest/message/authentication.html#id1) Username and password
+- [`Bearer`](https://docs.php-http.org/en/latest/message/authentication.html#bearer) Token
+- [`Wsse`](https://docs.php-http.org/en/latest/message/authentication.html#id2) Username and password
+- [`QueryParam`](https://docs.php-http.org/en/latest/message/authentication.html#query-params) Array of query parameter values
+- [`Header`](https://docs.php-http.org/en/latest/message/authentication.html#header) Header name and value
+- [`Chain`](https://docs.php-http.org/en/latest/message/authentication.html#chain) Array of authentication instances
+- `RequestConditional` A request matcher and authentication instances
+
+You can also [implement your own](https://docs.php-http.org/en/latest/message/authentication.html#implement-your-own) authentication method.
+
+For example, if you have an API that is authenticated through a query parameter:
+
+```php
+use ProgrammatorDev\Api\Api;
+use Http\Message\Authentication\QueryParam;
+
+class YourApi extends Api
+{
+    public function __construct(string $applicationKey) 
+    {
+        parent::__construct();
+        
+        $this->setBaseUrl('https://api.example.com/v1');
+        $this->setAuthentication(
+            new QueryParam(['api_key' => $applicationKey])
+        );
+    }
+    
+    public function getPosts(): string
+    {
+        // GET https://api.example.com/v1/posts?api_key=cd982h3diwh98dd23d32j
+        return $this->request(
+            method: 'GET',
+            path: '/posts'
+        );
+    }
+}
+```
 
 ## Contributing
 
