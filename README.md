@@ -10,7 +10,7 @@ A library for creating SDKs in PHP with support for:
 - [PSR-6 caches](https://www.php-fig.org/psr/psr-6);
 - [PSR-3 logs](https://www.php-fig.org/psr/psr-3);
 - Authentication;
-- Event Listeners;
+- Event listeners;
 - ...and more.
 
 ## Requirements
@@ -311,9 +311,13 @@ class YourApi extends Api
 }
 ```
 
-### Events Listeners
+### Event Listeners
 
 Currently, there are two event listeners available:
+- [`addPostRequestHandler`](#addpostrequesthandler)
+- [`addResponseContentsHandler`](#addresponsecontentshandler)
+
+#### `addPostRequestHandler`
 
 The `addPostRequestHandler` method is used to add a handler function that is executed after a request has been made. 
 This handler function can be used to inspect the request and response data that was sent to, and received from, the API.
@@ -354,6 +358,8 @@ class YourApi extends Api
     // ...
 }
 ```
+
+#### `addResponseContentsHandler`
 
 On the other hand, the `addResponseContentsHandler` method is used to manipulate the response that was received from the API.
 This event listener will be applied to every API request.
