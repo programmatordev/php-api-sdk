@@ -10,7 +10,7 @@ A library for creating SDKs in PHP with support for:
 - [PSR-6 caches](https://www.php-fig.org/psr/psr-6);
 - [PSR-3 logs](https://www.php-fig.org/psr/psr-3);
 - Authentication;
-- Events;
+- Event Listeners;
 - ...and more.
 
 ## Requirements
@@ -284,7 +284,7 @@ Available authentication methods:
 
 You can also [implement your own](https://docs.php-http.org/en/latest/message/authentication.html#implement-your-own) authentication method.
 
-For example, if you have an API that is authenticated through a query parameter:
+For example, if you have an API that is authenticated with a query parameter:
 
 ```php
 use ProgrammatorDev\Api\Api;
@@ -297,14 +297,94 @@ class YourApi extends Api
         parent::__construct();
         
         $this->setBaseUrl('https://api.example.com/v1');
-        $this->setAuthentication(
-            new QueryParam(['api_key' => $applicationKey])
-        );
+        $this->setAuthentication(new QueryParam(['api_token' => $applicationKey]));
     }
     
     public function getPosts(): string
     {
-        // GET https://api.example.com/v1/posts?api_key=cd982h3diwh98dd23d32j
+        // GET https://api.example.com/v1/posts?api_token=cd982h3diwh98dd23d32j
+        return $this->request(
+            method: 'GET',
+            path: '/posts'
+        );
+    }
+}
+```
+
+### Events Listeners
+
+Currently, there are two event listeners available:
+
+The `addPostRequestHandler` method is used to add a handler function that is executed after a request has been made. 
+This handler function can be used to inspect the request and response data that was sent to, and received from, the API.
+This event listener will be applied to every API request.
+
+```php
+$this->addPostRequestHandler(callable $handler, int $priority = 0): self;
+```
+
+For example, you can use this event listener to handle API errors:
+
+```php
+use ProgrammatorDev\Api\Api;
+use ProgrammatorDev\Api\Event\PostRequestEvent;
+
+class YourApi extends Api
+{
+    public function __construct() 
+    {
+        // ...
+        
+        $this->addPostRequestHandler(function(PostRequestEvent $event) {
+            $response = $event->getResponse();
+            $statusCode = $response->getStatusCode();
+            
+            // if there was a response with an error status code
+            if ($statusCode >= 400) {
+                // throw an exception
+                match ($statusCode) {
+                    400 => throw new BadRequestException(),
+                    404 => throw new NotFoundException(),
+                    default => throw new UnexpectedErrorException()
+                };
+            }
+        });
+    }
+    
+    // ...
+}
+```
+
+On the other hand, the `addResponseContentsHandler` method is used to manipulate the response that was received from the API.
+This event listener will be applied to every API request.
+
+```php
+$this->addResponseContentsHandler(callable $handler, int $priority = 0): self;
+```
+
+For example, if the API responses are JSON strings, you can use this event listener to decode them into arrays:
+
+```php
+use ProgrammatorDev\Api\Api;
+use ProgrammatorDev\Api\Event\ResponseContentsEvent;
+
+class YourApi extends Api
+{
+    public function __construct() 
+    {
+        // ...
+        
+        $this->addResponseContentsHandler(function(ResponseContentsEvent $event) {
+            // get response contents and decode json string into an array
+            $contents = json_decode($event->getContents(), true);
+            // set new handled contents
+            $event->setContents($contents);
+        });
+    }
+    
+    public function getPosts(): array
+    {
+        // will return an array
         return $this->request(
             method: 'GET',
             path: '/posts'
