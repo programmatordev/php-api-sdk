@@ -61,7 +61,7 @@ class YourApi extends Api
 }
 ```
 
-## Protected Methods
+## Documentation
 
 Methods available only to developers of the API SDK, for configuration and validation of data.
 End users have no access to these methods.
@@ -80,6 +80,11 @@ $this->getBaseUrl(): string
 ```
 
 ### Requests
+
+- [`request`](#request)
+- [`buildPath`](#buildpath)
+
+#### `request`
 
 This method is used to send a request to an API.
 
@@ -134,7 +139,42 @@ class YourApi extends Api
 
 By default, this method will return a `string` as it will be the response of the request as is.
 If you want to change how the response is handled in all requests (for example, decode a JSON string into an array), 
-check the [`addResponseContentsHandler`]() method in the [Events]() section.
+check the [`addResponseContentsHandler`](#addresponsecontentshandler) method in the [Event Listeners](#event-listeners) section.
+
+#### `buildPath`
+
+The purpose of this method is to have an easy way to build a properly formatted path URL depending on the inputs or parameters you might have.
+
+```php
+$this->buildPath(string $path, array $parameters): string;
+```
+
+For example, if you want to build a path that has a dynamic id:
+
+```php
+use ProgrammatorDev\Api\Api;
+
+class YourApi extends Api
+{
+    public function __construct() 
+    {
+        parent::__construct();
+        
+        $this->setBaseUrl('https://api.example.com/v1');
+    }
+    
+    public function getPostComments(int $postId): string
+    {
+        // GET https://api.example.com/v1/posts/1/comments
+        return $this->request(
+            method: 'GET',
+            path: $this->buildPath('/posts/{postId}/comments', [
+                'postId' => $postId
+            ])
+        );
+    }
+}
+```
 
 ### Query Defaults
 
@@ -313,7 +353,6 @@ class YourApi extends Api
 
 ### Event Listeners
 
-Currently, there are two event listeners available:
 - [`addPostRequestHandler`](#addpostrequesthandler)
 - [`addResponseContentsHandler`](#addresponsecontentshandler)
 
@@ -339,7 +378,9 @@ class YourApi extends Api
     {
         // ...
         
+        // a PostRequestEvent is passed as an argument
         $this->addPostRequestHandler(function(PostRequestEvent $event) {
+            // $event->getRequest() is also available
             $response = $event->getResponse();
             $statusCode = $response->getStatusCode();
             
@@ -380,10 +421,13 @@ class YourApi extends Api
     {
         // ...
         
+        // a ResponseContentsEvent is passed as an argument
         $this->addResponseContentsHandler(function(ResponseContentsEvent $event) {
             // get response contents and decode json string into an array
-            $contents = json_decode($event->getContents(), true);
-            // set new handled contents
+            $contents = $event->getContents();
+            $contents = json_decode($contents, true);
+            
+            // set handled contents
             $event->setContents($contents);
         });
     }
