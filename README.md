@@ -63,9 +63,6 @@ class YourApi extends Api
 
 ## Documentation
 
-Methods available only to developers of the API SDK, for configuration and validation of data.
-End users have no access to these methods.
-
 ### Base URL
 
 Getter and setter for the base URL. 
@@ -441,6 +438,142 @@ class YourApi extends Api
         );
     }
 }
+```
+
+### HTTP Client (PSR-18) and HTTP Factories (PSR-17)
+
+> [!IMPORTANT]  
+> The methods in this section are all public.
+> The purpose for that is to allow the end user to configure their own HTTP client, HTTP factories and plugins.
+
+- [HTTP client and HTTP factories adapters](#http-client-and-http-factories-adapters)
+- [Plugin system](#plugin-system)
+
+#### HTTP Client and HTTP Factories Adapters
+
+By default, this library makes use of the [HTTPlug's Discovery](https://github.com/php-http/discovery) library.
+This means that it will automatically find and install a well-known PSR-18 client and PSR-17 factory implementation for you 
+(if they were not found on your project):
+- [PSR-18 compatible implementations](https://packagist.org/providers/psr/http-client-implementation)
+- [PSR-17 compatible implementations](https://packagist.org/providers/psr/http-factory-implementation)
+
+```php
+use ProgrammatorDev\Api\Builder\ClientBuilder;
+
+new ClientBuilder(
+    ?ClientInterface $client = null,
+    ?RequestFactoryInterface $requestFactory = null,
+    ?StreamFactoryInterface $streamFactory = null
+);
+```
+
+```php
+use ProgrammatorDev\Api\Builder\ClientBuilder;
+
+$this->setClientBuilder(ClientBuilder $clientBuilder): ClientBuilder;
+```
+
+```php
+use ProgrammatorDev\Api\Builder\ClientBuilder;
+
+$this->getClientBuilder(): ClientBuilder;
+```
+
+If you don't want to rely on the discovery of implementations, you can set the ones you want:
+
+```php
+use ProgrammatorDev\Api\Api;
+use ProgrammatorDev\Api\Builder\ClientBuilder;
+use Symfony\Component\HttpClient\Psr18Client;
+use Nyholm\Psr7\Factory\Psr17Factory;
+
+class YourApi extends Api
+{
+    public function __construct() 
+    {
+        // ...
+        
+        $client = new Psr18Client();
+        $requestFactory = $streamFactory = new Psr17Factory();
+        
+        $this->setClientBuilder(new ClientBuilder($client, $requestFactory, $streamFactory));
+    }
+}
+```
+
+The same for the end user:
+
+```php
+$api = new YourApi();
+
+$client = new Psr18Client();
+$requestFactory = $streamFactory = new Psr17Factory();
+
+$api->setClientBuilder(new ClientBuilder($client, $requestFactory, $streamFactory));
+```
+
+#### Plugin System
+
+This library enables attaching plugins to the HTTP client. 
+A plugin modifies the behavior of the client by intercepting the request and response flow. 
+
+Since plugin order matters, a plugin is added with a priority level, 
+and are executed in descending order from highest to lowest.
+
+Check all the [available plugins](https://docs.php-http.org/en/latest/plugins/index.html) or [create your own](https://docs.php-http.org/en/latest/plugins/build-your-own.html).
+
+```php
+use Http\Client\Common\Plugin;
+
+$this->getClientBuilder()->addPlugin(Plugin $plugin, int $priority): self;
+```
+
+> [!NOTE]
+> A `PluginException` will be thrown if there is a plugin with the same `priority` level.
+
+It is important to know that this library already uses various plugins with different priorities.
+The following list has all the implemented plugins with the respective priority in descending order (remember that order matters):
+
+- [`ContentTypePlugin`](https://docs.php-http.org/en/latest/plugins/content-type.html): `40`
+- [`ContentLengthPlugin`](https://docs.php-http.org/en/latest/plugins/content-length.html): `32`
+- [`AuthenticationPlugin`](https://docs.php-http.org/en/latest/plugins/authentication.html): `24` (only if authentication is enabled)
+- [`CachePlugin`](https://docs.php-http.org/en/latest/plugins/cache.html): `16` (only if cache is enabled)
+- [`LoggerPlugin`](https://docs.php-http.org/en/latest/plugins/logger.html): `8` (only if logger is enabled)
+
+For example, if you wanted the client to automatically attempt to re-send a request that failed
+(due to unreliable connections and servers, for example)
+you can add the [RetryPlugin](https://docs.php-http.org/en/latest/plugins/retry.html);
+
+```php
+use ProgrammatorDev\Api\Api;
+use Http\Client\Common\Plugin\RetryPlugin;
+
+class YourApi extends Api
+{
+    public function __construct() 
+    {
+        // ...
+        
+        // if a request fails, it will retry at least 3 times
+        // priority is 12 to execute the plugin between the cache and logger plugins
+        // (check the above plugin order for more information)
+        $this->getClientBuilder()->addPlugin(
+            plugin: new RetryPlugin(['retries' => 3])
+            priority: 12
+        );
+    }
+}
+```
+
+The same for the end user:
+
+```php
+$api = new YourApi();
+
+$api->getClientBuilder()->addPlugin(
+    plugin: new RetryPlugin(['retries' => 3])
+    priority: 12
+);
 ```
 
 ## Contributing

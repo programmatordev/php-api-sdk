@@ -20,7 +20,9 @@
         "php-http/message": "^1.16",
         "psr/cache": "^2.0 || ^3.0",
         "psr/http-client": "^1.0",
+        "psr/http-client-implementation": "*",
         "psr/http-factory": "^1.0",
+        "psr/http-factory-implementation": "*",
         "psr/log": "^2.0 || ^3.0",
         "symfony/event-dispatcher": "^6.4",
         "symfony/options-resolver": "^6.4"
