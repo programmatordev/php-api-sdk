@@ -48,11 +48,12 @@ class YourApi extends Api
         $this->setBaseUrl('https://api.example.com/v1');
     }
     
-    public function getRecords(int $page = 1): string
+    public function getPosts(int $page = 1): string
     {
+        // GET https://api.example.com/v1/posts?page=1
         return $this->request(
             method: 'GET',
-            path: '/records',
+            path: '/posts',
             query: [
                'page' => $page
             ]
@@ -461,9 +462,12 @@ This means that it will automatically find and install a well-known PSR-18 clien
 use ProgrammatorDev\Api\Builder\ClientBuilder;
 
 new ClientBuilder(
-    ?ClientInterface $client = null, // a PSR-18 client
-    ?RequestFactoryInterface $requestFactory = null, // a PSR-17 request factory
-    ?StreamFactoryInterface $streamFactory = null // a PSR-17 stream factory
+    // a PSR-18 client
+    ?ClientInterface $client = null,
+    // a PSR-17 request factory
+    ?RequestFactoryInterface $requestFactory = null,
+    // a PSR-17 stream factory
+    ?StreamFactoryInterface $streamFactory = null
 );
 ```
 
@@ -498,7 +502,11 @@ class YourApi extends Api
         $requestFactory = $streamFactory = new Psr17Factory();
         
         $this->setClientBuilder(
-            new ClientBuilder($client, $requestFactory, $streamFactory)
+            new ClientBuilder(
+                client: $client, 
+                requestFactory: $requestFactory, 
+                streamFactory: $streamFactory
+            )
         );
     }
 }
@@ -513,7 +521,11 @@ $client = new Psr18Client();
 $requestFactory = $streamFactory = new Psr17Factory();
 
 $api->setClientBuilder(
-    new ClientBuilder($client, $requestFactory, $streamFactory)
+    new ClientBuilder(
+        client: $client, 
+        requestFactory: $requestFactory, 
+        streamFactory: $streamFactory
+    )
 );
 ```
 
@@ -587,7 +599,7 @@ $api->getClientBuilder()->addPlugin(
 > The methods in this section are all public.
 > The purpose for that is to allow the end user to configure their own cache adapter.
 
-This library allows configuring the cache-layer of the client for making API requests. 
+This library allows configuring the cache layer of the client for making API requests. 
 It uses a standard PSR-6 implementation and provides methods to fine-tune how HTTP caching behaves:
 - [PSR-6 compatible implementations](https://packagist.org/providers/psr/cache-implementation)
 
@@ -596,10 +608,15 @@ use ProgrammatorDev\Api\Builder\CacheBuilder;
 use Psr\Cache\CacheItemPoolInterface;
 
 new CacheBuilder(
-    CacheItemPoolInterface $pool, // a PSR-6 cache adapter
-    ?int $ttl = 60, // default lifetime (in seconds) of cache items
-    $methods = ['GET', 'HEAD'], // An array of HTTP methods for which caching should be applied
-    $responseCacheDirectives = ['no-cache', 'max-age'] // An array of cache directives to be compared with the headers of the HTTP response, in order to determine cacheability
+    // a PSR-6 cache adapter
+    CacheItemPoolInterface $pool,
+    // default lifetime (in seconds) of cache items
+    ?int $ttl = 60,
+    // An array of HTTP methods for which caching should be applied
+    $methods = ['GET', 'HEAD'],
+    // An array of cache directives to be compared with the headers of the HTTP response,
+    // in order to determine cacheability
+    $responseCacheDirectives = ['no-cache', 'max-age'] 
 );
 ```
 
@@ -632,7 +649,10 @@ class YourApi extends Api
         
         // file-based cache adapter with a 1-hour default cache lifetime
         $this->setClientBuilder(
-            new CacheBuilder($pool, 3600)
+            new CacheBuilder(
+                pool: $pool, 
+                ttl: 3600
+            )
         );
     }
     
@@ -658,7 +678,88 @@ $api = new YourApi();
 $pool = new FilesystemAdapter();
 
 $api->setCacheBuilder(
-    new CacheBuilder($pool, 3600)
+    new CacheBuilder(
+        pool: $pool, 
+        ttl: 3600
+    )
+);
+```
+
+### Logger (PSR-3)
+
+> [!IMPORTANT]  
+> The methods in this section are all public.
+> The purpose for that is to allow the end user to configure their own logger adapter.
+
+This library allows configuring a logger to save data for making API requests.
+It uses a standard PSR-3 implementation and provides methods to fine-tune how logging behaves:
+- [PSR-3 compatible implementations](https://packagist.org/providers/psr/log-implementation)
+
+```php
+use ProgrammatorDev\Api\Builder\LoggerBuilder;
+use Psr\Log\LoggerInterface;
+use Http\Message\Formatter;
+use Http\Message\Formatter\SimpleFormatter;
+
+new LoggerBuilder(
+    // a PSR-3 logger adapter
+    LoggerInterface $logger,
+     // determines how the log entries will be formatted when they are written by the logger
+     // if no formatter is provided, it will default to a SimpleFormatter instance
+    ?Formatter $formatter = null
+);
+```
+
+```php
+use ProgrammatorDev\Api\Builder\LoggerBuilder;
+
+$this->setLoggerBuilder(LoggerBuilder $loggerBuilder): self;
+```
+
+```php
+use ProgrammatorDev\Api\Builder\LoggerBuilder;
+
+$this->getLoggerBuilder(): LoggerBuilder;
+```
+
+As an example:
+
+```php
+use ProgrammatorDev\Api\Api;
+use ProgrammatorDev\Api\Builder\LoggerBuilder;
+use Monolog\Logger;
+use Monolog\Handler\StreamHandler;
+
+class YourApi extends Api
+{
+    public function __construct() 
+    {
+        // ...
+        
+        $logger = new Logger('api');
+        $logger->pushHandler(new StreamHandler('/logs/api.log'));
+        
+        $this->setClientBuilder(
+            new LoggerBuilder(
+                logger: $logger
+            )
+        );
+    }
+}
+```
+
+The same for the end user:
+
+```php
+$api = new YourApi();
+
+$logger = new Logger('api');
+$logger->pushHandler(new StreamHandler('/logs/api.log'));
+
+$api->setClientBuilder(
+    new LoggerBuilder(
+        logger: $logger
+    )
 );
 ```
 
