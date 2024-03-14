@@ -446,10 +446,10 @@ class YourApi extends Api
 > The methods in this section are all public.
 > The purpose for that is to allow the end user to configure their own HTTP client, HTTP factories and plugins.
 
-- [HTTP client and HTTP factories adapters](#http-client-and-http-factories-adapters)
+- [HTTP client and HTTP factory adapters](#http-client-and-http-factory-adapters)
 - [Plugin system](#plugin-system)
 
-#### HTTP Client and HTTP Factories Adapters
+#### HTTP Client and HTTP Factory Adapters
 
 By default, this library makes use of the [HTTPlug's Discovery](https://github.com/php-http/discovery) library.
 This means that it will automatically find and install a well-known PSR-18 client and PSR-17 factory implementation for you 
@@ -461,16 +461,16 @@ This means that it will automatically find and install a well-known PSR-18 clien
 use ProgrammatorDev\Api\Builder\ClientBuilder;
 
 new ClientBuilder(
-    ?ClientInterface $client = null,
-    ?RequestFactoryInterface $requestFactory = null,
-    ?StreamFactoryInterface $streamFactory = null
+    ?ClientInterface $client = null, // a PSR-18 client
+    ?RequestFactoryInterface $requestFactory = null, // a PSR-17 request factory
+    ?StreamFactoryInterface $streamFactory = null // a PSR-17 stream factory
 );
 ```
 
 ```php
 use ProgrammatorDev\Api\Builder\ClientBuilder;
 
-$this->setClientBuilder(ClientBuilder $clientBuilder): ClientBuilder;
+$this->setClientBuilder(ClientBuilder $clientBuilder): self;
 ```
 
 ```php
@@ -484,6 +484,7 @@ If you don't want to rely on the discovery of implementations, you can set the o
 ```php
 use ProgrammatorDev\Api\Api;
 use ProgrammatorDev\Api\Builder\ClientBuilder;
+use Http\Client\Common\EmulatedHttpAsyncClient
 use Symfony\Component\HttpClient\Psr18Client;
 use Nyholm\Psr7\Factory\Psr17Factory;
 
@@ -496,7 +497,9 @@ class YourApi extends Api
         $client = new Psr18Client();
         $requestFactory = $streamFactory = new Psr17Factory();
         
-        $this->setClientBuilder(new ClientBuilder($client, $requestFactory, $streamFactory));
+        $this->setClientBuilder(
+            new ClientBuilder($client, $requestFactory, $streamFactory)
+        );
     }
 }
 ```
@@ -509,7 +512,9 @@ $api = new YourApi();
 $client = new Psr18Client();
 $requestFactory = $streamFactory = new Psr17Factory();
 
-$api->setClientBuilder(new ClientBuilder($client, $requestFactory, $streamFactory));
+$api->setClientBuilder(
+    new ClientBuilder($client, $requestFactory, $streamFactory)
+);
 ```
 
 #### Plugin System
@@ -556,7 +561,7 @@ class YourApi extends Api
         
         // if a request fails, it will retry at least 3 times
         // priority is 12 to execute the plugin between the cache and logger plugins
-        // (check the above plugin order for more information)
+        // (check the above plugin order list  for more information)
         $this->getClientBuilder()->addPlugin(
             plugin: new RetryPlugin(['retries' => 3])
             priority: 12
@@ -575,6 +580,91 @@ $api->getClientBuilder()->addPlugin(
     priority: 12
 );
 ```
+
+### Cache (PSR-6)
+
+> [!IMPORTANT]  
+> The methods in this section are all public.
+> The purpose for that is to allow the end user to configure their own cache adapter.
+
+This library allows configuring the cache-layer of the client for making API requests. 
+It uses a standard PSR-6 implementation and provides methods to fine-tune how HTTP caching behaves:
+- [PSR-6 compatible implementations](https://packagist.org/providers/psr/cache-implementation)
+
+```php
+use ProgrammatorDev\Api\Builder\CacheBuilder;
+use Psr\Cache\CacheItemPoolInterface;
+
+new CacheBuilder(
+    CacheItemPoolInterface $pool, // a PSR-6 cache adapter
+    ?int $ttl = 60, // default lifetime (in seconds) of cache items
+    $methods = ['GET', 'HEAD'], // An array of HTTP methods for which caching should be applied
+    $responseCacheDirectives = ['no-cache', 'max-age'] // An array of cache directives to be compared with the headers of the HTTP response, in order to determine cacheability
+);
+```
+
+```php
+use ProgrammatorDev\Api\Builder\CacheBuilder;
+
+$this->setCacheBuilder(CacheBuilder $cacheBuilder): self;
+```
+
+```php
+use ProgrammatorDev\Api\Builder\CacheBuilder;
+
+$this->getCacheBuilder(): CacheBuilder;
+```
+
+For example, if you wanted to set a file-based cache adapter:
+
+```php
+use ProgrammatorDev\Api\Api;
+use ProgrammatorDev\Api\Builder\CacheBuilder;
+use Symfony\Component\Cache\Adapter\FilesystemAdapter;
+
+class YourApi extends Api
+{
+    public function __construct() 
+    {
+        // ...
+        
+        $pool = new FilesystemAdapter();
+        
+        // file-based cache adapter with a 1-hour default cache lifetime
+        $this->setClientBuilder(
+            new CacheBuilder($pool, 3600)
+        );
+    }
+    
+    public function getPosts(): string
+    {
+        // you can change the lifetime (and all other parameters)
+        // for this specific endpoint
+        $this->getCacheBuilder()->setTtl(600);
+       
+        return $this->request(
+            method: 'GET',
+            path: '/posts'
+        );
+    }
+}
+```
+
+The same for the end user:
+
+```php
+$api = new YourApi();
+
+$pool = new FilesystemAdapter();
+
+$api->setCacheBuilder(
+    new CacheBuilder($pool, 3600)
+);
+```
+
+## Cookbook
+
+TODO
 
 ## Contributing
 
