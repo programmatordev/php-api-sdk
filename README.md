@@ -722,7 +722,7 @@ use ProgrammatorDev\Api\Builder\LoggerBuilder;
 $this->getLoggerBuilder(): LoggerBuilder;
 ```
 
-As an example:
+As an example, if you wanted to save log into a file:
 
 ```php
 use ProgrammatorDev\Api\Api;
@@ -762,6 +762,85 @@ $api->setClientBuilder(
     )
 );
 ```
+
+### Configure Options
+
+It is very common for APIs to offer different options (like language, timezone, etc.).
+To simplify the process of configuring options, the [`OptionsResolver`](https://symfony.com/doc/current/components/options_resolver.html) is available.
+It allows you to create a set of default options and their constraints such as required options, default values, allowed types, etc. 
+It then resolves the given options `array` against these default options to ensure it meets all the constraints.
+
+For example, if an API has a language and timezone options:
+
+```php
+use ProgrammatorDev\Api\Api;
+
+class YourApi extends Api
+{
+    private array $options = [];
+
+    public function __construct(array $options = []) 
+    {
+        parent::__construct();
+        
+        $this->configureOptions($options);
+        $this->configureApi();
+    }
+    
+    private function configureOptions(array $options): void
+    {
+        // set defaults values, if none were provided
+        $this->optionsResolver->setDefault('timezone', 'UTC');
+        $this->optionsResolver->setDefault('language', 'en');
+
+        // set allowed types
+        $this->optionsResolver->setAllowedTypes('timezone', 'string');
+        $this->optionsResolver->setAllowedTypes('language', 'string');
+
+        // set allowed values
+        $this->optionsResolver->setAllowedValues('timezone', \DateTimeZone::listIdentifiers());
+        $this->optionsResolver->setAllowedValues('language', ['en', 'pt']);
+        
+        // resolve and set to options property
+        $this->options = $this->optionsResolver->resolve($options);
+    }
+    
+    private function configureApi(): void
+    {
+        // set required base url
+        $this->setBaseUrl('https://api.example.com/v1');
+        // set options as query defaults (will be included in all requests)
+        $this->addQueryDefault('language', $this->options['language']);
+        $this->addQueryDefault('timezone', $this->options['timezone']);
+    }
+    
+    public function getPosts(int $page = 1): string
+    {
+        // GET https://api.example.com/v1/posts?language=en&timezone=UTC&page=1
+        return $this->request(
+            method: 'GET',
+            path: '/posts',
+            query: [
+                'page' => $page
+            ]
+        );
+    }
+}
+```
+
+For the end user, it should look like this:
+
+```php
+$api = new YourApi([
+    'language' => 'pt',
+    'timezone' => 'Europe/Lisbon'
+]);
+
+// GET https://api.example.com/v1/posts?language=pt&timezone=Europe/Lisbon&page=1
+$posts = $api->getPosts();
+```
+
+For all available methods, check the official page documentation [here](https://symfony.com/doc/current/components/options_resolver.html).
 
 ## Cookbook
 
