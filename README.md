@@ -1,8 +1,8 @@
 # PHP API SDK
 
-[![Latest Version](https://img.shields.io/github/release/programmatordev/php-api-sdk.svg?style=flat-square)](https://github.com/programmatordev/sportmonksfootball-php-api/releases)
+[![Latest Version](https://img.shields.io/github/release/programmatordev/php-api-sdk.svg?style=flat-square)](https://github.com/programmatordev/php-api-sdk/releases)
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE)
-[![Tests](https://github.com/programmatordev/php-api-sdk/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/programmatordev/sportmonksfootball-php-api/actions/workflows/ci.yml?query=branch%3Amain)
+[![Tests](https://github.com/programmatordev/php-api-sdk/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/programmatordev/php-api-sdk/actions/workflows/ci.yml?query=branch%3Amain)
 
 A library for creating SDKs in PHP with support for:
 - [PSR-18 HTTP clients](https://www.php-fig.org/psr/psr-18);
