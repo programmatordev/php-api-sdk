@@ -42,7 +42,7 @@ class Api
 
     private EventDispatcher $eventDispatcher;
 
-    private OptionsResolver $optionsResolver;
+    protected OptionsResolver $optionsResolver;
 
     public function __construct()
     {
