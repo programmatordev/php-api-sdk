@@ -502,7 +502,6 @@ If you don't want to rely on the discovery of implementations, you can set the o
 ```php
 use ProgrammatorDev\Api\Api;
 use ProgrammatorDev\Api\Builder\ClientBuilder;
-use Http\Client\Common\EmulatedHttpAsyncClient
 use Symfony\Component\HttpClient\Psr18Client;
 use Nyholm\Psr7\Factory\Psr17Factory;
 
