@@ -64,6 +64,17 @@ class YourApi extends Api
 
 ## Documentation
 
+- [Base URL](#base-url)
+- [Requests](#requests)
+- [Query defaults](#query-defaults)
+- [Header defaults](#header-defaults)
+- [Authentication](#authentication)
+- [Event listeners](#event-listeners)
+- [HTTP client (PSR-18) and HTTP factories (PSR-17)](#http-client-psr-18-and-http-factories-psr-17)
+- [Cache (PSR-6)](#cache-psr-6)
+- [Logger (PSR-3)](#logger-psr-3)
+- [Configure options](#configure-options)
+
 ### Base URL
 
 Getter and setter for the base URL. 
