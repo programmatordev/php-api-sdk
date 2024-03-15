@@ -152,7 +152,7 @@ check the [`addResponseContentsHandler`](#addresponsecontentshandler) method in 
 
 #### `buildPath`
 
-The purpose of this method is to have an easy way to build a properly formatted path URL depending on the inputs or parameters you might have.
+The purpose of this method is to have an easy way to build a properly formatted path depending on the inputs or parameters you might have.
 
 ```php
 $this->buildPath(string $path, array $parameters): string;
@@ -211,9 +211,8 @@ class YourApi extends Api
 {
     public function __construct(string $language = 'en') 
     {
-        parent::__construct();
+        // ...
         
-        $this->setBaseUrl('https://api.example.com/v1');
         $this->addQueryDefault('lang', $language);
     }
     
@@ -271,9 +270,8 @@ class YourApi extends Api
 {
     public function __construct(string $language = 'en') 
     {
-        parent::__construct();
+        // ...
         
-        $this->setBaseUrl('https://api.example.com/v1');
         $this->addHeaderDefault('X-LANGUAGE', $language);
     }
     
@@ -343,10 +341,13 @@ class YourApi extends Api
 {
     public function __construct(string $applicationKey) 
     {
-        parent::__construct();
+        // ...
         
-        $this->setBaseUrl('https://api.example.com/v1');
-        $this->setAuthentication(new QueryParam(['api_token' => $applicationKey]));
+        $this->setAuthentication(
+            new QueryParam([
+                'api_token' => $applicationKey
+            ])
+        );
     }
     
     public function getPosts(): string
@@ -389,7 +390,9 @@ class YourApi extends Api
         
         // a PostRequestEvent is passed as an argument
         $this->addPostRequestHandler(function(PostRequestEvent $event) {
-            // $event->getRequest() is also available
+            // request data is also available
+            // $request = $event->getRequest();
+            
             $response = $event->getResponse();
             $statusCode = $response->getStatusCode();
             
@@ -411,7 +414,7 @@ class YourApi extends Api
 
 #### `addResponseContentsHandler`
 
-On the other hand, the `addResponseContentsHandler` method is used to manipulate the response that was received from the API.
+The `addResponseContentsHandler` method is used to manipulate the response that was received from the API.
 This event listener will be applied to every API request.
 
 ```php
@@ -562,11 +565,13 @@ $this->getClientBuilder()->addPlugin(Plugin $plugin, int $priority): self;
 It is important to know that this library already uses various plugins with different priorities.
 The following list has all the implemented plugins with the respective priority in descending order (remember that order matters):
 
-- [`ContentTypePlugin`](https://docs.php-http.org/en/latest/plugins/content-type.html): `40`
-- [`ContentLengthPlugin`](https://docs.php-http.org/en/latest/plugins/content-length.html): `32`
-- [`AuthenticationPlugin`](https://docs.php-http.org/en/latest/plugins/authentication.html): `24` (only if authentication is enabled)
-- [`CachePlugin`](https://docs.php-http.org/en/latest/plugins/cache.html): `16` (only if cache is enabled)
-- [`LoggerPlugin`](https://docs.php-http.org/en/latest/plugins/logger.html): `8` (only if logger is enabled)
+| Plugin                                                                                     | Priority | Note                              |
+|--------------------------------------------------------------------------------------------|----------|-----------------------------------|
+| [`ContentTypePlugin`](https://docs.php-http.org/en/latest/plugins/content-type.html)       | 40       |                                   |
+| [`ContentLengthPlugin`](https://docs.php-http.org/en/latest/plugins/content-length.html)   | 32       |                                   |
+| [`AuthenticationPlugin`](https://docs.php-http.org/en/latest/plugins/authentication.html)  | 24       | only if authentication is enabled | 
+| [`CachePlugin`](https://docs.php-http.org/en/latest/plugins/cache.html)                    | 16       | only if cache is enabled          |
+| [`LoggerPlugin`](https://docs.php-http.org/en/latest/plugins/logger.html)                  | 8        | only if logger is enabled         |
 
 For example, if you wanted the client to automatically attempt to re-send a request that failed
 (due to unreliable connections and servers, for example)
@@ -584,7 +589,7 @@ class YourApi extends Api
         
         // if a request fails, it will retry at least 3 times
         // priority is 12 to execute the plugin between the cache and logger plugins
-        // (check the above plugin order list  for more information)
+        // (check the above plugin order list for more information)
         $this->getClientBuilder()->addPlugin(
             plugin: new RetryPlugin(['retries' => 3])
             priority: 12
@@ -627,7 +632,7 @@ new CacheBuilder(
     $methods = ['GET', 'HEAD'],
     // An array of cache directives to be compared with the headers of the HTTP response,
     // in order to determine cacheability
-    $responseCacheDirectives = ['no-cache', 'max-age'] 
+    $responseCacheDirectives = ['max-age'] 
 );
 ```
 
@@ -733,7 +738,7 @@ use ProgrammatorDev\Api\Builder\LoggerBuilder;
 $this->getLoggerBuilder(): LoggerBuilder;
 ```
 
-As an example, if you wanted to save log into a file:
+As an example, if you wanted to save logs into a file:
 
 ```php
 use ProgrammatorDev\Api\Api;
@@ -750,7 +755,7 @@ class YourApi extends Api
         $logger = new Logger('api');
         $logger->pushHandler(new StreamHandler('/logs/api.log'));
         
-        $this->setClientBuilder(
+        $this->setLoggerBuilder(
             new LoggerBuilder(
                 logger: $logger
             )
@@ -767,7 +772,7 @@ $api = new YourApi();
 $logger = new Logger('api');
 $logger->pushHandler(new StreamHandler('/logs/api.log'));
 
-$api->setClientBuilder(
+$api->setLoggerBuilder(
     new LoggerBuilder(
         logger: $logger
     )
