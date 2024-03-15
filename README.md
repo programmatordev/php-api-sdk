@@ -820,6 +820,7 @@ class YourApi extends Api
     {
         // set required base url
         $this->setBaseUrl('https://api.example.com/v1');
+        
         // set options as query defaults (will be included in all requests)
         $this->addQueryDefault('language', $this->options['language']);
         $this->addQueryDefault('timezone', $this->options['timezone']);
@@ -843,19 +844,14 @@ For the end user, it should look like this:
 
 ```php
 $api = new YourApi([
-    'language' => 'pt',
-    'timezone' => 'Europe/Lisbon'
+    'language' => 'pt'
 ]);
 
-// GET https://api.example.com/v1/posts?language=pt&timezone=Europe/Lisbon&page=1
+// GET https://api.example.com/v1/posts?language=pt&timezone=UTC&page=1
 $posts = $api->getPosts();
 ```
 
 For all available methods, check the official page documentation [here](https://symfony.com/doc/current/components/options_resolver.html).
-
-## Cookbook
-
-TODO
 
 ## Contributing
 
