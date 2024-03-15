@@ -17,7 +17,7 @@ class CacheBuilderTest extends AbstractTestCase
         $this->assertInstanceOf(CacheItemPoolInterface::class, $cacheBuilder->getPool());
         $this->assertSame(60, $cacheBuilder->getTtl());
         $this->assertSame(['GET', 'HEAD'], $cacheBuilder->getMethods());
-        $this->assertSame(['no-cache', 'max-age'], $cacheBuilder->getResponseCacheDirectives());
+        $this->assertSame(['max-age'], $cacheBuilder->getResponseCacheDirectives());
     }
 
     public function testDependencyInjection()
@@ -25,7 +25,7 @@ class CacheBuilderTest extends AbstractTestCase
         $pool = $this->createMock(CacheItemPoolInterface::class);
         $ttl = 600;
         $methods = ['GET'];
-        $responseCacheDirectives = ['max-age'];
+        $responseCacheDirectives = ['no-cache', 'max-age'];
 
         $cacheBuilder = new CacheBuilder($pool, $ttl, $methods, $responseCacheDirectives);
 
@@ -40,7 +40,7 @@ class CacheBuilderTest extends AbstractTestCase
         $pool = $this->createMock(CacheItemPoolInterface::class);
         $ttl = 600;
         $methods = ['GET'];
-        $responseCacheDirectives = ['max-age'];
+        $responseCacheDirectives = ['no-cache', 'max-age'];
 
         $cacheBuilder = new CacheBuilder($pool);
         $cacheBuilder->setPool($pool);

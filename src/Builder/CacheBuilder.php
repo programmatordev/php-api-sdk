@@ -11,7 +11,7 @@ class CacheBuilder
         private CacheItemPoolInterface $pool,
         private ?int $ttl = 60,
         private array $methods = [Method::GET, Method::HEAD],
-        private array $responseCacheDirectives = ['no-cache', 'max-age']
+        private array $responseCacheDirectives = ['max-age']
     ) {}
 
     public function getPool(): CacheItemPoolInterface
