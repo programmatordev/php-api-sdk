@@ -15,7 +15,6 @@ use ProgrammatorDev\Api\Test\AbstractTestCase;
 use ProgrammatorDev\Api\Test\MockResponse;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\StreamInterface;
 use Psr\Log\LoggerInterface;
 
 class ApiTest extends AbstractTestCase
@@ -31,83 +30,7 @@ class ApiTest extends AbstractTestCase
         parent::setUp();
 
         // set protected functions to public for testing
-        $this->class = new class extends Api {
-            public function request(
-                string $method,
-                string $path,
-                array $query = [],
-                array $headers = [],
-                StreamInterface|string $body = null
-            ): mixed
-            {
-                return parent::request($method, $path, $query, $headers, $body);
-            }
-
-            public function getBaseUrl(): ?string
-            {
-                return parent::getBaseUrl();
-            }
-
-            public function setBaseUrl(string $baseUrl): Api
-            {
-                return parent::setBaseUrl($baseUrl);
-            }
-
-            public function getQueryDefault(string $name): mixed
-            {
-                return parent::getQueryDefault($name);
-            }
-
-            public function addQueryDefault(string $name, mixed $value): Api
-            {
-                return parent::addQueryDefault($name, $value);
-            }
-
-            public function removeQueryDefault(string $name): Api
-            {
-                return parent::removeQueryDefault($name);
-            }
-
-            public function getHeaderDefault(string $name): mixed
-            {
-                return parent::getHeaderDefault($name);
-            }
-
-            public function addHeaderDefault(string $name, mixed $value): Api
-            {
-                return parent::addHeaderDefault($name, $value);
-            }
-
-            public function removeHeaderDefault(string $name): Api
-            {
-                return parent::removeHeaderDefault($name);
-            }
-
-            public function getAuthentication(): ?Authentication
-            {
-                return parent::getAuthentication();
-            }
-
-            public function setAuthentication(?Authentication $authentication): Api
-            {
-                return parent::setAuthentication($authentication);
-            }
-
-            public function addPostRequestHandler(callable $handler, int $priority = 0): Api
-            {
-                return parent::addPostRequestHandler($handler, $priority);
-            }
-
-            public function addResponseContentsHandler(callable $handler, int $priority = 0): Api
-            {
-                return parent::addResponseContentsHandler($handler, $priority);
-            }
-
-            public function buildPath(string $path, array $parameters): string
-            {
-                return parent::buildPath($path, $parameters);
-            }
-        };
+        $this->class = new class extends Api {};
 
         // set mock client
         $this->mockClient = new Client();
