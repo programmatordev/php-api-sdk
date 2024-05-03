@@ -29,7 +29,7 @@ class ApiTest extends AbstractTestCase
     {
         parent::setUp();
 
-        // set protected functions to public for testing
+        // create anonymous class
         $this->class = new class extends Api {};
 
         // set mock client
