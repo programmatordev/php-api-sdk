@@ -55,7 +55,7 @@ class Api
      * @throws ConfigException If a base URL has not been set.
      * @throws ClientException
      */
-    protected function request(
+    public function request(
         string $method,
         string $path,
         array $query = [],
@@ -138,50 +138,50 @@ class Api
         }
     }
 
-    protected function getBaseUrl(): ?string
+    public function getBaseUrl(): ?string
     {
         return $this->baseUrl;
     }
 
-    protected function setBaseUrl(string $baseUrl): self
+    public function setBaseUrl(string $baseUrl): self
     {
         $this->baseUrl = $baseUrl;
 
         return $this;
     }
 
-    protected function getQueryDefault(string $name): mixed
+    public function getQueryDefault(string $name): mixed
     {
         return $this->queryDefaults[$name] ?? null;
     }
 
-    protected function addQueryDefault(string $name, mixed $value): self
+    public function addQueryDefault(string $name, mixed $value): self
     {
         $this->queryDefaults[$name] = $value;
 
         return $this;
     }
 
-    protected function removeQueryDefault(string $name): self
+    public function removeQueryDefault(string $name): self
     {
         unset($this->queryDefaults[$name]);
 
         return $this;
     }
 
-    protected function getHeaderDefault(string $name): mixed
+    public function getHeaderDefault(string $name): mixed
     {
         return $this->headerDefaults[$name] ?? null;
     }
 
-    protected function addHeaderDefault(string $name, mixed $value): self
+    public function addHeaderDefault(string $name, mixed $value): self
     {
         $this->headerDefaults[$name] = $value;
 
         return $this;
     }
 
-    protected function removeHeaderDefault(string $name): self
+    public function removeHeaderDefault(string $name): self
     {
         unset($this->headerDefaults[$name]);
 
@@ -224,33 +224,33 @@ class Api
         return $this;
     }
 
-    protected function getAuthentication(): ?Authentication
+    public function getAuthentication(): ?Authentication
     {
         return $this->authentication;
     }
 
-    protected function setAuthentication(?Authentication $authentication): self
+    public function setAuthentication(?Authentication $authentication): self
     {
         $this->authentication = $authentication;
 
         return $this;
     }
 
-    protected function addPostRequestHandler(callable $handler, int $priority = 0): self
+    public function addPostRequestHandler(callable $handler, int $priority = 0): self
     {
         $this->eventDispatcher->addListener(PostRequestEvent::class, $handler, $priority);
 
         return $this;
     }
 
-    protected function addResponseContentsHandler(callable $handler, int $priority = 0): self
+    public function addResponseContentsHandler(callable $handler, int $priority = 0): self
     {
         $this->eventDispatcher->addListener(ResponseContentsEvent::class, $handler, $priority);
 
         return $this;
     }
 
-    protected function buildPath(string $path, array $parameters): string
+    public function buildPath(string $path, array $parameters): string
     {
         foreach ($parameters as $parameter => $value) {
             $path = \str_replace(

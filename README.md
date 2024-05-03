@@ -13,22 +13,18 @@ A library for creating SDKs in PHP with support for:
 - Event listeners;
 - ...and more.
 
+All methods are public for full end user hackability 🔥.
+
 ## Requirements
 
 - PHP 8.1 or higher.
 
 ## Installation
 
-You can install the library via [Composer](https://getcomposer.org/):
+Install the library via [Composer](https://getcomposer.org/):
 
 ```bash
 composer require programmatordev/php-api-sdk
-```
-
-To use the library, use Composer's [autoload](https://getcomposer.org/doc/01-basic-usage.md#autoloading):
-
-```php
-require_once 'vendor/autoload.php';
 ```
 
 ## Basic Usage
@@ -365,6 +361,8 @@ class YourApi extends Api
 
 - [`addPostRequestHandler`](#addpostrequesthandler)
 - [`addResponseContentsHandler`](#addresponsecontentshandler)
+- [Event Priority](#event-priority)
+- [Event Propagation](#event-propagation)
 
 #### `addPostRequestHandler`
 
@@ -455,11 +453,65 @@ class YourApi extends Api
 }
 ```
 
-### HTTP Client (PSR-18) and HTTP Factories (PSR-17)
+#### Event Priority
 
-> [!IMPORTANT]  
-> The methods in this section are all public.
-> The purpose for that is to allow the end user to configure their own HTTP client, HTTP factories and plugins.
+It is possible to add multiple listeners for the same event and set the order in which they will be executed.
+By default, they will be executed in the same order as they are added, but you can set a `priority` to control that order.
+Event listeners are then executed from the highest priority to the lowest:
+
+```php
+use ProgrammatorDev\Api\Api;
+use ProgrammatorDev\Api\Event\PostRequestEvent;
+
+class YourApi extends Api
+{
+    public function __construct() 
+    {
+        // two event listeners are added,
+        // but the second is executed first (higher priority) even though it was added after
+        
+        // executed last (lower priority)
+        $this->addResponseContentsHandler(
+            handler: function(PostRequestEvent $event) { ... }, 
+            priority: 0
+        );
+        
+        // executed first (higher priority)
+        $this->addResponseContentsHandler(
+            handler: function(PostRequestEvent $event) { ... }, 
+            priority: 10
+        ); 
+    }
+}
+```
+
+#### Event Propagation
+
+In some cases, you may want to stop the event flow and prevent listeners from being called.
+For that, you can use the `stopPropagation()` method:
+
+```php
+use ProgrammatorDev\Api\Api;
+use ProgrammatorDev\Api\Event\PostRequestEvent;
+
+class YourApi extends Api
+{
+    public function __construct() 
+    {
+        $this->addResponseContentsHandler(function(PostRequestEvent $event) {
+            // stop propagation so future listeners of this event will not be called
+            $event->stopPropagation();
+        });
+        
+        // this listener will not be called
+        $this->addResponseContentsHandler(function(PostRequestEvent $event) { 
+            // ...
+         }); 
+    }
+}
+```
+
+### HTTP Client (PSR-18) and HTTP Factories (PSR-17)
 
 - [HTTP client and HTTP factory adapters](#http-client-and-http-factory-adapters)
 - [Plugin system](#plugin-system)
@@ -502,7 +554,6 @@ If you don't want to rely on the discovery of implementations, you can set the o
 ```php
 use ProgrammatorDev\Api\Api;
 use ProgrammatorDev\Api\Builder\ClientBuilder;
-use Http\Client\Common\EmulatedHttpAsyncClient
 use Symfony\Component\HttpClient\Psr18Client;
 use Nyholm\Psr7\Factory\Psr17Factory;
 
@@ -526,30 +577,12 @@ class YourApi extends Api
 }
 ```
 
-The same for the end user:
-
-```php
-$api = new YourApi();
-
-$client = new Psr18Client();
-$requestFactory = $streamFactory = new Psr17Factory();
-
-$api->setClientBuilder(
-    new ClientBuilder(
-        client: $client, 
-        requestFactory: $requestFactory, 
-        streamFactory: $streamFactory
-    )
-);
-```
-
 #### Plugin System
 
 This library enables attaching plugins to the HTTP client. 
 A plugin modifies the behavior of the client by intercepting the request and response flow. 
 
-Since plugin order matters, a plugin is added with a priority level, 
-and are executed in descending order from highest to lowest.
+Since plugin order matters, a plugin is added with a priority level, and are executed in descending order from highest to lowest.
 
 Check all the [available plugins](https://docs.php-http.org/en/latest/plugins/index.html) or [create your own](https://docs.php-http.org/en/latest/plugins/build-your-own.html).
 
@@ -598,22 +631,7 @@ class YourApi extends Api
 }
 ```
 
-The same for the end user:
-
-```php
-$api = new YourApi();
-
-$api->getClientBuilder()->addPlugin(
-    plugin: new RetryPlugin(['retries' => 3])
-    priority: 12
-);
-```
-
 ### Cache (PSR-6)
-
-> [!IMPORTANT]  
-> The methods in this section are all public.
-> The purpose for that is to allow the end user to configure their own cache adapter.
 
 This library allows configuring the cache layer of the client for making API requests. 
 It uses a standard PSR-6 implementation and provides methods to fine-tune how HTTP caching behaves:
@@ -686,26 +704,7 @@ class YourApi extends Api
 }
 ```
 
-The same for the end user:
-
-```php
-$api = new YourApi();
-
-$pool = new FilesystemAdapter();
-
-$api->setCacheBuilder(
-    new CacheBuilder(
-        pool: $pool, 
-        ttl: 3600
-    )
-);
-```
-
 ### Logger (PSR-3)
-
-> [!IMPORTANT]  
-> The methods in this section are all public.
-> The purpose for that is to allow the end user to configure their own logger adapter.
 
 This library allows configuring a logger to save data for making API requests.
 It uses a standard PSR-3 implementation and provides methods to fine-tune how logging behaves:
@@ -762,21 +761,6 @@ class YourApi extends Api
         );
     }
 }
-```
-
-The same for the end user:
-
-```php
-$api = new YourApi();
-
-$logger = new Logger('api');
-$logger->pushHandler(new StreamHandler('/logs/api.log'));
-
-$api->setLoggerBuilder(
-    new LoggerBuilder(
-        logger: $logger
-    )
-);
 ```
 
 ### Configure Options
