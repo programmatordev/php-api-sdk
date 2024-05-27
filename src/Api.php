@@ -13,6 +13,7 @@ use ProgrammatorDev\Api\Builder\ClientBuilder;
 use ProgrammatorDev\Api\Builder\Listener\CacheLoggerListener;
 use ProgrammatorDev\Api\Builder\LoggerBuilder;
 use ProgrammatorDev\Api\Event\PostRequestEvent;
+use ProgrammatorDev\Api\Event\PreRequestEvent;
 use ProgrammatorDev\Api\Event\ResponseContentsEvent;
 use ProgrammatorDev\Api\Exception\ConfigException;
 use ProgrammatorDev\Api\Helper\StringHelperTrait;
@@ -67,6 +68,8 @@ class Api
             throw new ConfigException('A base URL must be set.');
         }
 
+        $this->configurePlugins();
+
         if (!empty($this->queryDefaults)) {
             $query = \array_merge($this->queryDefaults, $query);
         }
@@ -75,15 +78,24 @@ class Api
             $headers = \array_merge($this->headerDefaults, $headers);
         }
 
-        $this->configurePlugins();
-
         $uri = $this->buildUri($path, $query);
-        $request = $this->buildRequest($method, $uri, $headers, $body);
+        $request = $this->createRequest($method, $uri, $headers, $body);
+
+        // pre request listener
+        $request = $this->eventDispatcher->dispatch(new PreRequestEvent($request))->getRequest();
+
+        // request
         $response = $this->clientBuilder->getClient()->sendRequest($request);
 
-        $this->eventDispatcher->dispatch(new PostRequestEvent($request, $response));
+        // post request listener
+        $response = $this->eventDispatcher->dispatch(new PostRequestEvent($request, $response))->getResponse();
 
+        // always rewind the body contents in case it was used in the PostRequestEvent
+        // otherwise it would return an empty string
+        $response->getBody()->rewind();
         $contents = $response->getBody()->getContents();
+
+        // response contents listener
         return $this->eventDispatcher->dispatch(new ResponseContentsEvent($contents))->getContents();
     }
 
@@ -236,16 +248,23 @@ class Api
         return $this;
     }
 
-    public function addPostRequestHandler(callable $handler, int $priority = 0): self
+    public function addPreRequestListener(callable $listener, int $priority = 0): self
     {
-        $this->eventDispatcher->addListener(PostRequestEvent::class, $handler, $priority);
+        $this->eventDispatcher->addListener(PreRequestEvent::class, $listener, $priority);
 
         return $this;
     }
 
-    public function addResponseContentsHandler(callable $handler, int $priority = 0): self
+    public function addPostRequestListener(callable $listener, int $priority = 0): self
     {
-        $this->eventDispatcher->addListener(ResponseContentsEvent::class, $handler, $priority);
+        $this->eventDispatcher->addListener(PostRequestEvent::class, $listener, $priority);
+
+        return $this;
+    }
+
+    public function addResponseContentsListener(callable $listener, int $priority = 0): self
+    {
+        $this->eventDispatcher->addListener(ResponseContentsEvent::class, $listener, $priority);
 
         return $this;
     }
@@ -274,7 +293,7 @@ class Api
         return $uri;
     }
 
-    private function buildRequest(
+    private function createRequest(
         string $method,
         string $uri,
         array $headers = [],

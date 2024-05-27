@@ -10,7 +10,7 @@ class PostRequestEvent extends Event
 {
     public function __construct(
         private readonly RequestInterface $request,
-        private readonly ResponseInterface $response
+        private ResponseInterface $response
     ) {}
 
     public function getRequest(): RequestInterface
@@ -21,5 +21,10 @@ class PostRequestEvent extends Event
     public function getResponse(): ResponseInterface
     {
         return $this->response;
+    }
+
+    public function setResponse(ResponseInterface $response): void
+    {
+        $this->response = $response;
     }
 }

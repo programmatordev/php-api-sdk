@@ -6,12 +6,9 @@ use Symfony\Contracts\EventDispatcher\Event;
 
 class ResponseContentsEvent extends Event
 {
-    private mixed $contents;
-
-    public function __construct($contents)
-    {
-        $this->contents = $contents;
-    }
+    public function __construct(
+        private mixed $contents
+    ) {}
 
     public function getContents(): mixed
     {
