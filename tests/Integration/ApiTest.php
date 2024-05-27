@@ -21,7 +21,7 @@ class ApiTest extends AbstractTestCase
 {
     private const BASE_URL = 'https://base.com/url';
 
-    private $class;
+    private Api $api;
 
     private Client $mockClient;
 
@@ -30,11 +30,11 @@ class ApiTest extends AbstractTestCase
         parent::setUp();
 
         // create anonymous class
-        $this->class = new class extends Api {};
+        $this->api = new class extends Api {};
 
         // set mock client
         $this->mockClient = new Client();
-        $this->class->setClientBuilder(new ClientBuilder($this->mockClient));
+        $this->api->setClientBuilder(new ClientBuilder($this->mockClient));
     }
 
     public function testSetters()
@@ -45,26 +45,26 @@ class ApiTest extends AbstractTestCase
             'authenticate' => $this->createMock(RequestInterface::class)
         ]);
 
-        $this->class->setBaseUrl(self::BASE_URL);
-        $this->class->setClientBuilder(new ClientBuilder());
-        $this->class->setCacheBuilder(new CacheBuilder($pool));
-        $this->class->setLoggerBuilder(new LoggerBuilder($logger));
-        $this->class->setAuthentication($authentication);
+        $this->api->setBaseUrl(self::BASE_URL);
+        $this->api->setClientBuilder(new ClientBuilder());
+        $this->api->setCacheBuilder(new CacheBuilder($pool));
+        $this->api->setLoggerBuilder(new LoggerBuilder($logger));
+        $this->api->setAuthentication($authentication);
 
-        $this->assertSame(self::BASE_URL, $this->class->getBaseUrl());
-        $this->assertInstanceOf(ClientBuilder::class, $this->class->getClientBuilder());
-        $this->assertInstanceOf(CacheBuilder::class, $this->class->getCacheBuilder());
-        $this->assertInstanceOf(LoggerBuilder::class, $this->class->getLoggerBuilder());
-        $this->assertInstanceOf(Authentication::class, $this->class->getAuthentication());
+        $this->assertSame(self::BASE_URL, $this->api->getBaseUrl());
+        $this->assertInstanceOf(ClientBuilder::class, $this->api->getClientBuilder());
+        $this->assertInstanceOf(CacheBuilder::class, $this->api->getCacheBuilder());
+        $this->assertInstanceOf(LoggerBuilder::class, $this->api->getLoggerBuilder());
+        $this->assertInstanceOf(Authentication::class, $this->api->getAuthentication());
     }
 
     public function testRequest()
     {
         $this->mockClient->addResponse(new Response(body: MockResponse::SUCCESS));
 
-        $this->class->setBaseUrl(self::BASE_URL);
+        $this->api->setBaseUrl(self::BASE_URL);
 
-        $response = $this->class->request(
+        $response = $this->api->request(
             method: 'GET',
             path: '/path'
         );
@@ -77,7 +77,7 @@ class ApiTest extends AbstractTestCase
         $this->expectException(ConfigException::class);
         $this->expectExceptionMessage('A base URL must be set.');
 
-        $this->class->request(
+        $this->api->request(
             method: 'GET',
             path: '/path'
         );
@@ -85,32 +85,32 @@ class ApiTest extends AbstractTestCase
 
     public function testQueryDefaults()
     {
-        $this->class->addQueryDefault('test', true);
-        $this->assertTrue($this->class->getQueryDefault('test'));
+        $this->api->addQueryDefault('test', true);
+        $this->assertTrue($this->api->getQueryDefault('test'));
 
-        $this->class->removeQueryDefault('test');
-        $this->assertNull($this->class->getQueryDefault('test'));
+        $this->api->removeQueryDefault('test');
+        $this->assertNull($this->api->getQueryDefault('test'));
     }
 
     public function testHeaderDefaults()
     {
-        $this->class->addHeaderDefault('X-Test', true);
-        $this->assertTrue($this->class->getHeaderDefault('X-Test'));
+        $this->api->addHeaderDefault('X-Test', true);
+        $this->assertTrue($this->api->getHeaderDefault('X-Test'));
 
-        $this->class->removeHeaderDefault('X-Test');
-        $this->assertNull($this->class->getHeaderDefault('X-Test'));
+        $this->api->removeHeaderDefault('X-Test');
+        $this->assertNull($this->api->getHeaderDefault('X-Test'));
     }
 
     public function testCache()
     {
         $pool = $this->createMock(CacheItemPoolInterface::class);
 
-        $this->class->setBaseUrl(self::BASE_URL);
-        $this->class->setCacheBuilder(new CacheBuilder($pool));
+        $this->api->setBaseUrl(self::BASE_URL);
+        $this->api->setCacheBuilder(new CacheBuilder($pool));
 
         $pool->expects($this->once())->method('save');
 
-        $this->class->request(
+        $this->api->request(
             method: 'GET',
             path: '/path'
         );
@@ -120,13 +120,13 @@ class ApiTest extends AbstractTestCase
     {
         $logger = $this->createMock(LoggerInterface::class);
 
-        $this->class->setBaseUrl(self::BASE_URL);
-        $this->class->setLoggerBuilder(new LoggerBuilder($logger));
+        $this->api->setBaseUrl(self::BASE_URL);
+        $this->api->setLoggerBuilder(new LoggerBuilder($logger));
 
         // request + response log
         $logger->expects($this->exactly(2))->method('info');
 
-        $this->class->request(
+        $this->api->request(
             method: 'GET',
             path: '/path'
         );
@@ -137,9 +137,9 @@ class ApiTest extends AbstractTestCase
         $pool = $this->createMock(CacheItemPoolInterface::class);
         $logger = $this->createMock(LoggerInterface::class);
 
-        $this->class->setBaseUrl(self::BASE_URL);
-        $this->class->setCacheBuilder(new CacheBuilder($pool));
-        $this->class->setLoggerBuilder(new LoggerBuilder($logger));
+        $this->api->setBaseUrl(self::BASE_URL);
+        $this->api->setCacheBuilder(new CacheBuilder($pool));
+        $this->api->setLoggerBuilder(new LoggerBuilder($logger));
 
         // request + response + cache log
         $logger->expects($this->exactly(3))->method('info');
@@ -147,7 +147,7 @@ class ApiTest extends AbstractTestCase
         // error suppression to hide expected warning of null cache item in CacheLoggerListener
         // https://docs.phpunit.de/en/10.5/error-handling.html#ignoring-issue-suppression
         // TODO maybe allow user to add cache listeners to CacheBuilder and create a mock?
-        @$this->class->request(
+        @$this->api->request(
             method: 'GET',
             path: '/path'
         );
@@ -159,42 +159,56 @@ class ApiTest extends AbstractTestCase
             'authenticate' => $this->createMock(RequestInterface::class)
         ]);
 
-        $this->class->setBaseUrl(self::BASE_URL);
-        $this->class->setAuthentication($authentication);
+        $this->api->setBaseUrl(self::BASE_URL);
+        $this->api->setAuthentication($authentication);
 
         $authentication->expects($this->once())->method('authenticate');
 
-        $this->class->request(
+        $this->api->request(
             method: 'GET',
             path: '/path'
         );
     }
 
-    public function testPostRequestHandler()
+    public function testPreRequestListener()
     {
-        $this->class->setBaseUrl(self::BASE_URL);
-        $this->class->addPostRequestHandler(fn() => throw new \Exception('TestMessage'));
+        $this->api->setBaseUrl(self::BASE_URL);
+        $this->api->addPreRequestListener(fn() => throw new \Exception('TestMessage'));
 
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage('TestMessage');
 
-        $this->class->request(
+        $this->api->request(
             method: 'GET',
             path: '/path'
         );
     }
 
-    public function testResponseHandler()
+    public function testPostRequestListener()
+    {
+        $this->api->setBaseUrl(self::BASE_URL);
+        $this->api->addPostRequestListener(fn() => throw new \Exception('TestMessage'));
+
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('TestMessage');
+
+        $this->api->request(
+            method: 'GET',
+            path: '/path'
+        );
+    }
+
+    public function testResponseContentsListener()
     {
         $this->mockClient->addResponse(new Response(body: MockResponse::SUCCESS));
 
-        $this->class->setBaseUrl(self::BASE_URL);
-        $this->class->addResponseContentsHandler(function(ResponseContentsEvent $event) {
+        $this->api->setBaseUrl(self::BASE_URL);
+        $this->api->addResponseContentsListener(function(ResponseContentsEvent $event) {
             $contents = json_decode($event->getContents(), true);
             $event->setContents($contents);
         });
 
-        $response = $this->class->request(
+        $response = $this->api->request(
             method: 'GET',
             path: '/path'
         );
@@ -204,7 +218,7 @@ class ApiTest extends AbstractTestCase
 
     public function testBuildPath()
     {
-        $path = $this->class->buildPath('/path/{parameter1}/multiple/{parameter2}', [
+        $path = $this->api->buildPath('/path/{parameter1}/multiple/{parameter2}', [
             'parameter1' => 'with',
             'parameter2' => 'parameters'
         ]);

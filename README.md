@@ -359,19 +359,66 @@ class YourApi extends Api
 
 ### Event Listeners
 
-- [`addPostRequestHandler`](#addpostrequesthandler)
-- [`addResponseContentsHandler`](#addresponsecontentshandler)
+- [`addPreRequestListener`](#addprerequestlistener)
+- [`addPostRequestListener`](#addpostrequestlistener)
+- [`addResponseContentsListener`](#addresponsecontentslistener)
 - [Event Priority](#event-priority)
 - [Event Propagation](#event-propagation)
 
-#### `addPostRequestHandler`
+#### `addPreRequestListener`
 
-The `addPostRequestHandler` method is used to add a handler function that is executed after a request has been made. 
-This handler function can be used to inspect the request and response data that was sent to, and received from, the API.
+The `addPreRequestListener` method is used to add a function that is called before a request, and all handled data, has been made.
 This event listener will be applied to every API request.
 
 ```php
-$this->addPostRequestHandler(callable $handler, int $priority = 0): self;
+$this->addPreRequestListener(callable $listener, int $priority = 0): self;
+```
+
+For example:
+
+```php
+use ProgrammatorDev\Api\Api;
+use ProgrammatorDev\Api\Event\PreRequestEvent;
+
+class YourApi extends Api
+{
+    public function __construct() 
+    {
+        // a PreRequestEvent is passed as an argument
+        $this->addPreRequestListener(function(PreRequestEvent $event) {
+            $request = $event->getRequest();
+            
+            if ($request->getMethod() === 'POST') {
+                // do something for all POST requests
+                // ...
+            }
+        });
+    }
+    
+    // ...
+}
+```
+
+Available event methods:
+
+```php
+$this->addPreRequestListener(function(PreRequestEvent $event) {
+    // get request data
+    $request = $event->getRequest();
+    // ...
+    // set request data
+    $event->setRequest($request);
+});
+```
+
+#### `addPostRequestListener`
+
+The `addPostRequestListener` method is used to add a function that is called after a request has been made. 
+This function can be used to inspect the request and response data that was sent to, and received from, the API.
+This event listener will be applied to every API request.
+
+```php
+$this->addPostRequestListener(callable $listener, int $priority = 0): self;
 ```
 
 For example, you can use this event listener to handle API errors:
@@ -384,13 +431,8 @@ class YourApi extends Api
 {
     public function __construct() 
     {
-        // ...
-        
         // a PostRequestEvent is passed as an argument
-        $this->addPostRequestHandler(function(PostRequestEvent $event) {
-            // request data is also available
-            // $request = $event->getRequest();
-            
+        $this->addPostRequestListener(function(PostRequestEvent $event) {
             $response = $event->getResponse();
             $statusCode = $response->getStatusCode();
             
@@ -410,13 +452,27 @@ class YourApi extends Api
 }
 ```
 
-#### `addResponseContentsHandler`
+Available event methods:
 
-The `addResponseContentsHandler` method is used to manipulate the response that was received from the API.
+```php
+$this->addPostRequestListener(function(PostRequestEvent $event) {
+    // get request data
+    $request = $event->getRequest();
+    // get response data
+    $response = $event->getResponse();
+    // ...
+    // set response data
+    $event->setResponse($response);
+});
+```
+
+#### `addResponseContentsListener`
+
+The `addResponseContentsListener` method is used to manipulate the response that was received from the API.
 This event listener will be applied to every API request.
 
 ```php
-$this->addResponseContentsHandler(callable $handler, int $priority = 0): self;
+$this->addResponseContentsListener(callable $handler, int $priority = 0): self;
 ```
 
 For example, if the API responses are JSON strings, you can use this event listener to decode them into arrays:
@@ -429,10 +485,8 @@ class YourApi extends Api
 {
     public function __construct() 
     {
-        // ...
-        
         // a ResponseContentsEvent is passed as an argument
-        $this->addResponseContentsHandler(function(ResponseContentsEvent $event) {
+        $this->addResponseContentsListener(function(ResponseContentsEvent $event) {
             // get response contents and decode json string into an array
             $contents = $event->getContents();
             $contents = json_decode($contents, true);
@@ -453,6 +507,18 @@ class YourApi extends Api
 }
 ```
 
+Available event methods:
+
+```php
+$this->addResponseContentsListener(function(ResponseContentsEvent $event) {
+    // get response body contents data
+    $contents = $event->getContents();
+    // ...
+    // set contents
+    $event->setContents($contents);
+});
+```
+
 #### Event Priority
 
 It is possible to add multiple listeners for the same event and set the order in which they will be executed.
@@ -471,14 +537,14 @@ class YourApi extends Api
         // but the second is executed first (higher priority) even though it was added after
         
         // executed last (lower priority)
-        $this->addResponseContentsHandler(
-            handler: function(PostRequestEvent $event) { ... }, 
+        $this->addResponseContentsListener(
+            listener: function(PostRequestEvent $event) { ... }, 
             priority: 0
         );
         
         // executed first (higher priority)
-        $this->addResponseContentsHandler(
-            handler: function(PostRequestEvent $event) { ... }, 
+        $this->addResponseContentsListener(
+            listener: function(PostRequestEvent $event) { ... }, 
             priority: 10
         ); 
     }
@@ -498,13 +564,13 @@ class YourApi extends Api
 {
     public function __construct() 
     {
-        $this->addResponseContentsHandler(function(PostRequestEvent $event) {
+        $this->addResponseContentsListener(function(PostRequestEvent $event) {
             // stop propagation so future listeners of this event will not be called
             $event->stopPropagation();
         });
         
         // this listener will not be called
-        $this->addResponseContentsHandler(function(PostRequestEvent $event) { 
+        $this->addResponseContentsListener(function(PostRequestEvent $event) { 
             // ...
          }); 
     }
@@ -682,7 +748,7 @@ class YourApi extends Api
         $pool = new FilesystemAdapter();
         
         // file-based cache adapter with a 1-hour default cache lifetime
-        $this->setClientBuilder(
+        $this->setCacheBuilder(
             new CacheBuilder(
                 pool: $pool, 
                 ttl: 3600
