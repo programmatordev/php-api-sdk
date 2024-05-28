@@ -13,7 +13,7 @@ A library for creating SDKs in PHP with support for:
 - Event listeners;
 - ...and more.
 
-All methods are public for full end user hackability 🔥.
+All methods are public for full hackability 🔥.
 
 ## Requirements
 
@@ -144,7 +144,7 @@ class YourApi extends Api
 
 By default, this method will return a `string` as it will be the response of the request as is.
 If you want to change how the response is handled in all requests (for example, decode a JSON string into an array), 
-check the [`addResponseContentsHandler`](#addresponsecontentshandler) method in the [Event Listeners](#event-listeners) section.
+check the [`addResponseContentsListener`](#addresponsecontentslistener) method in the [Event Listeners](#event-listeners) section.
 
 #### `buildPath`
 
@@ -472,7 +472,7 @@ The `addResponseContentsListener` method is used to manipulate the response that
 This event listener will be applied to every API request.
 
 ```php
-$this->addResponseContentsListener(callable $handler, int $priority = 0): self;
+$this->addResponseContentsListener(callable $listener, int $priority = 0): self;
 ```
 
 For example, if the API responses are JSON strings, you can use this event listener to decode them into arrays:
@@ -527,7 +527,7 @@ Event listeners are then executed from the highest priority to the lowest:
 
 ```php
 use ProgrammatorDev\Api\Api;
-use ProgrammatorDev\Api\Event\PostRequestEvent;
+use ProgrammatorDev\Api\Event\ResponseContentsEvent;
 
 class YourApi extends Api
 {
@@ -538,13 +538,13 @@ class YourApi extends Api
         
         // executed last (lower priority)
         $this->addResponseContentsListener(
-            listener: function(PostRequestEvent $event) { ... }, 
+            listener: function(ResponseContentsEvent $event) { ... }, 
             priority: 0
         );
         
         // executed first (higher priority)
         $this->addResponseContentsListener(
-            listener: function(PostRequestEvent $event) { ... }, 
+            listener: function(ResponseContentsEvent $event) { ... }, 
             priority: 10
         ); 
     }
@@ -558,21 +558,21 @@ For that, you can use the `stopPropagation()` method:
 
 ```php
 use ProgrammatorDev\Api\Api;
-use ProgrammatorDev\Api\Event\PostRequestEvent;
+use ProgrammatorDev\Api\Event\ResponseContentsEvent;
 
 class YourApi extends Api
 {
     public function __construct() 
     {
-        $this->addResponseContentsListener(function(PostRequestEvent $event) {
+        $this->addResponseContentsListener(function(ResponseContentsEvent $event) {
             // stop propagation so future listeners of this event will not be called
             $event->stopPropagation();
         });
         
         // this listener will not be called
-        $this->addResponseContentsListener(function(PostRequestEvent $event) { 
+        $this->addResponseContentsListener(function(ResponseContentsEvent $event) { 
             // ...
-         }); 
+        }); 
     }
 }
 ```
@@ -849,11 +849,11 @@ class YourApi extends Api
     {
         parent::__construct();
         
-        $this->configureOptions($options);
+        $this->options = $this->configureOptions($options);
         $this->configureApi();
     }
     
-    private function configureOptions(array $options): void
+    private function configureOptions(array $options): array
     {
         // set defaults values, if none were provided
         $this->optionsResolver->setDefault('timezone', 'UTC');
@@ -867,8 +867,8 @@ class YourApi extends Api
         $this->optionsResolver->setAllowedValues('timezone', \DateTimeZone::listIdentifiers());
         $this->optionsResolver->setAllowedValues('language', ['en', 'pt']);
         
-        // resolve and set to options property
-        $this->options = $this->optionsResolver->resolve($options);
+        // return resolved options
+        return $this->optionsResolver->resolve($options);
     }
     
     private function configureApi(): void
@@ -906,7 +906,12 @@ $api = new YourApi([
 $posts = $api->getPosts();
 ```
 
-For all available methods, check the official page documentation [here](https://symfony.com/doc/current/components/options_resolver.html).
+For all available methods, check the official page [documentation](https://symfony.com/doc/current/components/options_resolver.html).
+
+## Libraries using PHP API SDK
+
+- [programmatordev/openweathermap-php-api](https://github.com/programmatordev/openweathermap-php-api)
+- [programmatordev/sportmonksfootball-php-api](https://github.com/programmatordev/sportmonksfootball-php-api)
 
 ## Contributing
 
