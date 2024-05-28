@@ -13,7 +13,7 @@ A library for creating SDKs in PHP with support for:
 - Event listeners;
 - ...and more.
 
-All methods are public for full end user hackability 🔥.
+All methods are public for full hackability 🔥.
 
 ## Requirements
 
@@ -527,7 +527,7 @@ Event listeners are then executed from the highest priority to the lowest:
 
 ```php
 use ProgrammatorDev\Api\Api;
-use ProgrammatorDev\Api\Event\PostRequestEvent;
+use ProgrammatorDev\Api\Event\ResponseContentsEvent;
 
 class YourApi extends Api
 {
@@ -538,13 +538,13 @@ class YourApi extends Api
         
         // executed last (lower priority)
         $this->addResponseContentsListener(
-            listener: function(PostRequestEvent $event) { ... }, 
+            listener: function(ResponseContentsEvent $event) { ... }, 
             priority: 0
         );
         
         // executed first (higher priority)
         $this->addResponseContentsListener(
-            listener: function(PostRequestEvent $event) { ... }, 
+            listener: function(ResponseContentsEvent $event) { ... }, 
             priority: 10
         ); 
     }
@@ -558,21 +558,21 @@ For that, you can use the `stopPropagation()` method:
 
 ```php
 use ProgrammatorDev\Api\Api;
-use ProgrammatorDev\Api\Event\PostRequestEvent;
+use ProgrammatorDev\Api\Event\ResponseContentsEvent;
 
 class YourApi extends Api
 {
     public function __construct() 
     {
-        $this->addResponseContentsListener(function(PostRequestEvent $event) {
+        $this->addResponseContentsListener(function(ResponseContentsEvent $event) {
             // stop propagation so future listeners of this event will not be called
             $event->stopPropagation();
         });
         
         // this listener will not be called
-        $this->addResponseContentsListener(function(PostRequestEvent $event) { 
+        $this->addResponseContentsListener(function(ResponseContentsEvent $event) { 
             // ...
-         }); 
+        }); 
     }
 }
 ```
@@ -849,11 +849,11 @@ class YourApi extends Api
     {
         parent::__construct();
         
-        $this->configureOptions($options);
+        $this->options = $this->configureOptions($options);
         $this->configureApi();
     }
     
-    private function configureOptions(array $options): void
+    private function configureOptions(array $options): array
     {
         // set defaults values, if none were provided
         $this->optionsResolver->setDefault('timezone', 'UTC');
@@ -867,8 +867,8 @@ class YourApi extends Api
         $this->optionsResolver->setAllowedValues('timezone', \DateTimeZone::listIdentifiers());
         $this->optionsResolver->setAllowedValues('language', ['en', 'pt']);
         
-        // resolve and set to options property
-        $this->options = $this->optionsResolver->resolve($options);
+        // return resolved options
+        return $this->optionsResolver->resolve($options);
     }
     
     private function configureApi(): void

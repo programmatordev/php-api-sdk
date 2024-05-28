@@ -102,16 +102,22 @@ class Api
     private function configurePlugins(): void
     {
         // https://docs.php-http.org/en/latest/plugins/content-type.html
-        $this->clientBuilder->addPlugin(new ContentTypePlugin(), 40);
+        $this->clientBuilder->addPlugin(
+            plugin: new ContentTypePlugin(),
+            priority: 40
+        );
 
         // https://docs.php-http.org/en/latest/plugins/content-length.html
-        $this->clientBuilder->addPlugin(new ContentLengthPlugin(), 32);
+        $this->clientBuilder->addPlugin(
+            plugin: new ContentLengthPlugin(),
+            priority: 32
+        );
 
         // https://docs.php-http.org/en/latest/message/authentication.html
         if ($this->authentication) {
             $this->clientBuilder->addPlugin(
-                new AuthenticationPlugin($this->authentication),
-                24
+                plugin: new AuthenticationPlugin($this->authentication),
+                priority: 24
             );
         }
 
@@ -129,23 +135,23 @@ class Api
             }
 
             $this->clientBuilder->addPlugin(
-                new CachePlugin(
+                plugin: new CachePlugin(
                     $this->cacheBuilder->getPool(),
                     $this->clientBuilder->getStreamFactory(),
                     $cacheOptions
                 ),
-                16
+                priority: 16
             );
         }
 
         // https://docs.php-http.org/en/latest/plugins/logger.html
         if ($this->loggerBuilder) {
             $this->clientBuilder->addPlugin(
-                new LoggerPlugin(
+                plugin: new LoggerPlugin(
                     $this->loggerBuilder->getLogger(),
                     $this->loggerBuilder->getFormatter()
                 ),
-                8
+                priority: 8
             );
         }
     }
