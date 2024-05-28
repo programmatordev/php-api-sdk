@@ -144,7 +144,7 @@ class YourApi extends Api
 
 By default, this method will return a `string` as it will be the response of the request as is.
 If you want to change how the response is handled in all requests (for example, decode a JSON string into an array), 
-check the [`addResponseContentsHandler`](#addresponsecontentshandler) method in the [Event Listeners](#event-listeners) section.
+check the [`addResponseContentsListener`](#addresponsecontentslistener) method in the [Event Listeners](#event-listeners) section.
 
 #### `buildPath`
 
@@ -472,7 +472,7 @@ The `addResponseContentsListener` method is used to manipulate the response that
 This event listener will be applied to every API request.
 
 ```php
-$this->addResponseContentsListener(callable $handler, int $priority = 0): self;
+$this->addResponseContentsListener(callable $listener, int $priority = 0): self;
 ```
 
 For example, if the API responses are JSON strings, you can use this event listener to decode them into arrays:
@@ -906,7 +906,12 @@ $api = new YourApi([
 $posts = $api->getPosts();
 ```
 
-For all available methods, check the official page documentation [here](https://symfony.com/doc/current/components/options_resolver.html).
+For all available methods, check the official page [documentation](https://symfony.com/doc/current/components/options_resolver.html).
+
+## Libraries using PHP API SDK
+
+- [programmatordev/openweathermap-php-api](https://github.com/programmatordev/openweathermap-php-api)
+- [programmatordev/sportmonksfootball-php-api](https://github.com/programmatordev/sportmonksfootball-php-api)
 
 ## Contributing
 
