@@ -367,7 +367,7 @@ class YourApi extends Api
 
 #### `addPreRequestListener`
 
-The `addPreRequestListener` method is used to add a function that is called before a request, and all handled data, has been made.
+The `addPreRequestListener` method is used to add a function that is called before a request has been made.
 This event listener will be applied to every API request.
 
 ```php
@@ -673,8 +673,7 @@ The following list has all the implemented plugins with the respective priority 
 | [`LoggerPlugin`](https://docs.php-http.org/en/latest/plugins/logger.html)                  | 8        | only if logger is enabled         |
 
 For example, if you wanted the client to automatically attempt to re-send a request that failed
-(due to unreliable connections and servers, for example)
-you can add the [RetryPlugin](https://docs.php-http.org/en/latest/plugins/retry.html);
+(due to unreliable connections and servers, for example) you can add the [RetryPlugin](https://docs.php-http.org/en/latest/plugins/retry.html):
 
 ```php
 use ProgrammatorDev\Api\Api;
@@ -687,11 +686,11 @@ class YourApi extends Api
         // ...
         
         // if a request fails, it will retry at least 3 times
-        // priority is 12 to execute the plugin between the cache and logger plugins
+        // priority is 20 to execute before the cache plugin
         // (check the above plugin order list for more information)
         $this->getClientBuilder()->addPlugin(
-            plugin: new RetryPlugin(['retries' => 3])
-            priority: 12
+            plugin: new RetryPlugin(['retries' => 3]),
+            priority: 20
         );
     }
 }
@@ -895,7 +894,7 @@ class YourApi extends Api
 }
 ```
 
-For the end user, it should look like this:
+When using the API, it should look like this:
 
 ```php
 $api = new YourApi([
