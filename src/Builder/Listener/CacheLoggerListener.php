@@ -26,7 +26,7 @@ class CacheLoggerListener implements CacheListener
         if ($fromCache) {
             /** @var $cacheItem CacheItemInterface */
             $logger->info(
-                \sprintf("Cache hit:\n%s", $formatter->formatRequest($request)),
+                sprintf("Cache hit:\n%s", $formatter->formatRequest($request)),
                 [
                     'expires' => $cacheItem->get()['expiresAt'],
                     'key' => $cacheItem->getKey()
@@ -36,12 +36,12 @@ class CacheLoggerListener implements CacheListener
         // if response is a cache miss (and was cached)
         else if ($cacheItem instanceof CacheItemInterface) {
             // handle future deprecation
-            $formattedResponse = \method_exists($formatter, 'formatResponseForRequest')
+            $formattedResponse = method_exists($formatter, 'formatResponseForRequest')
                 ? $formatter->formatResponseForRequest($response, $request)
                 : $formatter->formatResponse($response);
 
             $logger->info(
-                \sprintf("Cached response:\n%s", $formattedResponse),
+                sprintf("Cached response:\n%s", $formattedResponse),
                 [
                     'expires' => $cacheItem->get()['expiresAt'],
                     'key' => $cacheItem->getKey()

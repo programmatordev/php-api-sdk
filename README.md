@@ -40,7 +40,7 @@ class YourApi extends Api
     {
         parent::__construct();
         
-        // minimum required config
+        // recommended config
         $this->setBaseUrl('https://api.example.com/v1');
     }
     
@@ -77,11 +77,11 @@ Getter and setter for the base URL.
 Base URL is the common part of the API URL and will be used in all requests.
 
 ```php
-$this->setBaseUrl(string $baseUrl): self
+$this->setBaseUrl(?string $baseUrl): self
 ```
 
 ```php
-$this->getBaseUrl(): string
+$this->getBaseUrl(): ?string
 ```
 
 ### Requests
@@ -99,15 +99,11 @@ use Psr\Http\Message\StreamInterface;
 $this->request(
     string $method, 
     string $path, 
-    array $query [], 
+    array $query = [], 
     array $headers = [], 
     StreamInterface|string $body = null
 ): mixed
 ```
-
-> [!NOTE]
-> A `ConfigException` will be thrown if a base URL is not set (this is, if it is empty). 
-> Check the [`setBaseUrl`](#base-url) method for more information.
 
 > [!NOTE]
 > A `ClientException` will be thrown if there is an error while processing the request.
@@ -123,7 +119,7 @@ class YourApi extends Api
     {
         parent::__construct();
         
-        // minimum required config
+        // recommended config
         $this->setBaseUrl('https://api.example.com/v1');
     }
     
@@ -165,6 +161,7 @@ class YourApi extends Api
     {
         parent::__construct();
         
+        // recommended config
         $this->setBaseUrl('https://api.example.com/v1');
     }
     
@@ -316,18 +313,11 @@ use Http\Message\Authentication;
 $this->getAuthentication(): ?Authentication;
 ```
 
-Available authentication methods:
-- [`BasicAuth`](https://docs.php-http.org/en/latest/message/authentication.html#id1) Username and password
-- [`Bearer`](https://docs.php-http.org/en/latest/message/authentication.html#bearer) Token
-- [`Wsse`](https://docs.php-http.org/en/latest/message/authentication.html#id2) Username and password
-- [`QueryParam`](https://docs.php-http.org/en/latest/message/authentication.html#query-params) Array of query parameter values
-- [`Header`](https://docs.php-http.org/en/latest/message/authentication.html#header) Header name and value
-- [`Chain`](https://docs.php-http.org/en/latest/message/authentication.html#chain) Array of authentication instances
-- `RequestConditional` A request matcher and authentication instances
+Check all available authentication methods in the [PHP HTTP documentation](https://docs.php-http.org/en/latest/message/authentication.html#authentication-methods).
 
 You can also [implement your own](https://docs.php-http.org/en/latest/message/authentication.html#implement-your-own) authentication method.
 
-For example, if you have an API that is authenticated with a query parameter:
+For example, if you have an API authenticated with a query parameter:
 
 ```php
 use ProgrammatorDev\Api\Api;
@@ -367,7 +357,7 @@ class YourApi extends Api
 
 #### `addPreRequestListener`
 
-The `addPreRequestListener` method is used to add a function that is called before a request has been made.
+The `addPreRequestListener` method is used to add a function called before a request has been made.
 This event listener will be applied to every API request.
 
 ```php
@@ -413,7 +403,7 @@ $this->addPreRequestListener(function(PreRequestEvent $event) {
 
 #### `addPostRequestListener`
 
-The `addPostRequestListener` method is used to add a function that is called after a request has been made. 
+The `addPostRequestListener` method is used to add a function called after a request has been made. 
 This function can be used to inspect the request and response data that was sent to, and received from, the API.
 This event listener will be applied to every API request.
 
@@ -468,7 +458,7 @@ $this->addPostRequestListener(function(PostRequestEvent $event) {
 
 #### `addResponseContentsListener`
 
-The `addResponseContentsListener` method is used to manipulate the response that was received from the API.
+The `addResponseContentsListener` method is used to manipulate the response received from the API.
 This event listener will be applied to every API request.
 
 ```php
@@ -648,7 +638,7 @@ class YourApi extends Api
 This library enables attaching plugins to the HTTP client. 
 A plugin modifies the behavior of the client by intercepting the request and response flow. 
 
-Since plugin order matters, a plugin is added with a priority level, and are executed in descending order from highest to lowest.
+Since plugin order matters, a plugin is added with a priority level and is executed in descending order from highest to lowest.
 
 Check all the [available plugins](https://docs.php-http.org/en/latest/plugins/index.html) or [create your own](https://docs.php-http.org/en/latest/plugins/build-your-own.html).
 
@@ -673,7 +663,7 @@ The following list has all the implemented plugins with the respective priority 
 | [`LoggerPlugin`](https://docs.php-http.org/en/latest/plugins/logger.html)                  | 8        | only if logger is enabled         |
 
 For example, if you wanted the client to automatically attempt to re-send a request that failed
-(due to unreliable connections and servers, for example) you can add the [RetryPlugin](https://docs.php-http.org/en/latest/plugins/retry.html):
+(due to unreliable connections and servers, for example), you can add the [RetryPlugin](https://docs.php-http.org/en/latest/plugins/retry.html):
 
 ```php
 use ProgrammatorDev\Api\Api;
@@ -686,7 +676,7 @@ class YourApi extends Api
         // ...
         
         // if a request fails, it will retry at least 3 times
-        // priority is 20 to execute before the cache plugin
+        // the priority is 20 to execute before the cache plugin
         // (check the above plugin order list for more information)
         $this->getClientBuilder()->addPlugin(
             plugin: new RetryPlugin(['retries' => 3]),
@@ -709,12 +699,11 @@ use Psr\Cache\CacheItemPoolInterface;
 new CacheBuilder(
     // a PSR-6 cache adapter
     CacheItemPoolInterface $pool,
-    // default lifetime (in seconds) of cache items
+    // default lifetime (in seconds) of cached items
     ?int $ttl = 60,
     // An array of HTTP methods for which caching should be applied
     $methods = ['GET', 'HEAD'],
-    // An array of cache directives to be compared with the headers of the HTTP response,
-    // in order to determine cacheability
+    // An array of cache directives to be compared with the headers of the HTTP response to determine cacheability
     $responseCacheDirectives = ['max-age'] 
 );
 ```
@@ -854,7 +843,7 @@ class YourApi extends Api
     
     private function configureOptions(array $options): array
     {
-        // set defaults values, if none were provided
+        // set defaults values if none were provided
         $this->optionsResolver->setDefault('timezone', 'UTC');
         $this->optionsResolver->setDefault('language', 'en');
 
@@ -872,7 +861,7 @@ class YourApi extends Api
     
     private function configureApi(): void
     {
-        // set required base url
+        // set the base url
         $this->setBaseUrl('https://api.example.com/v1');
         
         // set options as query defaults (will be included in all requests)
