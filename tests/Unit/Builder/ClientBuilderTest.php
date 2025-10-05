@@ -61,7 +61,7 @@ class ClientBuilderTest extends AbstractTestCase
 
         $this->assertCount(3, $clientBuilder->getPlugins());
         // plugins array keys are used as priority [priority => plugin]
-        // so check if order of keys (priority) is sorted
+        // so check if the order of keys (priority) is sorted
         $this->assertSame(
             [
                 0 => 3,

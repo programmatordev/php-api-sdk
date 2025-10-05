@@ -15,8 +15,7 @@ use ProgrammatorDev\Api\Builder\LoggerBuilder;
 use ProgrammatorDev\Api\Event\PostRequestEvent;
 use ProgrammatorDev\Api\Event\PreRequestEvent;
 use ProgrammatorDev\Api\Event\ResponseContentsEvent;
-use ProgrammatorDev\Api\Exception\ConfigException;
-use ProgrammatorDev\Api\Helper\StringHelperTrait;
+use ProgrammatorDev\Api\Helper\StringHelper;
 use Psr\Http\Client\ClientExceptionInterface as ClientException;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\StreamInterface;
@@ -25,8 +24,6 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class Api
 {
-    use StringHelperTrait;
-
     private ?string $baseUrl = null;
 
     private array $queryDefaults = [];
@@ -53,7 +50,6 @@ class Api
     }
 
     /**
-     * @throws ConfigException If a base URL has not been set.
      * @throws ClientException
      */
     public function request(
@@ -64,18 +60,14 @@ class Api
         string|StreamInterface $body = null
     ): mixed
     {
-        if (!$this->baseUrl) {
-            throw new ConfigException('A base URL must be set.');
-        }
-
         $this->configurePlugins();
 
         if (!empty($this->queryDefaults)) {
-            $query = \array_merge($this->queryDefaults, $query);
+            $query = array_merge($this->queryDefaults, $query);
         }
 
         if (!empty($this->headerDefaults)) {
-            $headers = \array_merge($this->headerDefaults, $headers);
+            $headers = array_merge($this->headerDefaults, $headers);
         }
 
         $uri = $this->buildUri($path, $query);
@@ -161,7 +153,7 @@ class Api
         return $this->baseUrl;
     }
 
-    public function setBaseUrl(string $baseUrl): self
+    public function setBaseUrl(?string $baseUrl): self
     {
         $this->baseUrl = $baseUrl;
 
@@ -278,8 +270,8 @@ class Api
     public function buildPath(string $path, array $parameters): string
     {
         foreach ($parameters as $parameter => $value) {
-            $path = \str_replace(
-                \sprintf('{%s}', $parameter),
+            $path = str_replace(
+                sprintf('{%s}', $parameter),
                 $value,
                 $path
             );
@@ -290,10 +282,10 @@ class Api
 
     private function buildUri(string $path, array $query = []): string
     {
-        $uri = $this->reduceDuplicateSlashes($this->baseUrl . $path);
+        $uri = StringHelper::reduceDuplicateSlashes($this->baseUrl . $path);
 
         if (!empty($query)) {
-            $uri = \sprintf('%s?%s', $uri, \http_build_query($query));
+            $uri = sprintf('%s?%s', $uri, http_build_query($query));
         }
 
         return $uri;
@@ -314,7 +306,7 @@ class Api
 
         if ($body !== null && $body !== '') {
             $request = $request->withBody(
-                \is_string($body) ? $this->clientBuilder->getStreamFactory()->createStream($body) : $body
+                is_string($body) ? $this->clientBuilder->getStreamFactory()->createStream($body) : $body
             );
         }
 
