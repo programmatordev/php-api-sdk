@@ -15,18 +15,14 @@ use ProgrammatorDev\Api\Builder\LoggerBuilder;
 use ProgrammatorDev\Api\Event\PostRequestEvent;
 use ProgrammatorDev\Api\Event\PreRequestEvent;
 use ProgrammatorDev\Api\Event\ResponseContentsEvent;
-use ProgrammatorDev\Api\Exception\ConfigException;
-use ProgrammatorDev\Api\Helper\StringHelperTrait;
+use ProgrammatorDev\Api\Helper\StringHelper;
 use Psr\Http\Client\ClientExceptionInterface as ClientException;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\StreamInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
-use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class Api
 {
-    use StringHelperTrait;
-
     private ?string $baseUrl = null;
 
     private array $queryDefaults = [];
@@ -43,17 +39,13 @@ class Api
 
     private EventDispatcher $eventDispatcher;
 
-    protected OptionsResolver $optionsResolver;
-
     public function __construct()
     {
         $this->clientBuilder ??= new ClientBuilder();
         $this->eventDispatcher = new EventDispatcher();
-        $this->optionsResolver = new OptionsResolver();
     }
 
     /**
-     * @throws ConfigException If a base URL has not been set.
      * @throws ClientException
      */
     public function request(
@@ -64,22 +56,18 @@ class Api
         string|StreamInterface $body = null
     ): mixed
     {
-        if (!$this->baseUrl) {
-            throw new ConfigException('A base URL must be set.');
-        }
-
         $this->configurePlugins();
 
         if (!empty($this->queryDefaults)) {
-            $query = \array_merge($this->queryDefaults, $query);
+            $query = array_merge($this->queryDefaults, $query);
         }
 
         if (!empty($this->headerDefaults)) {
-            $headers = \array_merge($this->headerDefaults, $headers);
+            $headers = array_merge($this->headerDefaults, $headers);
         }
 
-        $uri = $this->buildUri($path, $query);
-        $request = $this->createRequest($method, $uri, $headers, $body);
+        $url = $this->buildUrl($path, $query);
+        $request = $this->createRequest($method, $url, $headers, $body);
 
         // pre request listener
         $request = $this->eventDispatcher->dispatch(new PreRequestEvent($request))->getRequest();
@@ -161,7 +149,7 @@ class Api
         return $this->baseUrl;
     }
 
-    public function setBaseUrl(string $baseUrl): self
+    public function setBaseUrl(?string $baseUrl): self
     {
         $this->baseUrl = $baseUrl;
 
@@ -278,8 +266,8 @@ class Api
     public function buildPath(string $path, array $parameters): string
     {
         foreach ($parameters as $parameter => $value) {
-            $path = \str_replace(
-                \sprintf('{%s}', $parameter),
+            $path = str_replace(
+                sprintf('{%s}', $parameter),
                 $value,
                 $path
             );
@@ -288,25 +276,26 @@ class Api
         return $path;
     }
 
-    private function buildUri(string $path, array $query = []): string
+    private function buildUrl(string $path, array $query = []): string
     {
-        $uri = $this->reduceDuplicateSlashes($this->baseUrl . $path);
+        $appendQuery = http_build_query($query);
 
-        if (!empty($query)) {
-            $uri = \sprintf('%s?%s', $uri, \http_build_query($query));
+        if (StringHelper::isUrl($path)) {
+            return append_query_string($path, $appendQuery, APPEND_QUERY_STRING_REPLACE_DUPLICATE);
         }
 
-        return $uri;
+        $url = StringHelper::reduceDuplicateSlashes($this->baseUrl . $path);
+        return append_query_string($url, $appendQuery, APPEND_QUERY_STRING_REPLACE_DUPLICATE);
     }
 
     private function createRequest(
         string $method,
-        string $uri,
+        string $url,
         array $headers = [],
         string|StreamInterface $body = null
     ): RequestInterface
     {
-        $request = $this->clientBuilder->getRequestFactory()->createRequest($method, $uri);
+        $request = $this->clientBuilder->getRequestFactory()->createRequest($method, $url);
 
         foreach ($headers as $key => $value) {
             $request = $request->withHeader($key, $value);
@@ -314,7 +303,7 @@ class Api
 
         if ($body !== null && $body !== '') {
             $request = $request->withBody(
-                \is_string($body) ? $this->clientBuilder->getStreamFactory()->createStream($body) : $body
+                is_string($body) ? $this->clientBuilder->getStreamFactory()->createStream($body) : $body
             );
         }
 

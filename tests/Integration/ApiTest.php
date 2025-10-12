@@ -5,12 +5,13 @@ namespace ProgrammatorDev\Api\Test\Integration;
 use Http\Message\Authentication;
 use Http\Mock\Client;
 use Nyholm\Psr7\Response;
+use PHPUnit\Framework\Attributes\DataProvider;
 use ProgrammatorDev\Api\Api;
 use ProgrammatorDev\Api\Builder\CacheBuilder;
 use ProgrammatorDev\Api\Builder\ClientBuilder;
 use ProgrammatorDev\Api\Builder\LoggerBuilder;
+use ProgrammatorDev\Api\Event\PreRequestEvent;
 use ProgrammatorDev\Api\Event\ResponseContentsEvent;
-use ProgrammatorDev\Api\Exception\ConfigException;
 use ProgrammatorDev\Api\Test\AbstractTestCase;
 use ProgrammatorDev\Api\Test\MockResponse;
 use Psr\Cache\CacheItemPoolInterface;
@@ -37,32 +38,9 @@ class ApiTest extends AbstractTestCase
         $this->api->setClientBuilder(new ClientBuilder($this->mockClient));
     }
 
-    public function testSetters()
-    {
-        $pool = $this->createMock(CacheItemPoolInterface::class);
-        $logger = $this->createMock(LoggerInterface::class);
-        $authentication = $this->createConfiguredMock(Authentication::class, [
-            'authenticate' => $this->createMock(RequestInterface::class)
-        ]);
-
-        $this->api->setBaseUrl(self::BASE_URL);
-        $this->api->setClientBuilder(new ClientBuilder());
-        $this->api->setCacheBuilder(new CacheBuilder($pool));
-        $this->api->setLoggerBuilder(new LoggerBuilder($logger));
-        $this->api->setAuthentication($authentication);
-
-        $this->assertSame(self::BASE_URL, $this->api->getBaseUrl());
-        $this->assertInstanceOf(ClientBuilder::class, $this->api->getClientBuilder());
-        $this->assertInstanceOf(CacheBuilder::class, $this->api->getCacheBuilder());
-        $this->assertInstanceOf(LoggerBuilder::class, $this->api->getLoggerBuilder());
-        $this->assertInstanceOf(Authentication::class, $this->api->getAuthentication());
-    }
-
     public function testRequest()
     {
         $this->mockClient->addResponse(new Response(body: MockResponse::SUCCESS));
-
-        $this->api->setBaseUrl(self::BASE_URL);
 
         $response = $this->api->request(
             method: 'GET',
@@ -72,15 +50,13 @@ class ApiTest extends AbstractTestCase
         $this->assertSame(MockResponse::SUCCESS, $response);
     }
 
-    public function testMissingBaseUrl()
+    public function testBaseUrl()
     {
-        $this->expectException(ConfigException::class);
-        $this->expectExceptionMessage('A base URL must be set.');
+        $this->assertNull($this->api->getBaseUrl());
 
-        $this->api->request(
-            method: 'GET',
-            path: '/path'
-        );
+        $this->api->setBaseUrl(self::BASE_URL);
+
+        $this->assertSame(self::BASE_URL, $this->api->getBaseUrl());
     }
 
     public function testQueryDefaults()
@@ -103,12 +79,13 @@ class ApiTest extends AbstractTestCase
 
     public function testCache()
     {
-        $pool = $this->createMock(CacheItemPoolInterface::class);
+        $this->assertNull($this->api->getCacheBuilder());
 
-        $this->api->setBaseUrl(self::BASE_URL);
-        $this->api->setCacheBuilder(new CacheBuilder($pool));
+        $cachePool = $this->createMock(CacheItemPoolInterface::class);
 
-        $pool->expects($this->once())->method('save');
+        $this->api->setCacheBuilder(new CacheBuilder($cachePool));
+
+        $cachePool->expects($this->once())->method('save');
 
         $this->api->request(
             method: 'GET',
@@ -118,12 +95,13 @@ class ApiTest extends AbstractTestCase
 
     public function testLogger()
     {
+        $this->assertNull($this->api->getLoggerBuilder());
+
         $logger = $this->createMock(LoggerInterface::class);
 
-        $this->api->setBaseUrl(self::BASE_URL);
         $this->api->setLoggerBuilder(new LoggerBuilder($logger));
 
-        // request + response log
+        // count equals 2 because of the request and response log
         $logger->expects($this->exactly(2))->method('info');
 
         $this->api->request(
@@ -134,14 +112,16 @@ class ApiTest extends AbstractTestCase
 
     public function testCacheWithLogger()
     {
-        $pool = $this->createMock(CacheItemPoolInterface::class);
+        $this->assertNull($this->api->getCacheBuilder());
+        $this->assertNull($this->api->getLoggerBuilder());
+
+        $cachePool = $this->createMock(CacheItemPoolInterface::class);
         $logger = $this->createMock(LoggerInterface::class);
 
-        $this->api->setBaseUrl(self::BASE_URL);
-        $this->api->setCacheBuilder(new CacheBuilder($pool));
+        $this->api->setCacheBuilder(new CacheBuilder($cachePool));
         $this->api->setLoggerBuilder(new LoggerBuilder($logger));
 
-        // request + response + cache log
+        // count equals 3 because of the request, response and cache log
         $logger->expects($this->exactly(3))->method('info');
 
         // error suppression to hide expected warning of null cache item in CacheLoggerListener
@@ -155,11 +135,12 @@ class ApiTest extends AbstractTestCase
 
     public function testAuthentication()
     {
+        $this->assertNull($this->api->getAuthentication());
+
         $authentication = $this->createConfiguredMock(Authentication::class, [
             'authenticate' => $this->createMock(RequestInterface::class)
         ]);
 
-        $this->api->setBaseUrl(self::BASE_URL);
         $this->api->setAuthentication($authentication);
 
         $authentication->expects($this->once())->method('authenticate');
@@ -172,7 +153,6 @@ class ApiTest extends AbstractTestCase
 
     public function testPreRequestListener()
     {
-        $this->api->setBaseUrl(self::BASE_URL);
         $this->api->addPreRequestListener(fn() => throw new \Exception('TestMessage'));
 
         $this->expectException(\Exception::class);
@@ -186,7 +166,6 @@ class ApiTest extends AbstractTestCase
 
     public function testPostRequestListener()
     {
-        $this->api->setBaseUrl(self::BASE_URL);
         $this->api->addPostRequestListener(fn() => throw new \Exception('TestMessage'));
 
         $this->expectException(\Exception::class);
@@ -202,7 +181,6 @@ class ApiTest extends AbstractTestCase
     {
         $this->mockClient->addResponse(new Response(body: MockResponse::SUCCESS));
 
-        $this->api->setBaseUrl(self::BASE_URL);
         $this->api->addResponseContentsListener(function(ResponseContentsEvent $event) {
             $contents = json_decode($event->getContents(), true);
             $event->setContents($contents);
@@ -214,6 +192,30 @@ class ApiTest extends AbstractTestCase
         );
 
         $this->assertIsArray($response);
+    }
+
+    #[DataProvider('provideBuildUrlData')]
+    public function testBuildUrl(?string $baseUrl, string $path, array $query, string $expectedUrl)
+    {
+        $this->api->addPreRequestListener(function(PreRequestEvent $event) use ($expectedUrl) {
+            $url = (string) $event->getRequest()->getUri();
+
+            $this->assertSame($expectedUrl, $url);
+        });
+
+        $this->api->setBaseUrl($baseUrl);
+        $this->api->request(method: 'GET', path: $path, query: $query);
+    }
+
+    public static function provideBuildUrlData(): \Generator
+    {
+        yield 'no base url' => [null, '/path', [], '/path'];
+        yield 'base url' => [self::BASE_URL, '/path', [], 'https://base.com/url/path'];
+        yield 'path full url' => [self::BASE_URL, 'https://fullurl.com/path', [], 'https://fullurl.com/path'];
+        yield 'duplicated slashes' => [self::BASE_URL, '////path', [], 'https://base.com/url/path'];
+        yield 'query' => [self::BASE_URL, '/path', ['foo' => 'bar'], 'https://base.com/url/path?foo=bar'];
+        yield 'path query' => [self::BASE_URL, '/path?test=true', ['foo' => 'bar'], 'https://base.com/url/path?test=true&foo=bar'];
+        yield 'query replace' => [self::BASE_URL, '/path?test=true', ['test' => 'false'], 'https://base.com/url/path?test=false'];
     }
 
     public function testBuildPath()
