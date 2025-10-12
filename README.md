@@ -141,6 +141,9 @@ By default, this method will return a `string` as it will be the response of the
 If you want to change how the response is handled in all requests (for example, decode a JSON string into an array), 
 check the [`addResponseContentsListener`](#addresponsecontentslistener) method in the [Event Listeners](#event-listeners) section.
 
+> [!NOTE]
+> If the `path` set is a full URL, it will be used as the request URL even if a `baseUrl` is set.
+
 #### `buildPath`
 
 The purpose of this method is to have an easy way to build a properly formatted path depending on the inputs or parameters you might have.
