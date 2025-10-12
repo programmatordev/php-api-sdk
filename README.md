@@ -69,7 +69,6 @@ class YourApi extends Api
 - [HTTP client (PSR-18) and HTTP factories (PSR-17)](#http-client-psr-18-and-http-factories-psr-17)
 - [Cache (PSR-6)](#cache-psr-6)
 - [Logger (PSR-3)](#logger-psr-3)
-- [Configure options](#configure-options)
 
 ### Base URL
 
@@ -141,6 +140,9 @@ class YourApi extends Api
 By default, this method will return a `string` as it will be the response of the request as is.
 If you want to change how the response is handled in all requests (for example, decode a JSON string into an array), 
 check the [`addResponseContentsListener`](#addresponsecontentslistener) method in the [Event Listeners](#event-listeners) section.
+
+> [!NOTE]
+> If the `path` set is a full URL, it will be used as the request URL even if a `baseUrl` is set.
 
 #### `buildPath`
 

@@ -66,8 +66,8 @@ class Api
             $headers = array_merge($this->headerDefaults, $headers);
         }
 
-        $uri = $this->buildUri($path, $query);
-        $request = $this->createRequest($method, $uri, $headers, $body);
+        $url = $this->buildUrl($path, $query);
+        $request = $this->createRequest($method, $url, $headers, $body);
 
         // pre request listener
         $request = $this->eventDispatcher->dispatch(new PreRequestEvent($request))->getRequest();
@@ -276,25 +276,26 @@ class Api
         return $path;
     }
 
-    private function buildUri(string $path, array $query = []): string
+    private function buildUrl(string $path, array $query = []): string
     {
-        $uri = StringHelper::reduceDuplicateSlashes($this->baseUrl . $path);
+        $appendQuery = http_build_query($query);
 
-        if (!empty($query)) {
-            $uri = sprintf('%s?%s', $uri, http_build_query($query));
+        if (StringHelper::isUrl($path)) {
+            return append_query_string($path, $appendQuery, APPEND_QUERY_STRING_REPLACE_DUPLICATE);
         }
 
-        return $uri;
+        $url = StringHelper::reduceDuplicateSlashes($this->baseUrl . $path);
+        return append_query_string($url, $appendQuery, APPEND_QUERY_STRING_REPLACE_DUPLICATE);
     }
 
     private function createRequest(
         string $method,
-        string $uri,
+        string $url,
         array $headers = [],
         string|StreamInterface $body = null
     ): RequestInterface
     {
-        $request = $this->clientBuilder->getRequestFactory()->createRequest($method, $uri);
+        $request = $this->clientBuilder->getRequestFactory()->createRequest($method, $url);
 
         foreach ($headers as $key => $value) {
             $request = $request->withHeader($key, $value);
