@@ -5,10 +5,12 @@ namespace ProgrammatorDev\Api\Test\Integration;
 use Http\Message\Authentication;
 use Http\Mock\Client;
 use Nyholm\Psr7\Response;
+use PHPUnit\Framework\Attributes\DataProvider;
 use ProgrammatorDev\Api\Api;
 use ProgrammatorDev\Api\Builder\CacheBuilder;
 use ProgrammatorDev\Api\Builder\ClientBuilder;
 use ProgrammatorDev\Api\Builder\LoggerBuilder;
+use ProgrammatorDev\Api\Event\PreRequestEvent;
 use ProgrammatorDev\Api\Event\ResponseContentsEvent;
 use ProgrammatorDev\Api\Test\AbstractTestCase;
 use ProgrammatorDev\Api\Test\MockResponse;
@@ -190,6 +192,30 @@ class ApiTest extends AbstractTestCase
         );
 
         $this->assertIsArray($response);
+    }
+
+    #[DataProvider('provideBuildUrlData')]
+    public function testBuildUrl(?string $baseUrl, string $path, array $query, string $expectedUrl)
+    {
+        $this->api->addPreRequestListener(function(PreRequestEvent $event) use ($expectedUrl) {
+            $url = (string) $event->getRequest()->getUri();
+
+            $this->assertSame($expectedUrl, $url);
+        });
+
+        $this->api->setBaseUrl($baseUrl);
+        $this->api->request(method: 'GET', path: $path, query: $query);
+    }
+
+    public static function provideBuildUrlData(): \Generator
+    {
+        yield 'no base url' => [null, '/path', [], '/path'];
+        yield 'base url' => [self::BASE_URL, '/path', [], 'https://base.com/url/path'];
+        yield 'path full url' => [self::BASE_URL, 'https://fullurl.com/path', [], 'https://fullurl.com/path'];
+        yield 'duplicated slashes' => [self::BASE_URL, '////path', [], 'https://base.com/url/path'];
+        yield 'query' => [self::BASE_URL, '/path', ['foo' => 'bar'], 'https://base.com/url/path?foo=bar'];
+        yield 'path query' => [self::BASE_URL, '/path?test=true', ['foo' => 'bar'], 'https://base.com/url/path?test=true&foo=bar'];
+        yield 'query replace' => [self::BASE_URL, '/path?test=true', ['test' => 'false'], 'https://base.com/url/path?test=false'];
     }
 
     public function testBuildPath()
