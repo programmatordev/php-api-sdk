@@ -73,12 +73,6 @@ class ClientBuilder
 
     public function addPlugin(Plugin $plugin, int $priority): self
     {
-        if (isset($this->plugins[$priority])) {
-            throw new PluginException(
-                sprintf('A plugin with priority %d already exists.', $priority)
-            );
-        }
-
         $this->plugins[$priority] = $plugin;
         // sort plugins by priority (key) in descending order
         krsort($this->plugins);

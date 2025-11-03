@@ -650,9 +650,6 @@ use Http\Client\Common\Plugin;
 $this->getClientBuilder()->addPlugin(Plugin $plugin, int $priority): self;
 ```
 
-> [!NOTE]
-> A `PluginException` will be thrown if there is a plugin with the same `priority` level.
-
 It is important to know that this library already uses various plugins with different priorities.
 The following list has all the implemented plugins with the respective priority in descending order (remember that order matters):
 
@@ -663,6 +660,10 @@ The following list has all the implemented plugins with the respective priority 
 | [`AuthenticationPlugin`](https://docs.php-http.org/en/latest/plugins/authentication.html)  | 24       | only if authentication is enabled | 
 | [`CachePlugin`](https://docs.php-http.org/en/latest/plugins/cache.html)                    | 16       | only if cache is enabled          |
 | [`LoggerPlugin`](https://docs.php-http.org/en/latest/plugins/logger.html)                  | 8        | only if logger is enabled         |
+
+> [!IMPORTANT]
+> The plugin priority in the list above is reserved.
+> This means that if you try to add any plugin with the same priority, it will be overwritten.
 
 For example, if you wanted the client to automatically attempt to re-send a request that failed
 (due to unreliable connections and servers, for example), you can add the [RetryPlugin](https://docs.php-http.org/en/latest/plugins/retry.html):
