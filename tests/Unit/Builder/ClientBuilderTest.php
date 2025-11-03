@@ -77,10 +77,9 @@ class ClientBuilderTest extends AbstractTestCase
         $plugin = $this->createMock(Plugin::class);
         $clientBuilder = new ClientBuilder();
 
-        $this->expectException(PluginException::class);
-        $this->expectExceptionMessage('A plugin with priority 1 already exists.');
+        $clientBuilder->addPlugin($plugin, 1);
+        $clientBuilder->addPlugin($plugin, 1);
 
-        $clientBuilder->addPlugin($plugin, 1);
-        $clientBuilder->addPlugin($plugin, 1);
+        $this->assertCount(1, $clientBuilder->getPlugins());
     }
 }
