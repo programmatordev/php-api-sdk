@@ -50,6 +50,17 @@ class ApiTest extends AbstractTestCase
         $this->assertSame(MockResponse::SUCCESS, $response);
     }
 
+    public function testMultipleRequests()
+    {
+        $this->mockClient->addResponse(new Response(body: MockResponse::SUCCESS));
+        $this->mockClient->addResponse(new Response(body: MockResponse::SUCCESS));
+
+        $this->api->request(method: 'GET', path: '/path-1');
+        $this->api->request(method: 'GET', path: '/path-2');
+
+        $this->assertTrue(true);
+    }
+
     public function testBaseUrl()
     {
         $this->assertNull($this->api->getBaseUrl());
