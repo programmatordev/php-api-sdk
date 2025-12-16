@@ -25,16 +25,16 @@
         "psr/http-factory": "^1.1",
         "psr/http-factory-implementation": "*",
         "psr/log": "^2.0|^3.0",
-        "symfony/event-dispatcher": "^6.4|^7.3"
+        "symfony/event-dispatcher": "^6.4|^7.4|^8.0"
     },
     "require-dev": {
         "monolog/monolog": "^3.9",
         "nyholm/psr7": "^1.8",
         "php-http/mock-client": "^1.6",
         "phpunit/phpunit": "^10.5",
-        "symfony/cache": "^6.4|^7.3",
-        "symfony/http-client": "^6.4|^7.3",
-        "symfony/var-dumper": "^6.4|^7.3"
+        "symfony/cache": "^6.4|^7.4|^8.0",
+        "symfony/http-client": "^6.4|^7.4|^8.0",
+        "symfony/var-dumper": "^6.4|^7.4|^8.0"
     },
     "provide": {
         "psr/http-client-implementation": "1.0",
