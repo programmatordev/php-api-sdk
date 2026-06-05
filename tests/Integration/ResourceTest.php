@@ -7,6 +7,7 @@ use Nyholm\Psr7\Response;
 use ProgrammatorDev\Api\Test\AbstractTestCase;
 use ProgrammatorDev\Api\Test\Fixture\FakeApi;
 use ProgrammatorDev\Api\Test\Fixture\User;
+use ProgrammatorDev\Api\Test\Fixture\UserEnvelope;
 
 class ResourceTest extends AbstractTestCase
 {
@@ -91,5 +92,30 @@ class ResourceTest extends AbstractTestCase
 
         $this->assertSame(1, $user->getId());
         $this->assertSame('John', $user->getName());
+    }
+
+    public function testCollectionCanBeMappedFromResponseKey(): void
+    {
+        $this->client->addResponse(new Response(body: '{"data":[{"id":1,"name":"John"},{"id":2,"name":"Jane"}]}'));
+
+        $users = $this->api->users()->all();
+
+        $this->assertContainsOnlyInstancesOf(User::class, $users);
+        $this->assertSame(1, $users[0]->getId());
+        $this->assertSame('John', $users[0]->getName());
+        $this->assertSame(2, $users[1]->getId());
+        $this->assertSame('Jane', $users[1]->getName());
+    }
+
+    public function testResponseCanBeMappedToEnvelope(): void
+    {
+        $this->client->addResponse(new Response(status: 202, body: '{"data":{"id":1,"name":"John"}}'));
+
+        $envelope = $this->api->users()->findEnvelope(1);
+
+        $this->assertInstanceOf(UserEnvelope::class, $envelope);
+        $this->assertSame(202, $envelope->getStatusCode());
+        $this->assertSame(1, $envelope->getUser()->getId());
+        $this->assertSame('John', $envelope->getUser()->getName());
     }
 }

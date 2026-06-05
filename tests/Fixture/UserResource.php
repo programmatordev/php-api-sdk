@@ -6,6 +6,13 @@ use ProgrammatorDev\Api\Resource;
 
 class UserResource extends Resource
 {
+    public function all(): array
+    {
+        return $this
+            ->get('/users')
+            ->collection(User::class, key: 'data');
+    }
+
     public function find(int|string $id): User
     {
         return $this
@@ -18,6 +25,13 @@ class UserResource extends Resource
         return $this
             ->get('/users/{id}', ['id' => $id])
             ->entity(User::class, key: 'data');
+    }
+
+    public function findEnvelope(int|string $id): UserEnvelope
+    {
+        return $this
+            ->get('/users/{id}', ['id' => $id])
+            ->as(UserEnvelope::class);
     }
 
     public function findWithEndpointLocale(int|string $id, string $locale): User
