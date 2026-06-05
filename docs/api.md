@@ -89,6 +89,50 @@ When JSON decoding is not enabled, `Response::data()` returns the raw response b
 
 This area will grow as response transforms and errors are finalized.
 
+## `errors(): ErrorBuilder`
+
+Protected access to error handling configuration.
+
+By default, HTTP error status codes do not throw. SDK authors opt in to error behavior:
+
+```php
+$this->errors()->status(404, NotFoundException::class);
+```
+
+Use `statuses()` when an SDK has a common status-to-exception map:
+
+```php
+$this->errors()->statuses([
+    400 => BadRequestException::class,
+    401 => UnauthorizedException::class,
+    403 => ForbiddenException::class,
+    404 => NotFoundException::class,
+    429 => TooManyRequestsException::class,
+]);
+```
+
+Use a callback when the exception needs response data:
+
+```php
+$this->errors()->status(404, function (ErrorContext $context): Throwable {
+    return new NotFoundException($context->response()->data()['message']);
+});
+```
+
+Use `when()` for API-specific error payloads that are not represented by status alone:
+
+```php
+$this->errors()->when(function (ErrorContext $context): ?Throwable {
+    if (($context->response()->data()['code'] ?? null) !== 'invalid_api_key') {
+        return null;
+    }
+
+    return new InvalidApiKeyException($context->response()->data()['message']);
+});
+```
+
+Status callbacks receive `ErrorContext` and must return a `Throwable`. Custom `when()` handlers receive `ErrorContext` and must return a `Throwable` when matched or `null` when not matched.
+
 ## `Config`
 
 `Config` stores SDK options.

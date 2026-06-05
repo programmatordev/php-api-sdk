@@ -94,3 +94,40 @@ Returns the SDK config available while hydrating entities or response envelopes.
 ```php
 $timezone = $context?->config()->get('timezone');
 ```
+
+## `ErrorContext`
+
+`ErrorContext` is passed to configured error handlers.
+
+```php
+$this->errors()->status(404, NotFoundException::class);
+```
+
+```php
+$this->errors()->statuses([
+    401 => UnauthorizedException::class,
+    404 => NotFoundException::class,
+]);
+```
+
+```php
+$this->errors()->status(404, function (ErrorContext $context): Throwable {
+    return new NotFoundException($context->response()->data()['message']);
+});
+```
+
+```php
+$this->errors()->when(function (ErrorContext $context): ?Throwable {
+    if (($context->response()->data()['code'] ?? null) !== 'invalid_api_key') {
+        return null;
+    }
+
+    return new InvalidApiKeyException($context->response()->data()['message']);
+});
+```
+
+It exposes:
+
+- `response(): Response`
+- `context(): Context`
+- `statusCode(): int`

@@ -10,9 +10,11 @@ use Http\Client\Common\Plugin\LoggerPlugin;
 use Http\Message\Authentication;
 use ProgrammatorDev\Api\Builder\CacheBuilder;
 use ProgrammatorDev\Api\Builder\ClientBuilder;
+use ProgrammatorDev\Api\Builder\ErrorBuilder;
 use ProgrammatorDev\Api\Builder\Listener\CacheLoggerListener;
 use ProgrammatorDev\Api\Builder\LoggerBuilder;
 use ProgrammatorDev\Api\Builder\ResponseBuilder;
+use ProgrammatorDev\Api\Context\ErrorContext;
 use ProgrammatorDev\Api\Event\PostRequestEvent;
 use ProgrammatorDev\Api\Event\PreRequestEvent;
 use ProgrammatorDev\Api\Event\ResponseContentsEvent;
@@ -44,6 +46,8 @@ class Api
 
     private ResponseBuilder $responseBuilder;
 
+    private ErrorBuilder $errorBuilder;
+
     private EventDispatcher $eventDispatcher;
 
     public function __construct()
@@ -51,6 +55,7 @@ class Api
         $this->config = new Config();
         $this->clientBuilder ??= new ClientBuilder();
         $this->responseBuilder = new ResponseBuilder();
+        $this->errorBuilder = new ErrorBuilder();
         $this->eventDispatcher = new EventDispatcher();
     }
 
@@ -98,11 +103,16 @@ class Api
             body: $options->getBody()
         );
 
-        return new Response(
+        $context = new Context($this->config);
+        $apiResponse = new Response(
             data: $this->getResponseData($response),
             rawResponse: $response,
-            context: new Context($this->config)
+            context: $context
         );
+
+        $this->errorBuilder->throwIfMatched(new ErrorContext($apiResponse, $context));
+
+        return $apiResponse;
     }
 
     /**
@@ -143,6 +153,11 @@ class Api
     protected function responses(): ResponseBuilder
     {
         return $this->responseBuilder;
+    }
+
+    protected function errors(): ErrorBuilder
+    {
+        return $this->errorBuilder;
     }
 
     public function config(?array $values = null): Config
