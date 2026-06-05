@@ -339,7 +339,7 @@ The v3 test utilities should focus on helping SDK authors test resources, respon
 - SDK-wide options should be stored in a generic config bag.
 - SDK config should be available through context objects, not by injecting `Api` into entities.
 - `Response::entity()` and `Response::collection()` should require classes that implement `Entity`.
-- `Response::as()` should support API-specific response envelope classes such as SportMonks item and collection responses.
+- `Response::as()` should support API-specific response envelope classes such as item, collection, metadata, and pagination responses.
 - `Response::as()` should require a `ResponseEnvelope` contract with `fromResponse(Response $response)`.
 - `Response::collection()` should return a plain array by default.
 - Do not add a generic collection object in the first phase. A future `collect()` helper can be considered later if arrays become limiting.
@@ -471,7 +471,6 @@ Future-phase questions should be answered when that phase starts, not before:
 - Whether any public configuration getters are useful for testing or advanced extension.
 - Whether `Method` remains as a tiny compatibility helper or is removed entirely.
 - Whether `config()` ever supports nested keys.
-- Exact internals of JSON, form, raw string, and stream body helpers.
 - Whether a future `collect()` helper should return a small generic collection object.
 
 ## First Implementation Slice
@@ -495,10 +494,12 @@ Implement v3 incrementally. The plan is intentionally broad because v3 must rema
 
 1. Prove fluent resource authoring for GET requests and entity mapping.
 2. Add collection and custom envelope mapping.
-3. Add SDK config and entity/response context.
-4. Add JSON response decoding and error pipeline.
-5. Add auth, plugins, cache, logger, and remaining PSR feature parity.
-6. Update README and write `UPGRADE-3.0.md` once names and signatures are stable.
+3. Add resource HTTP verb helpers.
+4. Add resource body helpers.
+5. Add SDK config and entity/response context.
+6. Add JSON response decoding and error pipeline.
+7. Add auth, plugins, cache, logger, and remaining PSR feature parity.
+8. Update README and write `UPGRADE-3.0.md` once names and signatures are stable.
 
 Do not front-load advanced features before the simple SDK authoring path feels right.
 
@@ -506,9 +507,9 @@ Do not front-load advanced features before the simple SDK authoring path feels r
 
 Before tagging v3:
 
-- [ ] PSR-18 client support.
-- [ ] PSR-17 request factory support.
-- [ ] PSR-17 stream factory support.
+- [x] PSR-18 client support.
+- [x] PSR-17 request factory support.
+- [x] PSR-17 stream factory support.
 - [ ] PSR-6 cache support.
 - [ ] PSR-3 logger support.
 - [ ] Authentication support.
@@ -516,18 +517,20 @@ Before tagging v3:
 - [ ] Request hooks.
 - [ ] Response hooks.
 - [ ] Response content transformation.
-- [ ] Query defaults.
-- [ ] Header defaults.
-- [ ] Base URL handling.
-- [ ] Path parameter replacement.
+- [x] Query defaults.
+- [x] Header defaults.
+- [x] Base URL handling.
+- [x] Path parameter replacement.
+- [x] Resource HTTP verb helpers.
+- [x] Resource body helpers.
 - [ ] JSON response decoding.
 - [ ] Error mapping.
-- [ ] Entity mapping.
-- [ ] Collection mapping.
-- [ ] Custom response envelope mapping.
+- [x] Entity mapping.
+- [x] Collection mapping.
+- [x] Custom response envelope mapping.
 - [ ] Entity context and SDK config access.
-- [ ] SDK author test fixtures.
+- [x] SDK author test fixtures.
 - [ ] README update.
 - [ ] `UPGRADE-3.0.md`.
-- [ ] OpenWeatherMap-style proof.
-- [ ] SportMonks-style proof.
+- [ ] Simple API proof.
+- [ ] Complex API proof.
