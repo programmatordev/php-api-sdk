@@ -8,6 +8,9 @@ use Http\Message\Authentication\Bearer;
 use Http\Message\Authentication\Chain;
 use Http\Message\Authentication\Header;
 use Http\Message\Authentication\QueryParam;
+use Http\Message\Authentication\RequestConditional;
+use Http\Message\Authentication\Wsse;
+use Http\Message\RequestMatcher;
 use ProgrammatorDev\Api\Authentication\CallbackAuthentication;
 use Psr\Http\Message\RequestInterface;
 
@@ -34,6 +37,16 @@ class AuthBuilder
     public function query(string $name, mixed $value): self
     {
         return $this->chain(new QueryParam([$name => $value]));
+    }
+
+    public function wsse(string $username, string $password, string $hashAlgorithm = 'sha1'): self
+    {
+        return $this->chain(new Wsse($username, $password, $hashAlgorithm));
+    }
+
+    public function conditional(RequestMatcher $matcher, Authentication $authentication): self
+    {
+        return $this->chain(new RequestConditional($matcher, $authentication));
     }
 
     public function chain(Authentication ...$authentications): self

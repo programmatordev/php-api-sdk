@@ -4,6 +4,7 @@ namespace ProgrammatorDev\Api\Test\Unit\Builder;
 
 use Http\Message\Authentication\Chain;
 use Http\Message\Authentication\Header;
+use Http\Message\RequestMatcher\RequestMatcher;
 use Nyholm\Psr7\Request;
 use ProgrammatorDev\Api\Builder\AuthBuilder;
 use ProgrammatorDev\Api\Test\Support\AbstractTestCase;
@@ -50,6 +51,31 @@ class AuthBuilderTest extends AbstractTestCase
         $request = $authentication->authenticate(new Request('GET', 'https://api.example.com/weather'));
 
         $this->assertSame('secret', $request->getHeaderLine('X-Api-Key'));
+    }
+
+    public function testWsseAuthenticationAddsWsseHeaders(): void
+    {
+        $authentication = (new AuthBuilder())
+            ->wsse('user', 'pass')
+            ->authentication();
+
+        $request = $authentication->authenticate(new Request('GET', 'https://api.example.com/weather'));
+
+        $this->assertSame('WSSE profile="UsernameToken"', $request->getHeaderLine('Authorization'));
+        $this->assertStringContainsString('UsernameToken Username="user"', $request->getHeaderLine('X-WSSE'));
+    }
+
+    public function testConditionalAuthenticationOnlyAppliesWhenMatched(): void
+    {
+        $authentication = (new AuthBuilder())
+            ->conditional(new RequestMatcher(path: '^/admin'), new Header('X-Admin-Auth', 'secret'))
+            ->authentication();
+
+        $matched = $authentication->authenticate(new Request('GET', 'https://api.example.com/admin/users'));
+        $unmatched = $authentication->authenticate(new Request('GET', 'https://api.example.com/users'));
+
+        $this->assertSame('secret', $matched->getHeaderLine('X-Admin-Auth'));
+        $this->assertSame('', $unmatched->getHeaderLine('X-Admin-Auth'));
     }
 
     public function testCustomAuthenticationUsesCallback(): void

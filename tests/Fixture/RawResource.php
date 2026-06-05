@@ -11,4 +11,9 @@ class RawResource extends Resource
     {
         return $this->get('/raw');
     }
+
+    public function absolute(string $url): Response
+    {
+        return $this->get($url);
+    }
 }

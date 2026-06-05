@@ -24,6 +24,11 @@ $this->auth()->header('X-Api-Key', $apiKey);
 $this->auth()->query('appid', $apiKey);
 ```
 
+```php
+$this->auth()->wsse($username, $password);
+$this->auth()->wsse($username, $password, hashAlgorithm: 'sha512');
+```
+
 Multiple calls are chained in order:
 
 ```php
@@ -63,6 +68,22 @@ $this->auth()->chain(
 ```
 
 This is mostly useful when an SDK author already has an `Http\Message\Authentication` object or needs behavior provided by [`php-http/message`](https://docs.php-http.org/en/latest/message/index.html).
+
+## Conditional Authentication
+
+Use `conditional()` when authentication should only apply to matching requests.
+
+```php
+use Http\Message\Authentication\Bearer;
+use Http\Message\RequestMatcher\RequestMatcher;
+
+$this->auth()->conditional(
+    new RequestMatcher(path: '^/admin'),
+    new Bearer($adminToken),
+);
+```
+
+`conditional()` uses PHP-HTTP's `RequestConditional` authentication internally.
 
 ## Custom Authentication
 

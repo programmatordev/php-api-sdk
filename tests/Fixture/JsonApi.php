@@ -5,6 +5,7 @@ namespace ProgrammatorDev\Api\Test\Fixture;
 use Http\Mock\Client;
 use Http\Client\Common\Plugin;
 use Http\Message\Authentication\Header as HeaderAuthentication;
+use Http\Message\RequestMatcher\RequestMatcher;
 use ProgrammatorDev\Api\Api;
 use ProgrammatorDev\Api\Builder\ClientBuilder;
 use ProgrammatorDev\Api\Context\ErrorContext;
@@ -87,6 +88,23 @@ class JsonApi extends Api
     public function useQueryAuth(string $name, string $value): self
     {
         $this->auth()->query($name, $value);
+
+        return $this;
+    }
+
+    public function useWsseAuth(string $username, string $password): self
+    {
+        $this->auth()->wsse($username, $password);
+
+        return $this;
+    }
+
+    public function useConditionalAuth(): self
+    {
+        $this->auth()->conditional(
+            new RequestMatcher(path: '^/raw'),
+            new HeaderAuthentication('X-Conditional-Auth', 'conditional')
+        );
 
         return $this;
     }

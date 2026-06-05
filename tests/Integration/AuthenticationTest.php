@@ -59,6 +59,43 @@ class AuthenticationTest extends AbstractTestCase
         $this->assertSame('secret', $query['appid']);
     }
 
+    public function testWsseAuthenticationAddsWsseHeaders(): void
+    {
+        $client = $this->client();
+
+        (new JsonApi($client))
+            ->useWsseAuth('user', 'pass')
+            ->raw()
+            ->fetch();
+
+        $this->assertSame('WSSE profile="UsernameToken"', $client->getLastRequest()->getHeaderLine('Authorization'));
+        $this->assertStringContainsString('UsernameToken Username="user"', $client->getLastRequest()->getHeaderLine('X-WSSE'));
+    }
+
+    public function testConditionalAuthenticationAddsAuthenticationWhenMatched(): void
+    {
+        $client = $this->client();
+
+        (new JsonApi($client))
+            ->useConditionalAuth()
+            ->raw()
+            ->fetch();
+
+        $this->assertSame('conditional', $client->getLastRequest()->getHeaderLine('X-Conditional-Auth'));
+    }
+
+    public function testConditionalAuthenticationDoesNotAddAuthenticationWhenUnmatched(): void
+    {
+        $client = $this->client();
+
+        (new JsonApi($client))
+            ->useConditionalAuth()
+            ->raw()
+            ->absolute('https://api.example.com/users');
+
+        $this->assertSame('', $client->getLastRequest()->getHeaderLine('X-Conditional-Auth'));
+    }
+
     public function testChainedAuthenticationCanBeUsed(): void
     {
         $client = $this->client();
