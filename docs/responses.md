@@ -8,7 +8,11 @@ Response mapping covers decoded data, raw PSR responses, entities, collections, 
 
 ### `data(): mixed`
 
-Returns decoded response data.
+Returns response data.
+
+When `responses()->json()` is enabled on the API, JSON bodies are decoded into arrays, empty bodies become `null`, and invalid JSON throws `JsonException`.
+
+When JSON decoding is not enabled, this returns the raw response body string.
 
 ```php
 $data = $response->data();

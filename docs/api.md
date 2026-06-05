@@ -79,7 +79,15 @@ Protected access to response decoding configuration.
 $this->responses()->json();
 ```
 
-This area is still small and will grow as response decoding, transforms, and errors are finalized.
+When JSON decoding is enabled:
+
+- JSON response bodies are decoded into arrays.
+- Empty response bodies become `null`.
+- Invalid JSON throws `JsonException`.
+
+When JSON decoding is not enabled, `Response::data()` returns the raw response body string.
+
+This area will grow as response transforms and errors are finalized.
 
 ## `Config`
 
