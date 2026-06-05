@@ -12,12 +12,15 @@ use ProgrammatorDev\Api\Builder\CacheBuilder;
 use ProgrammatorDev\Api\Builder\ClientBuilder;
 use ProgrammatorDev\Api\Builder\Listener\CacheLoggerListener;
 use ProgrammatorDev\Api\Builder\LoggerBuilder;
+use ProgrammatorDev\Api\Builder\ResponseBuilder;
 use ProgrammatorDev\Api\Event\PostRequestEvent;
 use ProgrammatorDev\Api\Event\PreRequestEvent;
 use ProgrammatorDev\Api\Event\ResponseContentsEvent;
 use ProgrammatorDev\Api\Helper\StringHelper;
+use ProgrammatorDev\Api\Request\RequestOptions;
 use Psr\Http\Client\ClientExceptionInterface as ClientException;
 use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
@@ -37,11 +40,14 @@ class Api
 
     private ?Authentication $authentication = null;
 
+    private ResponseBuilder $responseBuilder;
+
     private EventDispatcher $eventDispatcher;
 
     public function __construct()
     {
         $this->clientBuilder ??= new ClientBuilder();
+        $this->responseBuilder = new ResponseBuilder();
         $this->eventDispatcher = new EventDispatcher();
     }
 
@@ -53,30 +59,10 @@ class Api
         string $path,
         array $query = [],
         array $headers = [],
-        string|StreamInterface $body = null
+        string|StreamInterface|null $body = null
     ): mixed
     {
-        $this->configurePlugins();
-
-        if (!empty($this->queryDefaults)) {
-            $query = array_merge($this->queryDefaults, $query);
-        }
-
-        if (!empty($this->headerDefaults)) {
-            $headers = array_merge($this->headerDefaults, $headers);
-        }
-
-        $url = $this->buildUrl($path, $query);
-        $request = $this->createRequest($method, $url, $headers, $body);
-
-        // pre request listener
-        $request = $this->eventDispatcher->dispatch(new PreRequestEvent($request))->getRequest();
-
-        // request
-        $response = $this->clientBuilder->getClient()->sendRequest($request);
-
-        // post request listener
-        $response = $this->eventDispatcher->dispatch(new PostRequestEvent($request, $response))->getResponse();
+        $response = $this->sendRequest($method, $path, $query, $headers, $body);
 
         // always rewind the body contents in case it was used in the PostRequestEvent
         // otherwise it would return an empty string
@@ -85,6 +71,73 @@ class Api
 
         // response contents listener
         return $this->eventDispatcher->dispatch(new ResponseContentsEvent($contents))->getContents();
+    }
+
+    /**
+     * @internal
+     * @throws ClientException
+     */
+    public function send(
+        string $method,
+        string $path,
+        array $pathParams = [],
+        ?RequestOptions $options = null
+    ): Response
+    {
+        $options ??= new RequestOptions();
+        $path = $this->buildPath($path, $pathParams);
+
+        $response = $this->sendRequest(
+            method: $method,
+            path: $path,
+            query: $options->getQuery(),
+            headers: $options->getHeaders()
+        );
+
+        return new Response(
+            data: $this->getResponseData($response),
+            rawResponse: $response
+        );
+    }
+
+    /**
+     * @template T of Resource
+     * @param class-string<T> $class
+     * @return T
+     */
+    protected function resource(string $class): Resource
+    {
+        return new $class($this);
+    }
+
+    protected function baseUrl(?string $baseUrl): static
+    {
+        $this->setBaseUrl($baseUrl);
+
+        return $this;
+    }
+
+    protected function queryDefaults(array $query): static
+    {
+        foreach ($query as $name => $value) {
+            $this->addQueryDefault($name, $value);
+        }
+
+        return $this;
+    }
+
+    protected function headerDefaults(array $headers): static
+    {
+        foreach ($headers as $name => $value) {
+            $this->addHeaderDefault($name, $value);
+        }
+
+        return $this;
+    }
+
+    protected function responses(): ResponseBuilder
+    {
+        return $this->responseBuilder;
     }
 
     private function configurePlugins(): void
@@ -268,7 +321,7 @@ class Api
         foreach ($parameters as $parameter => $value) {
             $path = str_replace(
                 sprintf('{%s}', $parameter),
-                $value,
+                rawurlencode((string) $value),
                 $path
             );
         }
@@ -278,7 +331,8 @@ class Api
 
     private function buildUrl(string $path, array $query = []): string
     {
-        $appendQuery = http_build_query($query);
+        $query = array_filter($query, static fn(mixed $value): bool => $value !== null);
+        $appendQuery = http_build_query($query, '', '&', PHP_QUERY_RFC3986);
 
         if (StringHelper::isUrl($path)) {
             return append_query_string($path, $appendQuery, APPEND_QUERY_STRING_REPLACE_DUPLICATE);
@@ -292,7 +346,7 @@ class Api
         string $method,
         string $url,
         array $headers = [],
-        string|StreamInterface $body = null
+        string|StreamInterface|null $body = null
     ): RequestInterface
     {
         $request = $this->clientBuilder->getRequestFactory()->createRequest($method, $url);
@@ -308,5 +362,55 @@ class Api
         }
 
         return $request;
+    }
+
+    /**
+     * @throws ClientException
+     */
+    private function sendRequest(
+        string $method,
+        string $path,
+        array $query = [],
+        array $headers = [],
+        string|StreamInterface|null $body = null
+    ): ResponseInterface
+    {
+        $this->configurePlugins();
+
+        if (!empty($this->queryDefaults)) {
+            $query = array_merge($this->queryDefaults, $query);
+        }
+
+        if (!empty($this->headerDefaults)) {
+            $headers = array_merge($this->headerDefaults, $headers);
+        }
+
+        $url = $this->buildUrl($path, $query);
+        $request = $this->createRequest($method, $url, $headers, $body);
+
+        // pre request listener
+        $request = $this->eventDispatcher->dispatch(new PreRequestEvent($request))->getRequest();
+
+        // request
+        $response = $this->clientBuilder->getClient()->sendRequest($request);
+
+        // post request listener
+        return $this->eventDispatcher->dispatch(new PostRequestEvent($request, $response))->getResponse();
+    }
+
+    private function getResponseData(ResponseInterface $response): mixed
+    {
+        $response->getBody()->rewind();
+        $contents = $response->getBody()->getContents();
+
+        if (!$this->responseBuilder->shouldDecodeJson()) {
+            return $contents;
+        }
+
+        if ($contents === '') {
+            return null;
+        }
+
+        return json_decode($contents, true, flags: JSON_THROW_ON_ERROR);
     }
 }
