@@ -356,7 +356,7 @@ The v3 test utilities should focus on helping SDK authors test resources, respon
 - Method constants are not central to v3 because resources expose `get`, `post`, `put`, `patch`, and `delete` helpers.
 - Prefer fluent configuration over public getters.
 - Use HTTPlug `PluginClientBuilder` behavior for plugin priority ordering and same-priority plugin preservation.
-- Keep `Resource::query()`, `Resource::queries()`, `Resource::header()`, and `Resource::headers()` as generic public primitives.
+- Keep `Resource::query()`, `Resource::queries()`, `Resource::header()`, `Resource::headers()`, and `Resource::plugins()` as generic public primitives.
 - Resource modifiers should be immutable and return cloned resources.
 - `get`, `post`, `put`, `patch`, and `delete` should execute immediately.
 - SDK authors choose whether resource methods return entities directly or custom response envelopes.
@@ -366,6 +366,7 @@ The v3 test utilities should focus on helping SDK authors test resources, respon
 - Merge order should be global defaults, then resource options, then endpoint-specific options.
 - Builder-backed features should follow the same default/override rule where useful: API builders define global defaults, and request-local builder overrides belong in `RequestOptions` or the pending request flow.
 - Request-local builder overrides should not mutate the API-level builders.
+- Client configuration is global API setup only. Do not add `Resource::client()`; endpoint-specific behavior should use request-local plugins, cache, or hooks instead.
 - Header names should not be normalized manually.
 - Path parameters should be encoded with `rawurlencode`.
 - Query strings should use `http_build_query(..., PHP_QUERY_RFC3986)`.

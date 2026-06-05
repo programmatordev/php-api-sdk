@@ -107,7 +107,8 @@ class Api
             path: $path,
             query: $options->getQuery(),
             headers: $options->getHeaders(),
-            body: $options->getBody()
+            body: $options->getBody(),
+            options: $options
         );
 
         $context = new Context($this->config);
@@ -196,7 +197,7 @@ class Api
         return $this->config;
     }
 
-    private function buildPlugins(): array
+    private function buildPlugins(?RequestOptions $options = null): array
     {
         $plugins = new PluginBuilder();
 
@@ -255,6 +256,10 @@ class Api
         }
 
         $plugins->merge($this->pluginBuilder);
+
+        if ($options?->getPlugins() !== null) {
+            $plugins->merge($options->getPlugins());
+        }
 
         return $plugins->all();
     }
@@ -348,7 +353,8 @@ class Api
         string $path,
         array $query = [],
         array $headers = [],
-        string|StreamInterface|null $body = null
+        string|StreamInterface|null $body = null,
+        ?RequestOptions $options = null
     ): ResponseInterface
     {
         if (!empty($this->queryDefaults)) {
@@ -361,7 +367,7 @@ class Api
 
         $url = $this->buildUrl($path, $query);
         $request = $this->createRequest($method, $url, $headers, $body);
-        $plugins = $this->buildPlugins();
+        $plugins = $this->buildPlugins($options);
 
         // pre request listener
         $request = $this->eventDispatcher->dispatch(new PreRequestEvent($request))->getRequest();

@@ -18,7 +18,15 @@ SDK users can also add plugins to a concrete API instance:
 $api->plugins()->add($retryPlugin, priority: 20);
 ```
 
-Higher priority plugins run earlier. Plugins with the same priority are preserved in insertion order.
+Resources can add plugins for one request:
+
+```php
+return $this
+    ->plugins(fn (PluginBuilder $plugins) => $plugins->add($plugin, priority: 25))
+    ->get('/users');
+```
+
+Higher priority plugins run earlier. Plugins with the same priority are preserved in insertion order. For the same priority, API-level plugins run before request-local resource plugins.
 
 ## Internal Plugin Order
 
@@ -58,3 +66,13 @@ $this->plugins()->add($second, priority: 16);
 ```
 
 The request reaches `$first` before `$second`.
+
+## Request-Local Plugins
+
+`Resource::plugins()` stores plugin configuration in request options. It does not mutate the API-level plugin builder.
+
+Merge order is:
+
+```text
+internal plugins < API plugins < request-local resource plugins
+```

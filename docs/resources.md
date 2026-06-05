@@ -49,6 +49,20 @@ Returns a cloned resource with multiple header options.
 $this->headers(['X-Tenant' => $tenant]);
 ```
 
+## `plugins(callable $configure): static`
+
+Public resource modifier.
+
+Returns a cloned resource with request-local HTTPlug plugins.
+
+```php
+return $this
+    ->plugins(fn (PluginBuilder $plugins) => $plugins->add($plugin, priority: 25))
+    ->get('/users');
+```
+
+Request-local plugins are applied after API-level plugins.
+
 ## `json(array $data): static`
 
 Public resource modifier.

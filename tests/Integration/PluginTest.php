@@ -79,6 +79,33 @@ class PluginTest extends AbstractTestCase
         $this->assertSame(['once'], $client->getRequests()[1]->getHeader('X-Plugin-Order'));
     }
 
+    public function testResourcePluginsAreAppliedToOneRequest(): void
+    {
+        $client = $this->client(responses: 2);
+        $api = new JsonApi($client);
+
+        $api->raw()
+            ->plugins(fn ($plugins) => $plugins->add($this->headerPlugin('resource'), priority: 16))
+            ->fetch();
+
+        $api->raw()->fetch();
+
+        $this->assertSame(['resource'], $client->getRequests()[0]->getHeader('X-Plugin-Order'));
+        $this->assertSame([], $client->getRequests()[1]->getHeader('X-Plugin-Order'));
+    }
+
+    public function testResourcePluginsAreMergedAfterGlobalPlugins(): void
+    {
+        $client = $this->client(responses: 1);
+        $api = (new JsonApi($client))->usePlugin($this->headerPlugin('global'), priority: 16);
+
+        $api->raw()
+            ->plugins(fn ($plugins) => $plugins->add($this->headerPlugin('resource'), priority: 16))
+            ->fetch();
+
+        $this->assertSame(['global', 'resource'], $client->getLastRequest()->getHeader('X-Plugin-Order'));
+    }
+
     private function headerPlugin(string $value): Plugin
     {
         return new class($value) implements Plugin {
