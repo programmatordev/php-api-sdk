@@ -122,7 +122,7 @@ Custom envelopes should implement:
 ```php
 interface ResponseEnvelope
 {
-    public static function fromResponse(Response $response): static;
+    public static function fromResponse(Response $response, ?Context $context = null): static;
 }
 ```
 
@@ -164,11 +164,11 @@ Proposed contract:
 ```php
 interface Entity
 {
-    public static function fromArray(array $data, ?EntityContext $context = null): static;
+    public static function fromArray(array $data, ?Context $context = null): static;
 }
 ```
 
-`EntityContext` should provide access to SDK config and response context without injecting the full `Api` into entities.
+`Context` should provide access to SDK config without injecting the full `Api` into entities or response envelopes.
 
 Start with a minimal context API. Add richer access only when implementation needs it.
 
@@ -340,7 +340,7 @@ The v3 test utilities should focus on helping SDK authors test resources, respon
 - SDK config should be available through context objects, not by injecting `Api` into entities.
 - `Response::entity()` and `Response::collection()` should require classes that implement `Entity`.
 - `Response::as()` should support API-specific response envelope classes such as item, collection, metadata, and pagination responses.
-- `Response::as()` should require a `ResponseEnvelope` contract with `fromResponse(Response $response)`.
+- `Response::as()` should require a `ResponseEnvelope` contract with `fromResponse(Response $response, ?Context $context = null)`.
 - `Response::collection()` should return a plain array by default.
 - Do not add a generic collection object in the first phase. A future `collect()` helper can be considered later if arrays become limiting.
 - Symfony EventDispatcher should be replaced with a smaller request/response pipeline.

@@ -100,7 +100,8 @@ class Api
 
         return new Response(
             data: $this->getResponseData($response),
-            rawResponse: $response
+            rawResponse: $response,
+            context: new Context($this->config)
         );
     }
 

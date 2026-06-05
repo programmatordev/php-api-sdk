@@ -47,6 +47,7 @@ $user = $api->users()->find(1);
 Entities are typed response objects. Classes used with `Response::entity()` and `Response::collection()` must implement `Entity`.
 
 ```php
+use ProgrammatorDev\Api\Context;
 use ProgrammatorDev\Api\Entity;
 
 final class User implements Entity
@@ -56,7 +57,7 @@ final class User implements Entity
         public readonly string $name,
     ) {}
 
-    public static function fromArray(array $data): static
+    public static function fromArray(array $data, ?Context $context = null): static
     {
         return new self(
             id: $data['id'],
@@ -128,6 +129,7 @@ $activeUsers = $api
 If an API returns metadata, pagination, or any custom envelope, create a response envelope class.
 
 ```php
+use ProgrammatorDev\Api\Context;
 use ProgrammatorDev\Api\Response;
 use ProgrammatorDev\Api\ResponseEnvelope;
 
@@ -138,7 +140,7 @@ final class UserResponse implements ResponseEnvelope
         public readonly int $statusCode,
     ) {}
 
-    public static function fromResponse(Response $response): static
+    public static function fromResponse(Response $response, ?Context $context = null): static
     {
         return new self(
             user: $response->entity(User::class, key: 'data'),

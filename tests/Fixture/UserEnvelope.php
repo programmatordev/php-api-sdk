@@ -2,6 +2,7 @@
 
 namespace ProgrammatorDev\Api\Test\Fixture;
 
+use ProgrammatorDev\Api\Context;
 use ProgrammatorDev\Api\Response;
 use ProgrammatorDev\Api\ResponseEnvelope;
 
@@ -9,14 +10,16 @@ class UserEnvelope implements ResponseEnvelope
 {
     public function __construct(
         private readonly User $user,
-        private readonly int $statusCode
+        private readonly int $statusCode,
+        private readonly ?string $timezone = null
     ) {}
 
-    public static function fromResponse(Response $response): static
+    public static function fromResponse(Response $response, ?Context $context = null): static
     {
         return new static(
             user: $response->entity(User::class, key: 'data'),
-            statusCode: $response->raw()->getStatusCode()
+            statusCode: $response->raw()->getStatusCode(),
+            timezone: $context?->config()->get('timezone')
         );
     }
 
@@ -28,5 +31,10 @@ class UserEnvelope implements ResponseEnvelope
     public function getStatusCode(): int
     {
         return $this->statusCode;
+    }
+
+    public function getTimezone(): ?string
+    {
+        return $this->timezone;
     }
 }

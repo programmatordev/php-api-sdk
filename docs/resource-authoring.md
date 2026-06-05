@@ -140,9 +140,11 @@ return $this
 Entities must implement `Entity`:
 
 ```php
+use ProgrammatorDev\Api\Context;
+
 final class User implements Entity
 {
-    public static function fromArray(array $data): static
+    public static function fromArray(array $data, ?Context $context = null): static
     {
         return new self(
             id: $data['id'],
@@ -181,6 +183,8 @@ return $this
 Envelope classes must implement `ResponseEnvelope`:
 
 ```php
+use ProgrammatorDev\Api\Context;
+
 final class UserResponse implements ResponseEnvelope
 {
     public function __construct(
@@ -188,7 +192,7 @@ final class UserResponse implements ResponseEnvelope
         private readonly int $statusCode,
     ) {}
 
-    public static function fromResponse(Response $response): static
+    public static function fromResponse(Response $response, ?Context $context = null): static
     {
         return new self(
             user: $response->entity(User::class, key: 'data'),

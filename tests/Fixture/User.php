@@ -2,20 +2,23 @@
 
 namespace ProgrammatorDev\Api\Test\Fixture;
 
+use ProgrammatorDev\Api\Context;
 use ProgrammatorDev\Api\Entity;
 
 class User implements Entity
 {
     public function __construct(
         private readonly int $id,
-        private readonly string $name
+        private readonly string $name,
+        private readonly ?string $timezone = null
     ) {}
 
-    public static function fromArray(array $data): static
+    public static function fromArray(array $data, ?Context $context = null): static
     {
         return new static(
             id: $data['id'],
-            name: $data['name']
+            name: $data['name'],
+            timezone: $context?->config()->get('timezone')
         );
     }
 
@@ -27,5 +30,10 @@ class User implements Entity
     public function getName(): string
     {
         return $this->name;
+    }
+
+    public function getTimezone(): ?string
+    {
+        return $this->timezone;
     }
 }

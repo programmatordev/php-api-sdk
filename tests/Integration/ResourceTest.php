@@ -33,6 +33,7 @@ class ResourceTest extends AbstractTestCase
         $this->assertInstanceOf(User::class, $user);
         $this->assertSame(1, $user->getId());
         $this->assertSame('John', $user->getName());
+        $this->assertSame('UTC', $user->getTimezone());
         $this->assertSame('https://api.example.com/users/1?locale=en', (string) $this->client->getLastRequest()->getUri());
     }
 
@@ -199,8 +200,10 @@ class ResourceTest extends AbstractTestCase
 
         $this->assertInstanceOf(UserEnvelope::class, $envelope);
         $this->assertSame(202, $envelope->getStatusCode());
+        $this->assertSame('UTC', $envelope->getTimezone());
         $this->assertSame(1, $envelope->getUser()->getId());
         $this->assertSame('John', $envelope->getUser()->getName());
+        $this->assertSame('UTC', $envelope->getUser()->getTimezone());
     }
 
     public static function resourceVerbProvider(): array

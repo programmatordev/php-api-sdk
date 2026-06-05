@@ -3,6 +3,8 @@
 namespace ProgrammatorDev\Api\Test\Unit;
 
 use Nyholm\Psr7\Response as PsrResponse;
+use ProgrammatorDev\Api\Config;
+use ProgrammatorDev\Api\Context;
 use ProgrammatorDev\Api\Response;
 use ProgrammatorDev\Api\Test\Support\AbstractTestCase;
 use ProgrammatorDev\Api\Test\Fixture\User;
@@ -24,6 +26,48 @@ class ResponseTest extends AbstractTestCase
         $response = new Response(['id' => 1], $rawResponse);
 
         $this->assertSame($rawResponse, $response->raw());
+    }
+
+    public function testEnvelopeReceivesEmptyContextByDefault(): void
+    {
+        $response = new Response(['data' => ['id' => 1, 'name' => 'John']], new PsrResponse());
+
+        $envelope = $response->as(UserEnvelope::class);
+
+        $this->assertNull($envelope->getTimezone());
+    }
+
+    public function testEnvelopeReceivesContext(): void
+    {
+        $config = new Config(['timezone' => 'UTC']);
+        $context = new Context($config);
+        $response = new Response(['data' => ['id' => 1, 'name' => 'John']], new PsrResponse(), $context);
+
+        $envelope = $response->as(UserEnvelope::class);
+
+        $this->assertSame('UTC', $envelope->getTimezone());
+    }
+
+    public function testEntityReceivesContext(): void
+    {
+        $context = new Context(new Config(['timezone' => 'UTC']));
+        $response = new Response(['id' => 1, 'name' => 'John'], new PsrResponse(), $context);
+
+        $user = $response->entity(User::class);
+
+        $this->assertSame('UTC', $user->getTimezone());
+    }
+
+    public function testCollectionReceivesContext(): void
+    {
+        $context = new Context(new Config(['timezone' => 'UTC']));
+        $response = new Response([
+            ['id' => 1, 'name' => 'John'],
+        ], new PsrResponse(), $context);
+
+        $users = $response->collection(User::class);
+
+        $this->assertSame('UTC', $users[0]->getTimezone());
     }
 
     public function testEntityCanBeMappedFromRootData(): void
@@ -182,5 +226,6 @@ class ResponseTest extends AbstractTestCase
         $this->assertSame(202, $envelope->getStatusCode());
         $this->assertSame(1, $envelope->getUser()->getId());
         $this->assertSame('John', $envelope->getUser()->getName());
+        $this->assertNull($envelope->getTimezone());
     }
 }

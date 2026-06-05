@@ -8,8 +8,13 @@ class Response
 {
     public function __construct(
         private readonly mixed $data,
-        private readonly ResponseInterface $rawResponse
-    ) {}
+        private readonly ResponseInterface $rawResponse,
+        ?Context $context = null
+    ) {
+        $this->context = $context ?? new Context();
+    }
+
+    private readonly Context $context;
 
     public function data(): mixed
     {
@@ -36,7 +41,7 @@ class Response
             throw new \UnexpectedValueException('Entity data must be an array.');
         }
 
-        return $class::fromArray($data);
+        return $class::fromArray($data, $this->context);
     }
 
     /**
@@ -54,12 +59,14 @@ class Response
             throw new \UnexpectedValueException('Collection data must be an array.');
         }
 
-        return array_map(static function (mixed $item) use ($class): Entity {
+        $context = $this->context;
+
+        return array_map(static function (mixed $item) use ($class, $context): Entity {
             if (!is_array($item)) {
                 throw new \UnexpectedValueException('Collection item data must be an array.');
             }
 
-            return $class::fromArray($item);
+            return $class::fromArray($item, $context);
         }, $items);
     }
 
@@ -72,7 +79,7 @@ class Response
     {
         $this->assertResponseEnvelopeClass($class);
 
-        return $class::fromResponse($this);
+        return $class::fromResponse($this, $this->context);
     }
 
     private function getData(?string $key): mixed
