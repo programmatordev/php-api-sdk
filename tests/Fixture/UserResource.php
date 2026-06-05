@@ -6,6 +6,19 @@ use ProgrammatorDev\Api\Resource;
 
 class UserResource extends Resource
 {
+    public function sendWithVerb(string $verb): void
+    {
+        match ($verb) {
+            'GET' => $this->get('/users'),
+            'POST' => $this->post('/users'),
+            'PUT' => $this->put('/users/{id}', ['id' => 1]),
+            'PATCH' => $this->patch('/users/{id}', ['id' => 1]),
+            'DELETE' => $this->delete('/users/{id}', ['id' => 1]),
+            'HEAD' => $this->head('/users'),
+            'OPTIONS' => $this->options('/users'),
+        };
+    }
+
     public function all(): array
     {
         return $this

@@ -35,6 +35,18 @@ class ResourceTest extends AbstractTestCase
         $this->assertSame('https://api.example.com/users/1?locale=en', (string) $this->client->getLastRequest()->getUri());
     }
 
+    /**
+     * @dataProvider resourceVerbProvider
+     */
+    public function testResourceCanSendHttpVerbs(string $verb): void
+    {
+        $this->client->addResponse(new Response(body: '{"id":1,"name":"John"}'));
+
+        $this->api->users()->sendWithVerb($verb);
+
+        $this->assertSame($verb, $this->client->getLastRequest()->getMethod());
+    }
+
     public function testResourcePathParametersAreEncoded(): void
     {
         $this->client->addResponse(new Response(body: '{"id":1,"name":"John"}'));
@@ -117,5 +129,18 @@ class ResourceTest extends AbstractTestCase
         $this->assertSame(202, $envelope->getStatusCode());
         $this->assertSame(1, $envelope->getUser()->getId());
         $this->assertSame('John', $envelope->getUser()->getName());
+    }
+
+    public static function resourceVerbProvider(): array
+    {
+        return [
+            'get' => ['GET'],
+            'post' => ['POST'],
+            'put' => ['PUT'],
+            'patch' => ['PATCH'],
+            'delete' => ['DELETE'],
+            'head' => ['HEAD'],
+            'options' => ['OPTIONS'],
+        ];
     }
 }

@@ -37,8 +37,43 @@ abstract class Resource
 
     protected function get(string $path, array $pathParams = [], array $query = []): Response
     {
+        return $this->send(Method::GET, $path, $pathParams, $query);
+    }
+
+    protected function post(string $path, array $pathParams = [], array $query = []): Response
+    {
+        return $this->send(Method::POST, $path, $pathParams, $query);
+    }
+
+    protected function put(string $path, array $pathParams = [], array $query = []): Response
+    {
+        return $this->send(Method::PUT, $path, $pathParams, $query);
+    }
+
+    protected function patch(string $path, array $pathParams = [], array $query = []): Response
+    {
+        return $this->send(Method::PATCH, $path, $pathParams, $query);
+    }
+
+    protected function delete(string $path, array $pathParams = [], array $query = []): Response
+    {
+        return $this->send(Method::DELETE, $path, $pathParams, $query);
+    }
+
+    protected function head(string $path, array $pathParams = [], array $query = []): Response
+    {
+        return $this->send(Method::HEAD, $path, $pathParams, $query);
+    }
+
+    protected function options(string $path, array $pathParams = [], array $query = []): Response
+    {
+        return $this->send(Method::OPTIONS, $path, $pathParams, $query);
+    }
+
+    protected function send(string $method, string $path, array $pathParams = [], array $query = []): Response
+    {
         return $this->api->send(
-            method: Method::GET,
+            method: $method,
             path: $path,
             pathParams: $pathParams,
             options: $this->options->withQueries($query)
