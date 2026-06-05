@@ -77,3 +77,4 @@ $this->auth()->custom(function (RequestInterface $request): RequestInterface {
 ```
 
 The callback receives the outgoing PSR request and must return a PSR request.
+Returning anything else throws an `UnexpectedValueException`.

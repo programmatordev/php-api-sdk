@@ -62,4 +62,16 @@ class AuthBuilderTest extends AbstractTestCase
 
         $this->assertSame('custom', $request->getHeaderLine('X-Custom-Auth'));
     }
+
+    public function testCustomAuthenticationCallbackMustReturnRequest(): void
+    {
+        $authentication = (new AuthBuilder())
+            ->custom(fn() => null)
+            ->authentication();
+
+        $this->expectException(\UnexpectedValueException::class);
+        $this->expectExceptionMessage('Custom authentication callback must return a PSR-7 request.');
+
+        $authentication->authenticate(new Request('GET', 'https://api.example.com/weather'));
+    }
 }

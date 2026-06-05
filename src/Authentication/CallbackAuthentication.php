@@ -16,6 +16,12 @@ class CallbackAuthentication implements Authentication
 
     public function authenticate(RequestInterface $request)
     {
-        return ($this->callback)($request);
+        $authenticatedRequest = ($this->callback)($request);
+
+        if (! $authenticatedRequest instanceof RequestInterface) {
+            throw new \UnexpectedValueException('Custom authentication callback must return a PSR-7 request.');
+        }
+
+        return $authenticatedRequest;
     }
 }
