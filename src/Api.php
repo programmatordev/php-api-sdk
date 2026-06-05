@@ -7,7 +7,7 @@ use Http\Client\Common\Plugin\CachePlugin;
 use Http\Client\Common\Plugin\ContentLengthPlugin;
 use Http\Client\Common\Plugin\ContentTypePlugin;
 use Http\Client\Common\Plugin\LoggerPlugin;
-use Http\Message\Authentication;
+use ProgrammatorDev\Api\Builder\AuthBuilder;
 use ProgrammatorDev\Api\Builder\CacheBuilder;
 use ProgrammatorDev\Api\Builder\ClientBuilder;
 use ProgrammatorDev\Api\Builder\ErrorBuilder;
@@ -42,7 +42,7 @@ class Api
 
     private ?LoggerBuilder $loggerBuilder = null;
 
-    private ?Authentication $authentication = null;
+    private AuthBuilder $authBuilder;
 
     private ResponseBuilder $responseBuilder;
 
@@ -54,6 +54,7 @@ class Api
     {
         $this->config = new Config();
         $this->clientBuilder ??= new ClientBuilder();
+        $this->authBuilder = new AuthBuilder();
         $this->responseBuilder = new ResponseBuilder();
         $this->errorBuilder = new ErrorBuilder();
         $this->eventDispatcher = new EventDispatcher();
@@ -160,6 +161,11 @@ class Api
         return $this->errorBuilder;
     }
 
+    protected function auth(): AuthBuilder
+    {
+        return $this->authBuilder;
+    }
+
     public function config(?array $values = null): Config
     {
         if ($values !== null) {
@@ -184,9 +190,9 @@ class Api
         );
 
         // https://docs.php-http.org/en/latest/message/authentication.html
-        if ($this->authentication) {
+        if ($authentication = $this->authBuilder->authentication()) {
             $this->clientBuilder->addPlugin(
-                plugin: new AuthenticationPlugin($this->authentication),
+                plugin: new AuthenticationPlugin($authentication),
                 priority: 24
             );
         }
@@ -308,18 +314,6 @@ class Api
     public function setLoggerBuilder(?LoggerBuilder $loggerBuilder): self
     {
         $this->loggerBuilder = $loggerBuilder;
-
-        return $this;
-    }
-
-    public function getAuthentication(): ?Authentication
-    {
-        return $this->authentication;
-    }
-
-    public function setAuthentication(?Authentication $authentication): self
-    {
-        $this->authentication = $authentication;
 
         return $this;
     }

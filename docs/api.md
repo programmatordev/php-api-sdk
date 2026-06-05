@@ -71,6 +71,20 @@ $this->headerDefaults(['Accept' => 'application/json']);
 
 Header names are not normalized by the package.
 
+## `auth(): AuthBuilder`
+
+Protected access to authentication configuration.
+
+```php
+$this->auth()
+    ->bearer($token)
+    ->query('appid', $apiKey);
+```
+
+Authentication is applied automatically to outgoing requests.
+
+See [Authentication](authentication.md) for helper methods, HTTPlug authentication objects, and custom auth callbacks.
+
 ## `responses(): ResponseBuilder`
 
 Protected access to response decoding configuration.

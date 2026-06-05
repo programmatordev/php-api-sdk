@@ -3,9 +3,11 @@
 namespace ProgrammatorDev\Api\Test\Fixture;
 
 use Http\Mock\Client;
+use Http\Message\Authentication\Header as HeaderAuthentication;
 use ProgrammatorDev\Api\Api;
 use ProgrammatorDev\Api\Builder\ClientBuilder;
 use ProgrammatorDev\Api\Context\ErrorContext;
+use Psr\Http\Message\RequestInterface;
 
 class JsonApi extends Api
 {
@@ -55,6 +57,50 @@ class JsonApi extends Api
             }
 
             return new InvalidApiKeyException($context->response()->data()['message']);
+        });
+
+        return $this;
+    }
+
+    public function useBearerAuth(string $token): self
+    {
+        $this->auth()->bearer($token);
+
+        return $this;
+    }
+
+    public function useBasicAuth(string $username, string $password): self
+    {
+        $this->auth()->basic($username, $password);
+
+        return $this;
+    }
+
+    public function useHeaderAuth(string $name, string $value): self
+    {
+        $this->auth()->header($name, $value);
+
+        return $this;
+    }
+
+    public function useQueryAuth(string $name, string $value): self
+    {
+        $this->auth()->query($name, $value);
+
+        return $this;
+    }
+
+    public function useChainedAuth(string $headerName, string $headerValue): self
+    {
+        $this->auth()->chain(new HeaderAuthentication($headerName, $headerValue));
+
+        return $this;
+    }
+
+    public function useCustomAuth(string $headerName, string $headerValue): self
+    {
+        $this->auth()->custom(function (RequestInterface $request) use ($headerName, $headerValue): RequestInterface {
+            return $request->withHeader($headerName, $headerValue);
         });
 
         return $this;
