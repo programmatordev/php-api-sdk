@@ -32,6 +32,8 @@ class Api
 
     private array $headerDefaults = [];
 
+    private Config $config;
+
     private ClientBuilder $clientBuilder;
 
     private ?CacheBuilder $cacheBuilder = null;
@@ -46,6 +48,7 @@ class Api
 
     public function __construct()
     {
+        $this->config = new Config();
         $this->clientBuilder ??= new ClientBuilder();
         $this->responseBuilder = new ResponseBuilder();
         $this->eventDispatcher = new EventDispatcher();
@@ -139,6 +142,15 @@ class Api
     protected function responses(): ResponseBuilder
     {
         return $this->responseBuilder;
+    }
+
+    protected function config(?array $values = null): Config
+    {
+        if ($values !== null) {
+            $this->config->merge($values);
+        }
+
+        return $this->config;
     }
 
     private function configurePlugins(): void
