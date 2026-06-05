@@ -512,8 +512,8 @@ Before tagging v3:
 - [x] PSR-17 stream factory support.
 - [ ] PSR-6 cache support.
 - [ ] PSR-3 logger support.
-- [ ] Authentication support.
-- [ ] Plugin support.
+- [x] Authentication support.
+- [x] Plugin support.
 - [ ] Request hooks.
 - [ ] Response hooks.
 - [ ] Response content transformation.
