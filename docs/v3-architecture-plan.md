@@ -102,6 +102,25 @@ Query merge order:
 global API defaults < resource options < endpoint-specific options
 ```
 
+Builder-backed features can follow the same shape when endpoint-specific behavior is useful.
+
+API-level builders configure global defaults:
+
+```php
+$api->cache($pool)->defaultTtl(3600);
+```
+
+Request-local overrides should live on the pending request/resource flow instead of mutating the API-level builder:
+
+```php
+return $this
+    ->get('/weather')
+    ->cache(fn (CacheBuilder $cache) => $cache->defaultTtl(300))
+    ->entity(CurrentWeather::class);
+```
+
+This keeps one SDK instance safe to reuse while still letting SDK authors expose endpoint-specific cache, logger, auth, plugin, or hook behavior where it makes sense. Do this one builder area at a time, starting only when there is a concrete feature need.
+
 Resource constructors may remain public. SDK authors should usually expose resources through `Api::resource()`, but direct construction is useful for testing and advanced use.
 
 ### `Response`
@@ -355,6 +374,8 @@ The v3 test utilities should focus on helping SDK authors test resources, respon
 - Use PHPDoc generics where useful, especially for `Api::resource()`, `Response::entity()`, `Response::collection()`, and `Response::as()`.
 - No reset methods for resource options in the first phase.
 - Merge order should be global defaults, then resource options, then endpoint-specific options.
+- Builder-backed features should follow the same default/override rule where useful: API builders define global defaults, and request-local builder overrides belong in `RequestOptions` or the pending request flow.
+- Request-local builder overrides should not mutate the API-level builders.
 - Header names should not be normalized manually.
 - Path parameters should be encoded with `rawurlencode`.
 - Query strings should use `http_build_query(..., PHP_QUERY_RFC3986)`.

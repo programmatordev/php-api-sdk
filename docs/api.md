@@ -97,6 +97,19 @@ Higher priority plugins run earlier. Same-priority plugins are preserved in inse
 
 See [Plugins](plugins.md) for internal plugin order and priority guidance.
 
+## `cache(CacheItemPoolInterface $pool): CacheBuilder`
+
+Public access to PSR-6 HTTP response cache configuration.
+
+```php
+$api
+    ->cache($pool)
+    ->defaultTtl(3600)
+    ->methods(['GET', 'HEAD']);
+```
+
+See [Cache](cache.md) for cache options and plugin order.
+
 ## `responses(): ResponseBuilder`
 
 Protected access to response decoding configuration.

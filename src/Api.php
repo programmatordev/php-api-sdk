@@ -22,6 +22,7 @@ use ProgrammatorDev\Api\Event\ResponseContentsEvent;
 use ProgrammatorDev\Api\Helper\StringHelper;
 use ProgrammatorDev\Api\Request\RequestOptions;
 use Psr\Http\Client\ClientExceptionInterface as ClientException;
+use Psr\Cache\CacheItemPoolInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
@@ -175,6 +176,13 @@ class Api
         return $this->pluginBuilder;
     }
 
+    public function cache(CacheItemPoolInterface $pool): CacheBuilder
+    {
+        $this->cacheBuilder = new CacheBuilder($pool);
+
+        return $this->cacheBuilder;
+    }
+
     public function config(?array $values = null): Config
     {
         if ($values !== null) {
@@ -211,7 +219,7 @@ class Api
         // https://docs.php-http.org/en/latest/plugins/cache.html
         if ($this->cacheBuilder) {
             $cacheOptions = [
-                'default_ttl' => $this->cacheBuilder->getTtl(),
+                'default_ttl' => $this->cacheBuilder->getDefaultTtl(),
                 'methods' => $this->cacheBuilder->getMethods(),
                 'respect_response_cache_directives' => $this->cacheBuilder->getResponseCacheDirectives(),
                 'cache_listeners' => []
@@ -307,18 +315,6 @@ class Api
     public function setClientBuilder(ClientBuilder $clientBuilder): self
     {
         $this->clientBuilder = $clientBuilder;
-
-        return $this;
-    }
-
-    public function getCacheBuilder(): ?CacheBuilder
-    {
-        return $this->cacheBuilder;
-    }
-
-    public function setCacheBuilder(?CacheBuilder $cacheBuilder): self
-    {
-        $this->cacheBuilder = $cacheBuilder;
 
         return $this;
     }

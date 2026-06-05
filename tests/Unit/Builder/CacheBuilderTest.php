@@ -15,7 +15,7 @@ class CacheBuilderTest extends AbstractTestCase
         $cacheBuilder = new CacheBuilder($pool);
 
         $this->assertInstanceOf(CacheItemPoolInterface::class, $cacheBuilder->getPool());
-        $this->assertSame(60, $cacheBuilder->getTtl());
+        $this->assertSame(60, $cacheBuilder->getDefaultTtl());
         $this->assertSame(['GET', 'HEAD'], $cacheBuilder->getMethods());
         $this->assertSame(['max-age'], $cacheBuilder->getResponseCacheDirectives());
     }
@@ -23,33 +23,33 @@ class CacheBuilderTest extends AbstractTestCase
     public function testDependencyInjection()
     {
         $pool = $this->createMock(CacheItemPoolInterface::class);
-        $ttl = 600;
+        $defaultTtl = 600;
         $methods = ['GET'];
         $responseCacheDirectives = ['no-cache', 'max-age'];
 
-        $cacheBuilder = new CacheBuilder($pool, $ttl, $methods, $responseCacheDirectives);
+        $cacheBuilder = new CacheBuilder($pool, $defaultTtl, $methods, $responseCacheDirectives);
 
         $this->assertInstanceOf(CacheItemPoolInterface::class, $cacheBuilder->getPool());
-        $this->assertSame($ttl, $cacheBuilder->getTtl());
+        $this->assertSame($defaultTtl, $cacheBuilder->getDefaultTtl());
         $this->assertSame($methods, $cacheBuilder->getMethods());
         $this->assertSame($responseCacheDirectives, $cacheBuilder->getResponseCacheDirectives());
     }
 
-    public function testSetters()
+    public function testFluentMethods()
     {
         $pool = $this->createMock(CacheItemPoolInterface::class);
-        $ttl = 600;
+        $defaultTtl = 600;
         $methods = ['GET'];
         $responseCacheDirectives = ['no-cache', 'max-age'];
 
-        $cacheBuilder = new CacheBuilder($pool);
-        $cacheBuilder->setPool($pool);
-        $cacheBuilder->setTtl($ttl);
-        $cacheBuilder->setMethods($methods);
-        $cacheBuilder->setResponseCacheDirectives($responseCacheDirectives);
+        $cacheBuilder = (new CacheBuilder($pool))
+            ->pool($pool)
+            ->defaultTtl($defaultTtl)
+            ->methods($methods)
+            ->responseCacheDirectives($responseCacheDirectives);
 
         $this->assertInstanceOf(CacheItemPoolInterface::class, $cacheBuilder->getPool());
-        $this->assertSame($ttl, $cacheBuilder->getTtl());
+        $this->assertSame($defaultTtl, $cacheBuilder->getDefaultTtl());
         $this->assertSame($methods, $cacheBuilder->getMethods());
         $this->assertSame($responseCacheDirectives, $cacheBuilder->getResponseCacheDirectives());
     }

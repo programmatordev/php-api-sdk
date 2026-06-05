@@ -24,6 +24,7 @@ SDK packages should also require or suggest concrete PSR-18 and PSR-17 implement
 
 - [Getting Started](getting-started.md): create a small SDK with an API facade, resource, entity, and response mapping.
 - [Authentication](authentication.md): configure bearer, basic, header, query, HTTPlug, and custom authentication.
+- [Cache](cache.md): configure PSR-6 HTTP response caching.
 - [Plugins](plugins.md): configure HTTPlug middleware and priority ordering.
 - [Resource Authoring](resource-authoring.md): deeper guide for resource methods, query/header options, request bodies, entity mapping, collections, envelopes, and API-specific traits.
 - [API Reference](api-reference.md): current v3 authoring methods and contracts.
