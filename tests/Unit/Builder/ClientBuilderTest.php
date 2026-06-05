@@ -5,7 +5,7 @@ namespace ProgrammatorDev\Api\Test\Unit\Builder;
 use Http\Client\Common\Plugin;
 use ProgrammatorDev\Api\Builder\ClientBuilder;
 use ProgrammatorDev\Api\Exception\PluginException;
-use ProgrammatorDev\Api\Test\AbstractTestCase;
+use ProgrammatorDev\Api\Test\Support\AbstractTestCase;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;

@@ -4,7 +4,7 @@ namespace ProgrammatorDev\Api\Test\Unit\Builder;
 
 use Http\Message\Formatter;
 use ProgrammatorDev\Api\Builder\LoggerBuilder;
-use ProgrammatorDev\Api\Test\AbstractTestCase;
+use ProgrammatorDev\Api\Test\Support\AbstractTestCase;
 use Psr\Log\LoggerInterface;
 
 class LoggerBuilderTest extends AbstractTestCase

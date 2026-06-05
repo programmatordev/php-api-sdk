@@ -3,7 +3,7 @@
 namespace ProgrammatorDev\Api\Test\Unit;
 
 use ProgrammatorDev\Api\Config;
-use ProgrammatorDev\Api\Test\AbstractTestCase;
+use ProgrammatorDev\Api\Test\Support\AbstractTestCase;
 
 class ConfigTest extends AbstractTestCase
 {

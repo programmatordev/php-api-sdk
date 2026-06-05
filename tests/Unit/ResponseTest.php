@@ -4,7 +4,7 @@ namespace ProgrammatorDev\Api\Test\Unit;
 
 use Nyholm\Psr7\Response as PsrResponse;
 use ProgrammatorDev\Api\Response;
-use ProgrammatorDev\Api\Test\AbstractTestCase;
+use ProgrammatorDev\Api\Test\Support\AbstractTestCase;
 use ProgrammatorDev\Api\Test\Fixture\User;
 use ProgrammatorDev\Api\Test\Fixture\UserEnvelope;
 

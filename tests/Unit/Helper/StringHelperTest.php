@@ -3,7 +3,7 @@
 namespace ProgrammatorDev\Api\Test\Unit\Helper;
 
 use ProgrammatorDev\Api\Helper\StringHelper;
-use ProgrammatorDev\Api\Test\AbstractTestCase;
+use ProgrammatorDev\Api\Test\Support\AbstractTestCase;
 
 class StringHelperTest extends AbstractTestCase
 {

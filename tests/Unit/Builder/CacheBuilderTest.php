@@ -3,7 +3,7 @@
 namespace ProgrammatorDev\Api\Test\Unit\Builder;
 
 use ProgrammatorDev\Api\Builder\CacheBuilder;
-use ProgrammatorDev\Api\Test\AbstractTestCase;
+use ProgrammatorDev\Api\Test\Support\AbstractTestCase;
 use Psr\Cache\CacheItemPoolInterface;
 
 class CacheBuilderTest extends AbstractTestCase
