@@ -3,6 +3,7 @@
 namespace ProgrammatorDev\Api;
 
 use ProgrammatorDev\Api\Request\RequestOptions;
+use Psr\Http\Message\StreamInterface;
 
 abstract class Resource
 {
@@ -33,6 +34,33 @@ abstract class Resource
     public function headers(array $headers): static
     {
         return $this->withOptions($this->options->withHeaders($headers));
+    }
+
+    public function json(array $data): static
+    {
+        return $this
+            ->header('Content-Type', 'application/json')
+            ->body(json_encode($data, JSON_THROW_ON_ERROR));
+    }
+
+    public function form(array $data): static
+    {
+        return $this
+            ->header('Content-Type', 'application/x-www-form-urlencoded')
+            ->body(http_build_query($data));
+    }
+
+    public function body(mixed $body): static
+    {
+        if (is_array($body)) {
+            throw new \InvalidArgumentException('Use json() or form() to send array request data.');
+        }
+
+        if (!$body instanceof StreamInterface && !is_string($body) && $body !== null) {
+            throw new \InvalidArgumentException('Request body must be a string, stream, or null.');
+        }
+
+        return $this->withOptions($this->options->withBody($body));
     }
 
     protected function get(string $path, array $pathParams = [], array $query = []): Response

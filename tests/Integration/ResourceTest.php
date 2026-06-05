@@ -4,6 +4,7 @@ namespace ProgrammatorDev\Api\Test\Integration;
 
 use Http\Mock\Client;
 use Nyholm\Psr7\Response;
+use Nyholm\Psr7\Stream;
 use ProgrammatorDev\Api\Test\AbstractTestCase;
 use ProgrammatorDev\Api\Test\Fixture\FakeApi;
 use ProgrammatorDev\Api\Test\Fixture\User;
@@ -45,6 +46,66 @@ class ResourceTest extends AbstractTestCase
         $this->api->users()->sendWithVerb($verb);
 
         $this->assertSame($verb, $this->client->getLastRequest()->getMethod());
+    }
+
+    public function testResourceCanSendJsonBody(): void
+    {
+        $this->client->addResponse(new Response(body: '{"id":1,"name":"John"}'));
+
+        $this->api->users()->createWithJson(['name' => 'John']);
+
+        $request = $this->client->getLastRequest();
+
+        $this->assertSame('POST', $request->getMethod());
+        $this->assertSame('application/json', $request->getHeaderLine('Content-Type'));
+        $this->assertSame('{"name":"John"}', (string) $request->getBody());
+    }
+
+    public function testResourceCanSendFormBody(): void
+    {
+        $this->client->addResponse(new Response(body: '{"id":1,"name":"John"}'));
+
+        $this->api->users()->createWithForm(['name' => 'John Doe']);
+
+        $request = $this->client->getLastRequest();
+
+        $this->assertSame('POST', $request->getMethod());
+        $this->assertSame('application/x-www-form-urlencoded', $request->getHeaderLine('Content-Type'));
+        $this->assertSame('name=John+Doe', (string) $request->getBody());
+    }
+
+    public function testResourceCanSendRawStringBody(): void
+    {
+        $this->client->addResponse(new Response(body: '{"id":1,"name":"John"}'));
+
+        $this->api->users()->createWithBody('raw-body');
+
+        $request = $this->client->getLastRequest();
+
+        $this->assertSame('POST', $request->getMethod());
+        $this->assertSame('raw-body', (string) $request->getBody());
+    }
+
+    public function testResourceCanSendStreamBody(): void
+    {
+        $this->client->addResponse(new Response(body: '{"id":1,"name":"John"}'));
+
+        $stream = Stream::create('stream-body');
+
+        $this->api->users()->createWithBody($stream);
+
+        $request = $this->client->getLastRequest();
+
+        $this->assertSame('POST', $request->getMethod());
+        $this->assertSame('stream-body', (string) $request->getBody());
+    }
+
+    public function testResourceBodyRejectsArrayData(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Use json() or form() to send array request data.');
+
+        $this->api->users()->createWithInvalidBody(['name' => 'John']);
     }
 
     public function testResourcePathParametersAreEncoded(): void

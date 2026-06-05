@@ -3,6 +3,7 @@
 namespace ProgrammatorDev\Api\Test\Fixture;
 
 use ProgrammatorDev\Api\Resource;
+use Psr\Http\Message\StreamInterface;
 
 class UserResource extends Resource
 {
@@ -17,6 +18,26 @@ class UserResource extends Resource
             'HEAD' => $this->head('/users'),
             'OPTIONS' => $this->options('/users'),
         };
+    }
+
+    public function createWithJson(array $data): void
+    {
+        $this->json($data)->post('/users');
+    }
+
+    public function createWithForm(array $data): void
+    {
+        $this->form($data)->post('/users');
+    }
+
+    public function createWithBody(string|StreamInterface|null $body): void
+    {
+        $this->body($body)->post('/users');
+    }
+
+    public function createWithInvalidBody(mixed $body): void
+    {
+        $this->body($body)->post('/users');
     }
 
     public function all(): array

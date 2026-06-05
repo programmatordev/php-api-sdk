@@ -91,7 +91,8 @@ class Api
             method: $method,
             path: $path,
             query: $options->getQuery(),
-            headers: $options->getHeaders()
+            headers: $options->getHeaders(),
+            body: $options->getBody()
         );
 
         return new Response(
