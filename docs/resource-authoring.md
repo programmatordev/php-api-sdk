@@ -172,6 +172,83 @@ return $this
 
 `collection()` returns a plain array of entities.
 
+## Context
+
+`Context` carries SDK options into response mapping without passing the full `Api` instance around.
+
+The flow is:
+
+```text
+SDK constructor options -> Api config -> Context -> Entity or ResponseEnvelope
+```
+
+Start by accepting SDK options and storing them in config:
+
+```php
+final class ExampleApi extends Api
+{
+    public function __construct(string $apiKey, array $options = [])
+    {
+        parent::__construct();
+
+        $this
+            ->baseUrl('https://api.example.com')
+            ->queryDefaults(['api_key' => $apiKey]);
+
+        $this->config($options);
+    }
+}
+```
+
+When a response is mapped, the API creates a context with that config. The same context is passed to:
+
+- `Entity::fromArray(array $data, ?Context $context = null)`
+- `ResponseEnvelope::fromResponse(Response $response, ?Context $context = null)`
+
+Entities can use config values during hydration:
+
+```php
+final class User implements Entity
+{
+    public function __construct(
+        private readonly int $id,
+        private readonly string $name,
+        private readonly ?string $timezone,
+    ) {}
+
+    public static function fromArray(array $data, ?Context $context = null): static
+    {
+        return new self(
+            id: $data['id'],
+            name: $data['name'],
+            timezone: $context?->config()->get('timezone'),
+        );
+    }
+}
+```
+
+Response envelopes receive the same context:
+
+```php
+final class UserResponse implements ResponseEnvelope
+{
+    public function __construct(
+        private readonly User $user,
+        private readonly ?string $timezone,
+    ) {}
+
+    public static function fromResponse(Response $response, ?Context $context = null): static
+    {
+        return new self(
+            user: $response->entity(User::class, key: 'data'),
+            timezone: $context?->config()->get('timezone'),
+        );
+    }
+}
+```
+
+Keep context usage focused on hydration decisions. Entities should still be data/value objects by default and should not perform hidden network calls.
+
 Use `as()` when the response carries metadata, pagination, or any API-specific envelope:
 
 ```php

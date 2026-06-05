@@ -164,4 +164,3 @@ public function findWithMeta(int $id): UserResponse
 ## Next Steps
 
 - Read [Resource Authoring](resource-authoring.md) for the full resource API.
-- Read [Architecture Plan](v3-architecture-plan.md) for current decisions and remaining v3 work.
