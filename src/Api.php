@@ -133,25 +133,21 @@ class Api
 
     protected function baseUrl(?string $baseUrl): static
     {
-        $this->setBaseUrl($baseUrl);
+        $this->baseUrl = $baseUrl;
 
         return $this;
     }
 
     protected function queryDefaults(array $query): static
     {
-        foreach ($query as $name => $value) {
-            $this->addQueryDefault($name, $value);
-        }
+        $this->queryDefaults = array_merge($this->queryDefaults, $query);
 
         return $this;
     }
 
     protected function headerDefaults(array $headers): static
     {
-        foreach ($headers as $name => $value) {
-            $this->addHeaderDefault($name, $value);
-        }
+        $this->headerDefaults = array_merge($this->headerDefaults, $headers);
 
         return $this;
     }
@@ -257,56 +253,6 @@ class Api
         return $plugins->all();
     }
 
-    public function getBaseUrl(): ?string
-    {
-        return $this->baseUrl;
-    }
-
-    public function setBaseUrl(?string $baseUrl): self
-    {
-        $this->baseUrl = $baseUrl;
-
-        return $this;
-    }
-
-    public function getQueryDefault(string $name): mixed
-    {
-        return $this->queryDefaults[$name] ?? null;
-    }
-
-    public function addQueryDefault(string $name, mixed $value): self
-    {
-        $this->queryDefaults[$name] = $value;
-
-        return $this;
-    }
-
-    public function removeQueryDefault(string $name): self
-    {
-        unset($this->queryDefaults[$name]);
-
-        return $this;
-    }
-
-    public function getHeaderDefault(string $name): mixed
-    {
-        return $this->headerDefaults[$name] ?? null;
-    }
-
-    public function addHeaderDefault(string $name, mixed $value): self
-    {
-        $this->headerDefaults[$name] = $value;
-
-        return $this;
-    }
-
-    public function removeHeaderDefault(string $name): self
-    {
-        unset($this->headerDefaults[$name]);
-
-        return $this;
-    }
-
     public function getClientBuilder(): ?ClientBuilder
     {
         return $this->clientBuilder;
@@ -352,7 +298,7 @@ class Api
         return $this;
     }
 
-    public function buildPath(string $path, array $parameters): string
+    private function buildPath(string $path, array $parameters): string
     {
         foreach ($parameters as $parameter => $value) {
             $path = str_replace(

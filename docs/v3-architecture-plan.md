@@ -200,31 +200,21 @@ Start with a minimal context API. Add richer access only when implementation nee
 Current public methods:
 
 - `request`
-- `getBaseUrl`
-- `setBaseUrl`
-- `getQueryDefault`
-- `addQueryDefault`
-- `removeQueryDefault`
-- `getHeaderDefault`
-- `addHeaderDefault`
-- `removeHeaderDefault`
 - `getClientBuilder`
 - `setClientBuilder`
-- `getCacheBuilder`
-- `setCacheBuilder`
 - `getLoggerBuilder`
 - `setLoggerBuilder`
-- `getAuthentication`
-- `setAuthentication`
+- `plugins`
+- `cache`
+- `config`
 - `addPreRequestListener`
 - `addPostRequestListener`
 - `addResponseContentsListener`
-- `buildPath`
 
 Observations:
 
 - The current `Api` class is easy to extend but exposes low-level request execution directly.
-- SDK packages currently use `request` and `buildPath` from resources.
+- SDK packages currently use `request` from resources.
 - Defaults are global to the API instance, which makes resource-level fluent options awkward.
 - JSON decoding and error handling are implemented through listeners.
 - Plugin configuration is automatic inside `request`, which can duplicate responsibilities and makes request flow harder to reason about.
