@@ -4,7 +4,6 @@ namespace ProgrammatorDev\Api\Test\Fixture;
 
 use Http\Mock\Client;
 use ProgrammatorDev\Api\Api;
-use ProgrammatorDev\Api\Builder\ClientBuilder;
 
 class PlainApi extends Api
 {
@@ -12,7 +11,7 @@ class PlainApi extends Api
     {
         parent::__construct();
 
-        $this->setClientBuilder(new ClientBuilder($client));
+        $this->client($client);
         $this->baseUrl('https://api.example.com');
     }
 

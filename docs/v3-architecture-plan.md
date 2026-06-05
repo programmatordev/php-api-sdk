@@ -200,8 +200,7 @@ Start with a minimal context API. Add richer access only when implementation nee
 Current public methods:
 
 - `request`
-- `getClientBuilder`
-- `setClientBuilder`
+- `client`
 - `getLoggerBuilder`
 - `setLoggerBuilder`
 - `plugins`
@@ -225,6 +224,7 @@ Observations:
 Current public builder classes:
 
 - `ClientBuilder`
+- `PluginBuilder`
 - `CacheBuilder`
 - `LoggerBuilder`
 
@@ -232,7 +232,7 @@ Current capabilities:
 
 - PSR-18 client discovery and injection.
 - PSR-17 request and stream factory discovery and injection.
-- Plugin registration by priority.
+- Plugin registration by priority through `PluginBuilder` / `Api::plugins()`.
 - PSR-6 cache configuration.
 - PSR-3 logger and formatter configuration.
 

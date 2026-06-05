@@ -7,7 +7,6 @@ use Http\Client\Common\Plugin;
 use Http\Message\Authentication\Header as HeaderAuthentication;
 use Http\Message\RequestMatcher\RequestMatcher;
 use ProgrammatorDev\Api\Api;
-use ProgrammatorDev\Api\Builder\ClientBuilder;
 use ProgrammatorDev\Api\Context\ErrorContext;
 use Psr\Http\Message\RequestInterface;
 
@@ -17,7 +16,7 @@ class JsonApi extends Api
     {
         parent::__construct();
 
-        $this->setClientBuilder(new ClientBuilder($client));
+        $this->client($client);
 
         $this
             ->baseUrl('https://api.example.com')

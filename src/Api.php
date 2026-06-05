@@ -22,6 +22,7 @@ use ProgrammatorDev\Api\Event\ResponseContentsEvent;
 use ProgrammatorDev\Api\Helper\StringHelper;
 use ProgrammatorDev\Api\Request\RequestOptions;
 use Psr\Http\Client\ClientExceptionInterface as ClientException;
+use Psr\Http\Client\ClientInterface;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -179,6 +180,13 @@ class Api
         return $this->cacheBuilder;
     }
 
+    public function client(ClientInterface $client): ClientBuilder
+    {
+        $this->clientBuilder->client($client);
+
+        return $this->clientBuilder;
+    }
+
     public function config(?array $values = null): Config
     {
         if ($values !== null) {
@@ -246,23 +254,9 @@ class Api
             );
         }
 
-        $plugins
-            ->merge($this->clientBuilder->getPluginBuilder())
-            ->merge($this->pluginBuilder);
+        $plugins->merge($this->pluginBuilder);
 
         return $plugins->all();
-    }
-
-    public function getClientBuilder(): ?ClientBuilder
-    {
-        return $this->clientBuilder;
-    }
-
-    public function setClientBuilder(ClientBuilder $clientBuilder): self
-    {
-        $this->clientBuilder = $clientBuilder;
-
-        return $this;
     }
 
     public function getLoggerBuilder(): ?LoggerBuilder

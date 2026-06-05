@@ -4,7 +4,6 @@ namespace ProgrammatorDev\Api\Test\Fixture;
 
 use Http\Mock\Client;
 use ProgrammatorDev\Api\Api;
-use ProgrammatorDev\Api\Builder\ClientBuilder;
 
 class FakeApi extends Api
 {
@@ -12,7 +11,7 @@ class FakeApi extends Api
     {
         parent::__construct();
 
-        $this->setClientBuilder(new ClientBuilder($client));
+        $this->client($client);
         $this->config(['timezone' => 'UTC']);
 
         $this

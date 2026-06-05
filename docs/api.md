@@ -110,6 +110,23 @@ $api
 
 See [Cache](cache.md) for cache options and plugin order.
 
+## `client(ClientInterface $client): ClientBuilder`
+
+Public access to PSR-18 client configuration.
+
+```php
+$api->client($client);
+```
+
+SDK authors can configure PSR-17 factories on the returned builder:
+
+```php
+$this
+    ->client($client)
+    ->requestFactory($requestFactory)
+    ->streamFactory($streamFactory);
+```
+
 ## `responses(): ResponseBuilder`
 
 Protected access to response decoding configuration.
