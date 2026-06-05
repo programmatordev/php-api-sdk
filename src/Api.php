@@ -144,7 +144,7 @@ class Api
         return $this->responseBuilder;
     }
 
-    protected function config(?array $values = null): Config
+    public function config(?array $values = null): Config
     {
         if ($values !== null) {
             $this->config->merge($values);

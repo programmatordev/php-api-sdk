@@ -98,6 +98,11 @@ abstract class Resource
         return $this->send(Method::OPTIONS, $path, $pathParams, $query);
     }
 
+    protected function config(): Config
+    {
+        return $this->api->config();
+    }
+
     protected function send(string $method, string $path, array $pathParams = [], array $query = []): Response
     {
         return $this->api->send(

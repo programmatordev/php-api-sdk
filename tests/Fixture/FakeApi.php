@@ -13,6 +13,7 @@ class FakeApi extends Api
         parent::__construct();
 
         $this->setClientBuilder(new ClientBuilder($client));
+        $this->config(['timezone' => 'UTC']);
 
         $this
             ->baseUrl('https://api.example.com')

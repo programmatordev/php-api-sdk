@@ -145,6 +145,17 @@ class ResourceTest extends AbstractTestCase
         $this->assertSame('https://api.example.com/users/1?locale=pt', (string) $this->client->getLastRequest()->getUri());
     }
 
+    public function testResourceCanReadSdkConfig(): void
+    {
+        $this->client->addResponse(new Response(body: '{"id":1,"name":"John"}'));
+
+        $this->api
+            ->users()
+            ->findWithConfiguredTimezone(1);
+
+        $this->assertSame('https://api.example.com/users/1?locale=en&timezone=UTC', (string) $this->client->getLastRequest()->getUri());
+    }
+
     public function testNullQueryValuesAreOmitted(): void
     {
         $this->client->addResponse(new Response(body: '{"id":1,"name":"John"}'));

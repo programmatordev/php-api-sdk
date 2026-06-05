@@ -74,4 +74,12 @@ class UserResource extends Resource
             ->get('/users/{id}', ['id' => $id], ['locale' => $locale])
             ->entity(User::class);
     }
+
+    public function findWithConfiguredTimezone(int|string $id): User
+    {
+        return $this
+            ->query('timezone', $this->config()->get('timezone'))
+            ->get('/users/{id}', ['id' => $id])
+            ->entity(User::class);
+    }
 }
