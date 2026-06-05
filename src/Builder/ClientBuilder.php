@@ -7,15 +7,13 @@ use Http\Client\Common\Plugin;
 use Http\Client\Common\PluginClientFactory;
 use Http\Discovery\Psr17FactoryDiscovery;
 use Http\Discovery\Psr18ClientDiscovery;
-use ProgrammatorDev\Api\Exception\PluginException;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 
 class ClientBuilder
 {
-    /** @var Plugin[] */
-    private array $plugins = [];
+    private PluginBuilder $pluginBuilder;
 
     public function __construct(
         private ?ClientInterface $client = null,
@@ -26,12 +24,16 @@ class ClientBuilder
         $this->client ??= Psr18ClientDiscovery::find();
         $this->requestFactory ??= Psr17FactoryDiscovery::findRequestFactory();
         $this->streamFactory ??= Psr17FactoryDiscovery::findStreamFactory();
+        $this->pluginBuilder = new PluginBuilder();
     }
 
-    public function getClient(): HttpMethodsClient
+    /**
+     * @param list<Plugin>|null $plugins
+     */
+    public function getClient(?array $plugins = null): HttpMethodsClient
     {
         $pluginClientFactory = new PluginClientFactory();
-        $client = $pluginClientFactory->createClient($this->client, $this->plugins);
+        $client = $pluginClientFactory->createClient($this->client, $plugins ?? $this->getPlugins());
 
         return new HttpMethodsClient(
             $client,
@@ -73,15 +75,18 @@ class ClientBuilder
 
     public function addPlugin(Plugin $plugin, int $priority): self
     {
-        $this->plugins[$priority] = $plugin;
-        // sort plugins by priority (key) in descending order
-        krsort($this->plugins);
+        $this->pluginBuilder->add($plugin, $priority);
 
         return $this;
     }
 
     public function getPlugins(): array
     {
-        return $this->plugins;
+        return $this->pluginBuilder->all();
+    }
+
+    public function getPluginBuilder(): PluginBuilder
+    {
+        return $this->pluginBuilder;
     }
 }

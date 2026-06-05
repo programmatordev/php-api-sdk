@@ -85,6 +85,18 @@ Authentication is applied automatically to outgoing requests.
 
 See [Authentication](authentication.md) for helper methods, HTTPlug authentication objects, and custom auth callbacks.
 
+## `plugins(): PluginBuilder`
+
+Public access to HTTPlug plugin configuration.
+
+```php
+$api->plugins()->add($plugin, priority: 16);
+```
+
+Higher priority plugins run earlier. Same-priority plugins are preserved in insertion order.
+
+See [Plugins](plugins.md) for internal plugin order and priority guidance.
+
 ## `responses(): ResponseBuilder`
 
 Protected access to response decoding configuration.

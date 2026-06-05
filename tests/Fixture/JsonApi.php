@@ -3,6 +3,7 @@
 namespace ProgrammatorDev\Api\Test\Fixture;
 
 use Http\Mock\Client;
+use Http\Client\Common\Plugin;
 use Http\Message\Authentication\Header as HeaderAuthentication;
 use ProgrammatorDev\Api\Api;
 use ProgrammatorDev\Api\Builder\ClientBuilder;
@@ -102,6 +103,13 @@ class JsonApi extends Api
         $this->auth()->custom(function (RequestInterface $request) use ($headerName, $headerValue): RequestInterface {
             return $request->withHeader($headerName, $headerValue);
         });
+
+        return $this;
+    }
+
+    public function usePlugin(Plugin $plugin, int $priority = 0): self
+    {
+        $this->plugins()->add($plugin, $priority);
 
         return $this;
     }

@@ -13,6 +13,7 @@ use ProgrammatorDev\Api\Builder\ClientBuilder;
 use ProgrammatorDev\Api\Builder\ErrorBuilder;
 use ProgrammatorDev\Api\Builder\Listener\CacheLoggerListener;
 use ProgrammatorDev\Api\Builder\LoggerBuilder;
+use ProgrammatorDev\Api\Builder\PluginBuilder;
 use ProgrammatorDev\Api\Builder\ResponseBuilder;
 use ProgrammatorDev\Api\Context\ErrorContext;
 use ProgrammatorDev\Api\Event\PostRequestEvent;
@@ -44,6 +45,8 @@ class Api
 
     private AuthBuilder $authBuilder;
 
+    private PluginBuilder $pluginBuilder;
+
     private ResponseBuilder $responseBuilder;
 
     private ErrorBuilder $errorBuilder;
@@ -55,6 +58,7 @@ class Api
         $this->config = new Config();
         $this->clientBuilder ??= new ClientBuilder();
         $this->authBuilder = new AuthBuilder();
+        $this->pluginBuilder = new PluginBuilder();
         $this->responseBuilder = new ResponseBuilder();
         $this->errorBuilder = new ErrorBuilder();
         $this->eventDispatcher = new EventDispatcher();
@@ -166,6 +170,11 @@ class Api
         return $this->authBuilder;
     }
 
+    public function plugins(): PluginBuilder
+    {
+        return $this->pluginBuilder;
+    }
+
     public function config(?array $values = null): Config
     {
         if ($values !== null) {
@@ -175,23 +184,25 @@ class Api
         return $this->config;
     }
 
-    private function configurePlugins(): void
+    private function buildPlugins(): array
     {
+        $plugins = new PluginBuilder();
+
         // https://docs.php-http.org/en/latest/plugins/content-type.html
-        $this->clientBuilder->addPlugin(
+        $plugins->add(
             plugin: new ContentTypePlugin(),
             priority: 40
         );
 
         // https://docs.php-http.org/en/latest/plugins/content-length.html
-        $this->clientBuilder->addPlugin(
+        $plugins->add(
             plugin: new ContentLengthPlugin(),
             priority: 32
         );
 
         // https://docs.php-http.org/en/latest/message/authentication.html
         if ($authentication = $this->authBuilder->authentication()) {
-            $this->clientBuilder->addPlugin(
+            $plugins->add(
                 plugin: new AuthenticationPlugin($authentication),
                 priority: 24
             );
@@ -210,7 +221,7 @@ class Api
                 $cacheOptions['cache_listeners'][] = new CacheLoggerListener($this->loggerBuilder);
             }
 
-            $this->clientBuilder->addPlugin(
+            $plugins->add(
                 plugin: new CachePlugin(
                     $this->cacheBuilder->getPool(),
                     $this->clientBuilder->getStreamFactory(),
@@ -222,7 +233,7 @@ class Api
 
         // https://docs.php-http.org/en/latest/plugins/logger.html
         if ($this->loggerBuilder) {
-            $this->clientBuilder->addPlugin(
+            $plugins->add(
                 plugin: new LoggerPlugin(
                     $this->loggerBuilder->getLogger(),
                     $this->loggerBuilder->getFormatter()
@@ -230,6 +241,12 @@ class Api
                 priority: 8
             );
         }
+
+        $plugins
+            ->merge($this->clientBuilder->getPluginBuilder())
+            ->merge($this->pluginBuilder);
+
+        return $plugins->all();
     }
 
     public function getBaseUrl(): ?string
@@ -398,8 +415,6 @@ class Api
         string|StreamInterface|null $body = null
     ): ResponseInterface
     {
-        $this->configurePlugins();
-
         if (!empty($this->queryDefaults)) {
             $query = array_merge($this->queryDefaults, $query);
         }
@@ -410,12 +425,13 @@ class Api
 
         $url = $this->buildUrl($path, $query);
         $request = $this->createRequest($method, $url, $headers, $body);
+        $plugins = $this->buildPlugins();
 
         // pre request listener
         $request = $this->eventDispatcher->dispatch(new PreRequestEvent($request))->getRequest();
 
         // request
-        $response = $this->clientBuilder->getClient()->sendRequest($request);
+        $response = $this->clientBuilder->getClient($plugins)->sendRequest($request);
 
         // post request listener
         return $this->eventDispatcher->dispatch(new PostRequestEvent($request, $response))->getResponse();

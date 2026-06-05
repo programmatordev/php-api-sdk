@@ -4,7 +4,6 @@ namespace ProgrammatorDev\Api\Test\Unit\Builder;
 
 use Http\Client\Common\Plugin;
 use ProgrammatorDev\Api\Builder\ClientBuilder;
-use ProgrammatorDev\Api\Exception\PluginException;
 use ProgrammatorDev\Api\Test\Support\AbstractTestCase;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
@@ -52,24 +51,17 @@ class ClientBuilderTest extends AbstractTestCase
 
     public function testAddPlugin()
     {
-        $plugin = $this->createMock(Plugin::class);
+        $low = $this->createMock(Plugin::class);
+        $high = $this->createMock(Plugin::class);
+        $middle = $this->createMock(Plugin::class);
         $clientBuilder = new ClientBuilder();
 
-        $clientBuilder->addPlugin($plugin, 1);
-        $clientBuilder->addPlugin($plugin, 3);
-        $clientBuilder->addPlugin($plugin, 2);
+        $clientBuilder->addPlugin($low, 1);
+        $clientBuilder->addPlugin($high, 3);
+        $clientBuilder->addPlugin($middle, 2);
 
         $this->assertCount(3, $clientBuilder->getPlugins());
-        // plugins array keys are used as priority [priority => plugin]
-        // so check if the order of keys (priority) is sorted
-        $this->assertSame(
-            [
-                0 => 3,
-                1 => 2,
-                2 => 1
-            ],
-            array_keys($clientBuilder->getPlugins())
-        );
+        $this->assertSame([$high, $middle, $low], $clientBuilder->getPlugins());
     }
 
     public function testAddPluginWithSamePriority()
@@ -80,6 +72,6 @@ class ClientBuilderTest extends AbstractTestCase
         $clientBuilder->addPlugin($plugin, 1);
         $clientBuilder->addPlugin($plugin, 1);
 
-        $this->assertCount(1, $clientBuilder->getPlugins());
+        $this->assertCount(2, $clientBuilder->getPlugins());
     }
 }
