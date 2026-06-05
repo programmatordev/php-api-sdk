@@ -50,6 +50,23 @@ class PluginTest extends AbstractTestCase
         $this->assertSame(['first', 'second'], $client->getLastRequest()->getHeader('X-Plugin-Order'));
     }
 
+    public function testPluginPriorityCanTargetInternalAuthOrder(): void
+    {
+        $client = $this->client(responses: 1);
+
+        (new JsonApi($client))
+            ->useBearerAuth('secret')
+            ->usePlugin($this->authStatePlugin('before-auth'), priority: 35)
+            ->usePlugin($this->authStatePlugin('after-auth'), priority: 25)
+            ->raw()
+            ->fetch();
+
+        $this->assertSame(
+            ['before-auth:missing', 'after-auth:present'],
+            $client->getLastRequest()->getHeader('X-Auth-State')
+        );
+    }
+
     public function testConfiguredPluginsAreNotDuplicatedAcrossRequests(): void
     {
         $client = $this->client(responses: 2);
@@ -70,6 +87,20 @@ class PluginTest extends AbstractTestCase
             public function handleRequest(RequestInterface $request, callable $next, callable $first): Promise
             {
                 return $next($request->withAddedHeader('X-Plugin-Order', $this->value));
+            }
+        };
+    }
+
+    private function authStatePlugin(string $label): Plugin
+    {
+        return new class($label) implements Plugin {
+            public function __construct(private readonly string $label) {}
+
+            public function handleRequest(RequestInterface $request, callable $next, callable $first): Promise
+            {
+                $state = $request->hasHeader('Authorization') ? 'present' : 'missing';
+
+                return $next($request->withAddedHeader('X-Auth-State', sprintf('%s:%s', $this->label, $state)));
             }
         };
     }

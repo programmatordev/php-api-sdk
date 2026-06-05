@@ -32,7 +32,7 @@ $this->auth()
     ->query('appid', $apiKey);
 ```
 
-Internally, multiple authentication rules become an HTTPlug authentication chain.
+Internally, multiple authentication rules become an [HTTPlug](https://httplug.io/) authentication chain.
 
 ## Query Authentication
 
@@ -50,7 +50,7 @@ $this->queryDefaults(['units' => 'metric']);
 
 ## HTTPlug Authentication Objects
 
-Use `chain()` when an SDK needs to reuse specific HTTPlug authentication implementations:
+Use `chain()` when an SDK needs to reuse specific [HTTPlug authentication implementations](https://docs.php-http.org/en/latest/message/authentication.html):
 
 ```php
 use Http\Message\Authentication\Bearer;
@@ -62,7 +62,7 @@ $this->auth()->chain(
 );
 ```
 
-This is mostly useful when an SDK author already has an `Http\Message\Authentication` object or needs behavior provided by `php-http/message`.
+This is mostly useful when an SDK author already has an `Http\Message\Authentication` object or needs behavior provided by [`php-http/message`](https://docs.php-http.org/en/latest/message/index.html).
 
 ## Custom Authentication
 

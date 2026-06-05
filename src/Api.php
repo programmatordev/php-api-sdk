@@ -191,20 +191,20 @@ class Api
         // https://docs.php-http.org/en/latest/plugins/content-type.html
         $plugins->add(
             plugin: new ContentTypePlugin(),
-            priority: 40
+            priority: 50
         );
 
         // https://docs.php-http.org/en/latest/plugins/content-length.html
         $plugins->add(
             plugin: new ContentLengthPlugin(),
-            priority: 32
+            priority: 40
         );
 
         // https://docs.php-http.org/en/latest/message/authentication.html
         if ($authentication = $this->authBuilder->authentication()) {
             $plugins->add(
                 plugin: new AuthenticationPlugin($authentication),
-                priority: 24
+                priority: 30
             );
         }
 
@@ -227,7 +227,7 @@ class Api
                     $this->clientBuilder->getStreamFactory(),
                     $cacheOptions
                 ),
-                priority: 16
+                priority: 20
             );
         }
 
@@ -238,7 +238,7 @@ class Api
                     $this->loggerBuilder->getLogger(),
                     $this->loggerBuilder->getFormatter()
                 ),
-                priority: 8
+                priority: 10
             );
         }
 

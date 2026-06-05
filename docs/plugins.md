@@ -1,6 +1,8 @@
 # Plugins
 
-Plugins are HTTPlug middleware applied to outgoing requests.
+Plugins are [HTTPlug](https://httplug.io/) middleware applied to outgoing requests.
+
+See the [PHP-HTTP plugin documentation](https://docs.php-http.org/en/latest/plugins/index.html) for the underlying plugin system used here.
 
 SDK authors can configure plugins from the `Api` class:
 
@@ -24,17 +26,25 @@ The package adds internal plugins with these priorities:
 
 | Priority | Plugin |
 | --- | --- |
-| `40` | Content type |
-| `32` | Content length |
-| `24` | Authentication |
-| `16` | Cache |
-| `8` | Logger |
+| `50` | Content type |
+| `40` | Content length |
+| `30` | Authentication |
+| `20` | Cache |
+| `10` | Logger |
+
+## What Internal Plugins Do
+
+- [Content type](https://docs.php-http.org/en/latest/plugins/content-type.html): sets a `Content-Type` header when the request body makes it inferable and the header is not already set.
+- [Content length](https://docs.php-http.org/en/latest/plugins/content-length.html): sets request body length metadata before the request is sent.
+- [Authentication](https://docs.php-http.org/en/latest/plugins/authentication.html): applies credentials configured through `auth()`.
+- [Cache](https://docs.php-http.org/en/latest/plugins/cache.html): reads and writes cacheable responses through PSR-6 cache support. Cache-specific logging is handled through cache listeners when logging is configured.
+- [Logger](https://docs.php-http.org/en/latest/plugins/logger.html): logs HTTP requests and responses through the configured PSR-3 logger.
 
 Custom plugins use the same priority system, so they can run before, between, or after internal plugins.
 
 ```php
-$this->plugins()->add($plugin, priority: 48); // before content type
-$this->plugins()->add($plugin, priority: 20); // between auth and cache
+$this->plugins()->add($plugin, priority: 60); // before content type
+$this->plugins()->add($plugin, priority: 25); // between auth and cache
 $this->plugins()->add($plugin, priority: 0);  // after logger
 ```
 
