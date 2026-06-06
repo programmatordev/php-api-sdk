@@ -22,7 +22,7 @@ class ApiTest extends AbstractTestCase
         $api = new class extends Api {};
 
         $api
-            ->config(['timezone' => 'UTC'])
+            ->config(['timezone' => 'UTC'], defaults: ['timezone' => 'Europe/Lisbon'])
             ->merge(['units' => 'metric']);
 
         $this->assertSame('UTC', $api->config()->get('timezone'));

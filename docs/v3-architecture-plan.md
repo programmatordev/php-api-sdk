@@ -47,10 +47,10 @@ Non-goals:
 
 `Api` should be abstract. It is a base class for concrete SDKs, not something users instantiate directly. It does not need to force subclasses to implement an abstract method in the first phase.
 
-`config()` should act as both setter and getter:
+`config()` should always return the config bag. When values or defaults are provided, it merges defaults first and explicit values second:
 
 ```php
-$this->config(['timezone' => 'UTC']);
+$this->config(['timezone' => 'UTC'], defaults: ['timezone' => 'Europe/Lisbon']);
 $timezone = $this->config()->get('timezone');
 ```
 

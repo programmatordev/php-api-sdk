@@ -192,9 +192,13 @@ abstract class Api
         return $this->loggerBuilder;
     }
 
-    public function config(?array $values = null): Config
+    public function config(array $values = [], array $defaults = []): Config
     {
-        if ($values !== null) {
+        if ($defaults !== []) {
+            $this->config->merge($defaults);
+        }
+
+        if ($values !== []) {
             $this->config->merge($values);
         }
 

@@ -99,9 +99,9 @@ class ApiSetup
         return $this->call('logger', [$logger]);
     }
 
-    public function config(?array $values = null): Config
+    public function config(array $values = [], array $defaults = []): Config
     {
-        return $this->call('config', [$values]);
+        return $this->call('config', [$values, $defaults]);
     }
 
     private function call(string $method, array $arguments = []): mixed

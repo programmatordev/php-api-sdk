@@ -45,4 +45,18 @@ class ConfigTest extends AbstractTestCase
             'units' => 'metric',
         ], $config->all());
     }
+
+    public function testConfigCanReturnOnlySelectedValues(): void
+    {
+        $config = new Config([
+            'timezone' => 'UTC',
+            'units' => 'metric',
+            'internal' => true,
+        ]);
+
+        $this->assertSame([
+            'timezone' => 'UTC',
+            'units' => 'metric',
+        ], $config->only('timezone', 'units', 'missing'));
+    }
 }

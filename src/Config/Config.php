@@ -13,6 +13,19 @@ class Config
         return $this->values;
     }
 
+    public function only(string ...$keys): array
+    {
+        $values = [];
+
+        foreach ($keys as $key) {
+            if ($this->has($key)) {
+                $values[$key] = $this->values[$key];
+            }
+        }
+
+        return $values;
+    }
+
     public function has(string $key): bool
     {
         return array_key_exists($key, $this->values);

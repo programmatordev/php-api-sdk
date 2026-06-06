@@ -22,14 +22,17 @@ Path parameters are encoded and replaced in `{name}` placeholders.
 - Authentication, plugins, cache, and hooks.
 - Response decoding and error mapping.
 
-## `config(?array $values = null): Config`
+## `config(array $values = [], array $defaults = []): Config`
 
 Public.
 
-Sets SDK options when an array is provided and always returns the config bag.
+Merges SDK options when values or defaults are provided and always returns the config bag. Defaults are merged first, so explicit values override them.
 
 ```php
-$this->config(['timezone' => 'UTC']);
+$this->config(
+    ['timezone' => 'UTC'],
+    defaults: ['timezone' => 'Europe/Lisbon']
+);
 
 $timezone = $this->config()->get('timezone');
 ```
@@ -283,6 +286,14 @@ Returns all option values.
 
 ```php
 $options = $api->config()->all();
+```
+
+### `only(string ...$keys): array`
+
+Returns selected option values. Missing keys are omitted.
+
+```php
+$query = $api->config()->only('units', 'lang');
 ```
 
 ### `has(string $key): bool`

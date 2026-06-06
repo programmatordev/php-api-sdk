@@ -198,7 +198,9 @@ final class ExampleApi extends Api
             ->baseUrl('https://api.example.com')
             ->defaultQueries(['api_key' => $apiKey]);
 
-        $this->config($options);
+        $this->config($options, defaults: [
+            'timezone' => 'UTC',
+        ]);
     }
 }
 ```
