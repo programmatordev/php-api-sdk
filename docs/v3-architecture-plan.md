@@ -199,7 +199,6 @@ Start with a minimal context API. Add richer access only when implementation nee
 
 Current public methods:
 
-- `request`
 - `client`
 - `logger`
 - `plugins`
@@ -207,7 +206,6 @@ Current public methods:
 - `config`
 - `addPreRequestListener`
 - `addPostRequestListener`
-- `addResponseContentsListener`
 
 Observations:
 
@@ -245,13 +243,11 @@ Current event classes:
 
 - `PreRequestEvent`
 - `PostRequestEvent`
-- `ResponseContentsEvent`
 
 Current capabilities:
 
 - Mutate request before sending.
 - Mutate response after sending.
-- Transform response contents.
 
 These capabilities should remain, but v3 should consider clearer first-class APIs for common cases:
 
@@ -333,7 +329,7 @@ The v3 test utilities should focus on helping SDK authors test resources, respon
 | Plugins | Use HTTPlug `PluginClientBuilder`-style priority handling; preserve multiple plugins at the same priority |
 | Cache | Keep PSR-6 support, likely through fluent `cache(...)` |
 | Logger | Keep PSR-3 support, likely through fluent `logger(...)` |
-| `ResponseContentsEvent` for JSON | First-class `responses()->json()` |
+| `ResponseContentsEvent` for JSON | Removed; first-class `responses()->json()` |
 | Post-response listener for errors | First-class status and callback-based error mapping, while preserving hooks |
 | Raw response body return | `Response::data()` or `Response::raw()` depending on configuration |
 | Manual entity construction in resources | `Response::entity(...)`, `Response::collection(...)`, and `Response::as(...)` helpers |

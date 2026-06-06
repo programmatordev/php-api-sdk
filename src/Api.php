@@ -19,7 +19,6 @@ use ProgrammatorDev\Api\Builder\ResponseBuilder;
 use ProgrammatorDev\Api\Context\ErrorContext;
 use ProgrammatorDev\Api\Event\PostRequestEvent;
 use ProgrammatorDev\Api\Event\PreRequestEvent;
-use ProgrammatorDev\Api\Event\ResponseContentsEvent;
 use ProgrammatorDev\Api\Helper\StringHelper;
 use ProgrammatorDev\Api\Request\RequestOptions;
 use Psr\Http\Client\ClientExceptionInterface as ClientException;
@@ -72,28 +71,6 @@ class Api
         $this->responseBuilder = new ResponseBuilder();
         $this->errorBuilder = new ErrorBuilder();
         $this->eventDispatcher = new EventDispatcher();
-    }
-
-    /**
-     * @throws ClientException
-     */
-    public function request(
-        string $method,
-        string $path,
-        array $query = [],
-        array $headers = [],
-        string|StreamInterface|null $body = null
-    ): mixed
-    {
-        $response = $this->sendRequest($method, $path, $query, $headers, $body);
-
-        // always rewind the body contents in case it was used in the PostRequestEvent
-        // otherwise it would return an empty string
-        $response->getBody()->rewind();
-        $contents = $response->getBody()->getContents();
-
-        // response contents listener
-        return $this->eventDispatcher->dispatch(new ResponseContentsEvent($contents))->getContents();
     }
 
     /**
@@ -216,19 +193,16 @@ class Api
     {
         $plugins = new PluginBuilder();
 
-        // https://docs.php-http.org/en/latest/plugins/content-type.html
         $plugins->add(
             plugin: new ContentTypePlugin(),
             priority: self::CONTENT_TYPE_PLUGIN_PRIORITY
         );
 
-        // https://docs.php-http.org/en/latest/plugins/content-length.html
         $plugins->add(
             plugin: new ContentLengthPlugin(),
             priority: self::CONTENT_LENGTH_PLUGIN_PRIORITY
         );
 
-        // https://docs.php-http.org/en/latest/message/authentication.html
         if ($authentication = $this->authBuilder->authentication()) {
             $plugins->add(
                 plugin: new AuthenticationPlugin($authentication),
@@ -236,7 +210,6 @@ class Api
             );
         }
 
-        // https://docs.php-http.org/en/latest/plugins/cache.html
         if ($cachePlugin = $this->buildCachePlugin()) {
             $plugins->add(
                 plugin: $cachePlugin,
@@ -244,7 +217,6 @@ class Api
             );
         }
 
-        // https://docs.php-http.org/en/latest/plugins/logger.html
         if ($loggerPlugin = $this->buildLoggerPlugin()) {
             $plugins->add(
                 plugin: $loggerPlugin,
@@ -303,13 +275,6 @@ class Api
     public function addPostRequestListener(callable $listener, int $priority = 0): self
     {
         $this->eventDispatcher->addListener(PostRequestEvent::class, $listener, $priority);
-
-        return $this;
-    }
-
-    public function addResponseContentsListener(callable $listener, int $priority = 0): self
-    {
-        $this->eventDispatcher->addListener(ResponseContentsEvent::class, $listener, $priority);
 
         return $this;
     }
