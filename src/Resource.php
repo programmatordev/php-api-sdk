@@ -36,11 +36,6 @@ abstract class Resource
         return $this->withOptions($this->options->withHeaders($headers));
     }
 
-    public function plugins(callable $configure): static
-    {
-        return $this->withOptions($this->options->withPlugins($configure));
-    }
-
     public function json(array $data): static
     {
         return $this

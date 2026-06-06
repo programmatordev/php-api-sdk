@@ -197,7 +197,7 @@ class Api
         return $this->config;
     }
 
-    private function buildPlugins(?RequestOptions $options = null): array
+    private function buildPlugins(): array
     {
         $plugins = new PluginBuilder();
 
@@ -256,10 +256,6 @@ class Api
         }
 
         $plugins->merge($this->pluginBuilder);
-
-        if ($options?->getPlugins() !== null) {
-            $plugins->merge($options->getPlugins());
-        }
 
         return $plugins->all();
     }
@@ -367,7 +363,7 @@ class Api
 
         $url = $this->buildUrl($path, $query);
         $request = $this->createRequest($method, $url, $headers, $body);
-        $plugins = $this->buildPlugins($options);
+        $plugins = $this->buildPlugins();
 
         // pre request listener
         $request = $this->eventDispatcher->dispatch(new PreRequestEvent($request))->getRequest();

@@ -2,7 +2,6 @@
 
 namespace ProgrammatorDev\Api\Request;
 
-use ProgrammatorDev\Api\Builder\PluginBuilder;
 use Psr\Http\Message\StreamInterface;
 
 class RequestOptions
@@ -10,8 +9,7 @@ class RequestOptions
     public function __construct(
         private readonly array $query = [],
         private readonly array $headers = [],
-        private readonly string|StreamInterface|null $body = null,
-        private readonly ?PluginBuilder $plugins = null
+        private readonly string|StreamInterface|null $body = null
     ) {}
 
     public function getQuery(): array
@@ -29,11 +27,6 @@ class RequestOptions
         return $this->body;
     }
 
-    public function getPlugins(): ?PluginBuilder
-    {
-        return $this->plugins;
-    }
-
     public function withQuery(string $name, mixed $value): self
     {
         return $this->withQueries([$name => $value]);
@@ -44,8 +37,7 @@ class RequestOptions
         return new self(
             query: array_merge($this->query, $this->filterNullValues($query)),
             headers: $this->headers,
-            body: $this->body,
-            plugins: $this->plugins
+            body: $this->body
         );
     }
 
@@ -59,8 +51,7 @@ class RequestOptions
         return new self(
             query: $this->query,
             headers: array_merge($this->headers, $headers),
-            body: $this->body,
-            plugins: $this->plugins
+            body: $this->body
         );
     }
 
@@ -69,26 +60,7 @@ class RequestOptions
         return new self(
             query: $this->query,
             headers: $this->headers,
-            body: $body,
-            plugins: $this->plugins
-        );
-    }
-
-    public function withPlugins(callable $configure): self
-    {
-        $plugins = new PluginBuilder();
-
-        if ($this->plugins !== null) {
-            $plugins->merge($this->plugins);
-        }
-
-        $configure($plugins);
-
-        return new self(
-            query: $this->query,
-            headers: $this->headers,
-            body: $this->body,
-            plugins: $plugins
+            body: $body
         );
     }
 
