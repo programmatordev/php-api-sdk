@@ -22,7 +22,7 @@ use Psr\Http\Client\ClientInterface;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Log\LoggerInterface;
 
-class Api
+abstract class Api
 {
     private ?string $baseUrl = null;
 

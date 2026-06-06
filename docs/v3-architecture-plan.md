@@ -471,6 +471,7 @@ Future-phase questions should be answered when that phase starts, not before:
 - Exact hook method names and context details.
 - Whether any public configuration getters are useful for testing or advanced extension.
 - Whether `Method` remains as a tiny compatibility helper or is removed entirely.
+- How endpoint-local cache options should work without muddying request options or cloning full API builders.
 - Whether `config()` ever supports nested keys.
 - Whether a future `collect()` helper should return a small generic collection object.
 
@@ -511,25 +512,25 @@ Before tagging v3:
 - [x] PSR-18 client support.
 - [x] PSR-17 request factory support.
 - [x] PSR-17 stream factory support.
-- [ ] PSR-6 cache support.
-- [ ] PSR-3 logger support.
+- [x] PSR-6 cache support.
+- [x] PSR-3 logger support.
 - [x] Authentication support.
 - [x] Plugin support.
-- [ ] Request hooks.
-- [ ] Response hooks.
-- [ ] Response content transformation.
+- [x] Request hooks.
+- [x] Response hooks.
+- [x] Response content transformation.
 - [x] Query defaults.
 - [x] Header defaults.
 - [x] Base URL handling.
 - [x] Path parameter replacement.
 - [x] Resource HTTP verb helpers.
 - [x] Resource body helpers.
-- [ ] JSON response decoding.
-- [ ] Error mapping.
+- [x] JSON response decoding.
+- [x] Error mapping.
 - [x] Entity mapping.
 - [x] Collection mapping.
 - [x] Custom response envelope mapping.
-- [ ] Entity context and SDK config access.
+- [x] Entity context and SDK config access.
 - [x] SDK author test fixtures.
 - [ ] README update.
 - [ ] `UPGRADE-3.0.md`.
