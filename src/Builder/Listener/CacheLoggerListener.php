@@ -22,33 +22,37 @@ class CacheLoggerListener implements CacheListener
         $logger = $this->loggerBuilder->getLogger();
         $formatter = $this->loggerBuilder->getFormatter();
 
-        // if response is a cache hit
         if ($fromCache) {
             /** @var $cacheItem CacheItemInterface */
             $logger->info(
-                sprintf("Cache hit:\n%s", $formatter->formatRequest($request)),
+                sprintf("HTTP cache hit:\n%s", $formatter->formatRequest($request)),
                 [
-                    'expires' => $cacheItem->get()['expiresAt'],
-                    'key' => $cacheItem->getKey()
+                    'cache_expires_at' => $this->getExpiresAt($cacheItem),
+                    'cache_key' => $cacheItem->getKey()
                 ]
             );
         }
-        // if response is a cache miss (and was cached)
         else if ($cacheItem instanceof CacheItemInterface) {
-            // handle future deprecation
             $formattedResponse = method_exists($formatter, 'formatResponseForRequest')
                 ? $formatter->formatResponseForRequest($response, $request)
                 : $formatter->formatResponse($response);
 
             $logger->info(
-                sprintf("Cached response:\n%s", $formattedResponse),
+                sprintf("HTTP response cached:\n%s", $formattedResponse),
                 [
-                    'expires' => $cacheItem->get()['expiresAt'],
-                    'key' => $cacheItem->getKey()
+                    'cache_expires_at' => $this->getExpiresAt($cacheItem),
+                    'cache_key' => $cacheItem->getKey()
                 ]
             );
         }
 
         return $response;
+    }
+
+    private function getExpiresAt(CacheItemInterface $cacheItem): mixed
+    {
+        $data = $cacheItem->get();
+
+        return is_array($data) ? $data['expiresAt'] ?? null : null;
     }
 }
