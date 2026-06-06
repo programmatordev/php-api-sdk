@@ -1,31 +1,31 @@
 <?php
 
-namespace ProgrammatorDev\Api\Test\Fixture\Weather;
+namespace ProgrammatorDev\Api\Test\Fixture\Simple;
 
 use ProgrammatorDev\Api\Context\Context;
 use ProgrammatorDev\Api\Contract\ResponseEnvelopeInterface;
 use ProgrammatorDev\Api\Response\Response;
 
-class WeatherResponse implements ResponseEnvelopeInterface
+class SimpleResponse implements ResponseEnvelopeInterface
 {
     public function __construct(
-        private readonly CurrentWeather $weather,
+        private readonly SimpleEntity $entity,
         private readonly int $statusCode,
-        private readonly ?string $units = null
+        private readonly ?string $locale = null
     ) {}
 
     public static function fromResponse(Response $response, ?Context $context = null): static
     {
         return new static(
-            weather: $response->entity(CurrentWeather::class),
+            entity: $response->entity(SimpleEntity::class),
             statusCode: $response->raw()->getStatusCode(),
-            units: $context?->config()->get('units')
+            locale: $context?->config()->get('locale')
         );
     }
 
-    public function getWeather(): CurrentWeather
+    public function getEntity(): SimpleEntity
     {
-        return $this->weather;
+        return $this->entity;
     }
 
     public function getStatusCode(): int
@@ -33,8 +33,8 @@ class WeatherResponse implements ResponseEnvelopeInterface
         return $this->statusCode;
     }
 
-    public function getUnits(): ?string
+    public function getLocale(): ?string
     {
-        return $this->units;
+        return $this->locale;
     }
 }

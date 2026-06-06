@@ -4,94 +4,83 @@ namespace ProgrammatorDev\Api\Test\Integration;
 
 use Http\Mock\Client;
 use Nyholm\Psr7\Response;
-use ProgrammatorDev\Api\Test\Fixture\Weather\CurrentWeather;
-use ProgrammatorDev\Api\Test\Fixture\Weather\WeatherApi;
-use ProgrammatorDev\Api\Test\Fixture\Weather\WeatherResponse;
+use ProgrammatorDev\Api\Test\Fixture\Simple\SimpleApi;
+use ProgrammatorDev\Api\Test\Fixture\Simple\SimpleEntity;
+use ProgrammatorDev\Api\Test\Fixture\Simple\SimpleResponse;
 use ProgrammatorDev\Api\Test\Support\AbstractTestCase;
 
 class SimpleApiProofTest extends AbstractTestCase
 {
-    private const WEATHER_RESPONSE = '{
-        "name": "Lisbon",
-        "main": {"temp": 21.5},
-        "weather": [{"description": "clear sky"}]
+    private const ITEM_RESPONSE = '{
+        "id": 1,
+        "name": "First item"
     }';
 
-    public function testCurrentWeatherCanBeMappedToEntity(): void
+    public function testItemCanBeMappedToEntity(): void
     {
         $client = new Client();
-        $client->addResponse(new Response(body: self::WEATHER_RESPONSE));
+        $client->addResponse(new Response(body: self::ITEM_RESPONSE));
 
-        $api = new WeatherApi('test-key', ['units' => 'imperial', 'lang' => 'pt']);
+        $api = new SimpleApi('test-key', ['locale' => 'pt', 'version' => 'v2']);
         $api->setup()->client($client);
 
-        $weather = $api->weather()->current('Lisbon');
+        $item = $api->items()->find(1);
 
-        $this->assertInstanceOf(CurrentWeather::class, $weather);
-        $this->assertSame('Lisbon', $weather->getCity());
-        $this->assertSame(21.5, $weather->getTemperature());
-        $this->assertSame('clear sky', $weather->getDescription());
-        $this->assertSame('imperial', $weather->getUnits());
-        $this->assertSame('pt', $weather->getLang());
+        $this->assertInstanceOf(SimpleEntity::class, $item);
+        $this->assertSame(1, $item->getId());
+        $this->assertSame('First item', $item->getName());
+        $this->assertSame('pt', $item->getLocale());
+        $this->assertSame('v2', $item->getVersion());
 
         parse_str($client->getLastRequest()->getUri()->getQuery(), $query);
 
-        $this->assertSame('/data/2.5/weather', $client->getLastRequest()->getUri()->getPath());
-        $this->assertSame('Lisbon', $query['q']);
-        $this->assertSame('test-key', $query['appid']);
-        $this->assertSame('imperial', $query['units']);
-        $this->assertSame('pt', $query['lang']);
+        $this->assertSame('/items/1', $client->getLastRequest()->getUri()->getPath());
+        $this->assertSame('test-key', $query['api_key']);
+        $this->assertSame('pt', $query['locale']);
+        $this->assertSame('v2', $query['version']);
     }
 
-    public function testCurrentWeatherCanBeMappedToEnvelope(): void
+    public function testItemCanBeMappedToEnvelope(): void
     {
         $client = new Client();
-        $client->addResponse(new Response(status: 202, body: self::WEATHER_RESPONSE));
+        $client->addResponse(new Response(status: 202, body: self::ITEM_RESPONSE));
 
-        $api = new WeatherApi('test-key');
+        $api = new SimpleApi('test-key');
         $api->setup()->client($client);
 
-        $response = $api->weather()->currentResponse('Lisbon');
+        $response = $api->items()->findResponse(1);
 
-        $this->assertInstanceOf(WeatherResponse::class, $response);
+        $this->assertInstanceOf(SimpleResponse::class, $response);
         $this->assertSame(202, $response->getStatusCode());
-        $this->assertSame('metric', $response->getUnits());
-        $this->assertSame('Lisbon', $response->getWeather()->getCity());
-        $this->assertSame('metric', $response->getWeather()->getUnits());
-        $this->assertSame('en', $response->getWeather()->getLang());
+        $this->assertSame('en', $response->getLocale());
+        $this->assertSame(1, $response->getEntity()->getId());
+        $this->assertSame('en', $response->getEntity()->getLocale());
+        $this->assertSame('v1', $response->getEntity()->getVersion());
     }
 
-    public function testWeatherGroupCanBeMappedToCollection(): void
+    public function testItemsCanBeMappedToCollection(): void
     {
         $client = new Client();
         $client->addResponse(new Response(body: '{
-            "list": [
-                {
-                    "name": "Lisbon",
-                    "main": {"temp": 21.5},
-                    "weather": [{"description": "clear sky"}]
-                },
-                {
-                    "name": "Porto",
-                    "main": {"temp": 18.0},
-                    "weather": [{"description": "few clouds"}]
-                }
+            "data": [
+                {"id": 1, "name": "First item"},
+                {"id": 2, "name": "Second item"}
             ]
         }'));
 
-        $api = new WeatherApi('test-key', ['units' => 'metric']);
+        $api = new SimpleApi('test-key', ['locale' => 'pt']);
         $api->setup()->client($client);
 
-        $weather = $api->weather()->group('Lisbon', 'Porto');
+        $items = $api->items()->all();
 
-        $this->assertContainsOnlyInstancesOf(CurrentWeather::class, $weather);
-        $this->assertSame('Lisbon', $weather[0]->getCity());
-        $this->assertSame('Porto', $weather[1]->getCity());
-        $this->assertSame('metric', $weather[0]->getUnits());
+        $this->assertContainsOnlyInstancesOf(SimpleEntity::class, $items);
+        $this->assertSame('First item', $items[0]->getName());
+        $this->assertSame('Second item', $items[1]->getName());
+        $this->assertSame('pt', $items[0]->getLocale());
 
         parse_str($client->getLastRequest()->getUri()->getQuery(), $query);
 
-        $this->assertSame('/data/2.5/group', $client->getLastRequest()->getUri()->getPath());
-        $this->assertSame('Lisbon,Porto', $query['q']);
+        $this->assertSame('/items', $client->getLastRequest()->getUri()->getPath());
+        $this->assertSame('test-key', $query['api_key']);
     }
 }
