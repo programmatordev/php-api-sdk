@@ -295,8 +295,8 @@ Error handling should run before transform hooks so API-specific error mapping s
 
 Current helpers:
 
-- `StringHelper::reduceDuplicateSlashes`
-- `StringHelper::isUrl`
+- `UrlHelper::join`
+- `UrlHelper::isAbsoluteUrl`
 - `Method` constants.
 
 Current test utilities:

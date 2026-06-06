@@ -18,7 +18,7 @@ use ProgrammatorDev\Api\Builder\PluginBuilder;
 use ProgrammatorDev\Api\Context\Context;
 use ProgrammatorDev\Api\Context\RequestContext;
 use ProgrammatorDev\Api\Context\ResponseContext;
-use ProgrammatorDev\Api\Helper\StringHelper;
+use ProgrammatorDev\Api\Helper\UrlHelper;
 use ProgrammatorDev\Api\Request\RequestOptions;
 use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Message\RequestInterface;
@@ -185,11 +185,8 @@ final class Transport
         $query = array_filter($query, static fn(mixed $value): bool => $value !== null);
         $appendQuery = http_build_query($query, '', '&', PHP_QUERY_RFC3986);
 
-        if (StringHelper::isUrl($path)) {
-            return append_query_string($path, $appendQuery, APPEND_QUERY_STRING_REPLACE_DUPLICATE);
-        }
+        $url = UrlHelper::join($this->baseUrl, $path);
 
-        $url = StringHelper::reduceDuplicateSlashes($this->baseUrl . $path);
         return append_query_string($url, $appendQuery, APPEND_QUERY_STRING_REPLACE_DUPLICATE);
     }
 
