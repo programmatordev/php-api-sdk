@@ -89,14 +89,10 @@ The current v3 request flow is:
 ```text
 create request
 beforeRequest hooks
-legacy pre-request events
 send request
 afterResponse hooks
-legacy post-request events
 decode response
 create Response
 errors
 return Response
 ```
-
-The legacy event layer is still present temporarily while v3 hooks settle.

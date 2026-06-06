@@ -20,8 +20,6 @@ use ProgrammatorDev\Api\Builder\ResponseBuilder;
 use ProgrammatorDev\Api\Context\ErrorContext;
 use ProgrammatorDev\Api\Context\RequestContext;
 use ProgrammatorDev\Api\Context\ResponseContext;
-use ProgrammatorDev\Api\Event\PostRequestEvent;
-use ProgrammatorDev\Api\Event\PreRequestEvent;
 use ProgrammatorDev\Api\Helper\StringHelper;
 use ProgrammatorDev\Api\Request\RequestOptions;
 use Psr\Http\Client\ClientExceptionInterface as ClientException;
@@ -31,7 +29,6 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class Api
 {
@@ -65,8 +62,6 @@ class Api
 
     private HookBuilder $hookBuilder;
 
-    private EventDispatcher $eventDispatcher;
-
     public function __construct()
     {
         $this->config = new Config();
@@ -76,7 +71,6 @@ class Api
         $this->responseBuilder = new ResponseBuilder();
         $this->errorBuilder = new ErrorBuilder();
         $this->hookBuilder = new HookBuilder();
-        $this->eventDispatcher = new EventDispatcher();
     }
 
     /**
@@ -277,20 +271,6 @@ class Api
         );
     }
 
-    public function addPreRequestListener(callable $listener, int $priority = 0): self
-    {
-        $this->eventDispatcher->addListener(PreRequestEvent::class, $listener, $priority);
-
-        return $this;
-    }
-
-    public function addPostRequestListener(callable $listener, int $priority = 0): self
-    {
-        $this->eventDispatcher->addListener(PostRequestEvent::class, $listener, $priority);
-
-        return $this;
-    }
-
     private function buildPath(string $path, array $parameters): string
     {
         foreach ($parameters as $parameter => $value) {
@@ -370,15 +350,13 @@ class Api
             new RequestContext($request, $context)
         );
 
-        $request = $this->eventDispatcher->dispatch(new PreRequestEvent($request))->getRequest();
-
         $response = $this->clientBuilder->getClient($plugins)->sendRequest($request);
 
         $response = $this->hookBuilder->applyAfterResponseHooks(
             new ResponseContext($request, $response, $context)
         );
 
-        return $this->eventDispatcher->dispatch(new PostRequestEvent($request, $response))->getResponse();
+        return $response;
     }
 
     private function getResponseData(ResponseInterface $response): mixed

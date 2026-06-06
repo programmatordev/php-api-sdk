@@ -204,17 +204,15 @@ Current public methods:
 - `plugins`
 - `cache`
 - `config`
-- `addPreRequestListener`
-- `addPostRequestListener`
 
-Observations:
+Original v2 observations:
 
-- The current `Api` class is easy to extend but exposes low-level request execution directly.
-- SDK packages currently use `request` from resources.
-- Defaults are global to the API instance, which makes resource-level fluent options awkward.
-- JSON decoding and error handling are implemented through listeners.
-- Plugin configuration is automatic inside `request`, which can duplicate responsibilities and makes request flow harder to reason about.
-- Symfony EventDispatcher provides flexibility, but common behavior like JSON decoding and error mapping should not require event listeners in v3.
+- The v2 `Api` class is easy to extend but exposes low-level request execution directly.
+- SDK packages used `request` from resources.
+- Defaults were global to the API instance, which made resource-level fluent options awkward.
+- JSON decoding and error handling were commonly implemented through listeners.
+- Plugin configuration was automatic inside `request`, which duplicated responsibilities and made request flow harder to reason about.
+- Symfony EventDispatcher provided flexibility, but common behavior like JSON decoding and error mapping should not require event listeners in v3.
 
 ### Builders
 
@@ -237,26 +235,21 @@ These capabilities must remain available in v3.
 
 HTTPlug's `PluginClientBuilder` already supports priority ordering and multiple plugins at the same priority. v3 should use that behavior directly or mirror it closely. The current v2 `ClientBuilder` stores plugins as `[priority => plugin]`, which means plugins with the same priority overwrite each other.
 
-### Events
+### Hooks
 
-Current event classes:
-
-- `PreRequestEvent`
-- `PostRequestEvent`
-
-Current capabilities:
+Current hook capabilities:
 
 - Mutate request before sending.
 - Mutate response after sending.
 
-These capabilities should remain, but v3 should consider clearer first-class APIs for common cases:
+These capabilities remain through first-class APIs:
 
 - JSON decoding.
 - Error mapping.
 - Request hooks.
 - Response hooks.
 
-Decision: v3 should replace the Symfony EventDispatcher dependency with a smaller request/response pipeline. The pipeline should still support request hooks, response hooks, and response transformation, but common features should be first-class fluent APIs.
+Decision: v3 replaces the Symfony EventDispatcher dependency with a smaller request/response pipeline. The pipeline supports request hooks and response hooks, while common features are first-class fluent APIs.
 
 Hooks should receive lightweight context objects rather than long argument lists:
 
@@ -347,7 +340,7 @@ The v3 test utilities should focus on helping SDK authors test resources, respon
 - `Response::as()` should require a `ResponseEnvelope` contract with `fromResponse(Response $response, ?Context $context = null)`.
 - `Response::collection()` should return a plain array by default.
 - Do not add a generic collection object in the first phase. A future `collect()` helper can be considered later if arrays become limiting.
-- Symfony EventDispatcher should be replaced with a smaller request/response pipeline.
+- Symfony EventDispatcher has been replaced with a smaller request/response pipeline.
 - v3-native hooks are represented by `HookBuilder`, `RequestContext`, and `ResponseContext`.
 - Method constants are not central to v3 because resources expose `get`, `post`, `put`, `patch`, and `delete` helpers.
 - Prefer fluent configuration over public getters.

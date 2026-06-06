@@ -24,8 +24,7 @@
         "psr/http-client-implementation": "*",
         "psr/http-factory": "^1.1",
         "psr/http-factory-implementation": "*",
-        "psr/log": "^2.0|^3.0",
-        "symfony/event-dispatcher": "^6.4|^7.4|^8.0"
+        "psr/log": "^2.0|^3.0"
     },
     "require-dev": {
         "monolog/monolog": "^3.9",
