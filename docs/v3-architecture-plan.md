@@ -311,7 +311,7 @@ The v3 test utilities should focus on helping SDK authors test resources, respon
 
 | v2 capability | Proposed v3 shape |
 | --- | --- |
-| Public `Api::request` | Removed; protected/internal transport used by `Resource` helpers |
+| Public `Api::request` | Removed; public `Api::send()` delegates HTTP mechanics to internal `Transport` |
 | `Api::buildPath` | Path parameter replacement inside `Resource`/transport `get('/x/{id}', ['id' => $id])` |
 | `setBaseUrl` / `getBaseUrl` | Fluent `baseUrl(...)`, optional getter only if useful |
 | SDK-specific global options | Generic config bag exposed to resources/responses/entities through context |

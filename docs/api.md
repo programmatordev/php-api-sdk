@@ -4,6 +4,18 @@
 
 Methods not listed here are legacy, internal, or still being reshaped for v3.
 
+## `send(string $method, string $path, array $pathParams = [], ?RequestOptions $options = null): Response`
+
+Public low-level request helper.
+
+Most SDK methods should use resources and the protected resource verb helpers. `send()` is useful when an SDK author or advanced SDK user needs to execute a request directly while still using the configured base URL, defaults, auth, plugins, cache, hooks, decoding, and errors.
+
+```php
+$response = $api->send('GET', '/users/{id}', ['id' => 1]);
+```
+
+Path parameters are encoded and replaced in `{name}` placeholders.
+
 ## `config(?array $values = null): Config`
 
 Public.
