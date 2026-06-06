@@ -16,7 +16,7 @@ class ErrorContext
         return $this->response;
     }
 
-    public function context(): Context
+    public function apiContext(): Context
     {
         return $this->context;
     }

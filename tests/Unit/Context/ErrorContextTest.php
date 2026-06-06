@@ -18,7 +18,7 @@ class ErrorContextTest extends AbstractTestCase
         $errorContext = new ErrorContext($response, $context);
 
         $this->assertSame($response, $errorContext->response());
-        $this->assertSame($context, $errorContext->context());
+        $this->assertSame($context, $errorContext->apiContext());
         $this->assertSame(404, $errorContext->statusCode());
     }
 }

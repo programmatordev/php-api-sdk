@@ -26,7 +26,7 @@ class ErrorBuilderTest extends AbstractTestCase
     {
         $builder = new ErrorBuilder();
         $builder->status(404, fn(ErrorContext $context): \Throwable => new \RuntimeException(
-            sprintf('Status %d in %s', $context->statusCode(), $context->context()->config()->get('timezone'))
+            sprintf('Status %d in %s', $context->statusCode(), $context->apiContext()->config()->get('timezone'))
         ));
 
         $this->expectException(\RuntimeException::class);

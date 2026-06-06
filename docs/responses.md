@@ -133,5 +133,5 @@ $this->errors()->when(function (ErrorContext $context): ?Throwable {
 It exposes:
 
 - `response(): Response`
-- `context(): Context`
+- `apiContext(): Context`
 - `statusCode(): int`
