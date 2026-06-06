@@ -201,8 +201,7 @@ Current public methods:
 
 - `request`
 - `client`
-- `getLoggerBuilder`
-- `setLoggerBuilder`
+- `logger`
 - `plugins`
 - `cache`
 - `config`

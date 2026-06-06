@@ -27,6 +27,7 @@ use Psr\Cache\CacheItemPoolInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class Api
@@ -188,6 +189,13 @@ class Api
         return $this->clientBuilder;
     }
 
+    public function logger(LoggerInterface $logger): LoggerBuilder
+    {
+        $this->loggerBuilder = new LoggerBuilder($logger);
+
+        return $this->loggerBuilder;
+    }
+
     public function config(?array $values = null): Config
     {
         if ($values !== null) {
@@ -258,18 +266,6 @@ class Api
         $plugins->merge($this->pluginBuilder);
 
         return $plugins->all();
-    }
-
-    public function getLoggerBuilder(): ?LoggerBuilder
-    {
-        return $this->loggerBuilder;
-    }
-
-    public function setLoggerBuilder(?LoggerBuilder $loggerBuilder): self
-    {
-        $this->loggerBuilder = $loggerBuilder;
-
-        return $this;
     }
 
     public function addPreRequestListener(callable $listener, int $priority = 0): self

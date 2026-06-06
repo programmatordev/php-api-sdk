@@ -127,6 +127,16 @@ $this
     ->streamFactory($streamFactory);
 ```
 
+## `logger(LoggerInterface $logger): LoggerBuilder`
+
+Public access to PSR-3 logger configuration.
+
+```php
+$api
+    ->logger($logger)
+    ->formatter($formatter);
+```
+
 ## `responses(): ResponseBuilder`
 
 Protected access to response decoding configuration.

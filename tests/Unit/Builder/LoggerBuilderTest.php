@@ -30,14 +30,14 @@ class LoggerBuilderTest extends AbstractTestCase
         $this->assertInstanceOf(Formatter::class, $loggerBuilder->getFormatter());
     }
 
-    public function testSetters()
+    public function testFluentMethods()
     {
         $logger = $this->createMock(LoggerInterface::class);
         $formatter = $this->createMock(Formatter::class);
 
-        $loggerBuilder = new LoggerBuilder($logger);
-        $loggerBuilder->setLogger($logger);
-        $loggerBuilder->setFormatter($formatter);
+        $loggerBuilder = (new LoggerBuilder($logger))
+            ->logger($logger)
+            ->formatter($formatter);
 
         $this->assertInstanceOf(LoggerInterface::class, $loggerBuilder->getLogger());
         $this->assertInstanceOf(Formatter::class, $loggerBuilder->getFormatter());
