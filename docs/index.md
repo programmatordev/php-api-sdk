@@ -2,7 +2,14 @@
 
 These docs describe how to create API SDKs with this package.
 
-These docs describe the upcoming `v3.0` API. The stable `v2.x` docs remain in the root `README.md` until v3 is released.
+This package is built for two developer audiences:
+
+- SDK authors: developers creating concrete API SDKs with this library.
+- SDK users: developers consuming those SDKs in applications.
+
+The goal is to keep SDK authoring fluent and compact, keep SDK usage focused on real API resources, and still expose enough control for developers who need to customize or work around an SDK.
+
+The practical guides below show how to build resources, map responses, and configure the HTTP pipeline. Read [Design Approach](design-approach.md) for more about the reasoning behind the API shape.
 
 ## Requirements
 
@@ -31,3 +38,4 @@ SDK packages should also require or suggest concrete PSR-18 and PSR-17 implement
 - [Hooks](hooks.md): run SDK-author callbacks around requests and responses.
 - [Resource Authoring](resource-authoring.md): deeper guide for resource methods, query/header options, request bodies, entity mapping, collections, envelopes, and API-specific traits.
 - [API Reference](api-reference.md): current v3 authoring methods and contracts.
+- [Design Approach](design-approach.md): the reasoning behind fluent SDK authoring, clean SDK usage, and hackability.
