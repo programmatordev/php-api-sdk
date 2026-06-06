@@ -68,7 +68,7 @@ class AuthBuilder
         return $this;
     }
 
-    public function authentication(): ?Authentication
+    public function getAuthentication(): ?Authentication
     {
         if ($this->authentications === []) {
             return null;

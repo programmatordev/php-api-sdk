@@ -13,14 +13,14 @@ class AuthBuilderTest extends AbstractTestCase
 {
     public function testAuthenticationIsNullWhenNoAuthWasConfigured(): void
     {
-        $this->assertNull((new AuthBuilder())->authentication());
+        $this->assertNull((new AuthBuilder())->getAuthentication());
     }
 
     public function testSingleAuthenticationIsReturnedDirectly(): void
     {
         $authentication = (new AuthBuilder())
             ->bearer('token')
-            ->authentication();
+            ->getAuthentication();
 
         $request = $authentication->authenticate(new Request('GET', 'https://api.example.com'));
 
@@ -32,7 +32,7 @@ class AuthBuilderTest extends AbstractTestCase
         $authentication = (new AuthBuilder())
             ->bearer('token')
             ->query('appid', 'key')
-            ->authentication();
+            ->getAuthentication();
 
         $this->assertInstanceOf(Chain::class, $authentication);
 
@@ -46,7 +46,7 @@ class AuthBuilderTest extends AbstractTestCase
     {
         $authentication = (new AuthBuilder())
             ->chain(new Header('X-Api-Key', 'secret'))
-            ->authentication();
+            ->getAuthentication();
 
         $request = $authentication->authenticate(new Request('GET', 'https://api.example.com/weather'));
 
@@ -57,7 +57,7 @@ class AuthBuilderTest extends AbstractTestCase
     {
         $authentication = (new AuthBuilder())
             ->wsse('user', 'pass')
-            ->authentication();
+            ->getAuthentication();
 
         $request = $authentication->authenticate(new Request('GET', 'https://api.example.com/weather'));
 
@@ -69,7 +69,7 @@ class AuthBuilderTest extends AbstractTestCase
     {
         $authentication = (new AuthBuilder())
             ->conditional(new RequestMatcher(path: '^/admin'), new Header('X-Admin-Auth', 'secret'))
-            ->authentication();
+            ->getAuthentication();
 
         $matched = $authentication->authenticate(new Request('GET', 'https://api.example.com/admin/users'));
         $unmatched = $authentication->authenticate(new Request('GET', 'https://api.example.com/users'));
@@ -82,7 +82,7 @@ class AuthBuilderTest extends AbstractTestCase
     {
         $authentication = (new AuthBuilder())
             ->custom(fn(Request $request) => $request->withHeader('X-Custom-Auth', 'custom'))
-            ->authentication();
+            ->getAuthentication();
 
         $request = $authentication->authenticate(new Request('GET', 'https://api.example.com/weather'));
 
@@ -93,7 +93,7 @@ class AuthBuilderTest extends AbstractTestCase
     {
         $authentication = (new AuthBuilder())
             ->custom(fn() => null)
-            ->authentication();
+            ->getAuthentication();
 
         $this->expectException(\UnexpectedValueException::class);
         $this->expectExceptionMessage('Custom authentication callback must return a PSR-7 request.');

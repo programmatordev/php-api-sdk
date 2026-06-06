@@ -47,7 +47,7 @@ class ResponseBuilder
         return $this;
     }
 
-    public function format(): ResponseFormat
+    public function getFormat(): ResponseFormat
     {
         return $this->format;
     }
@@ -55,7 +55,7 @@ class ResponseBuilder
     /**
      * @return null|callable(ResponseInterface): mixed
      */
-    public function customDecoder(): ?callable
+    public function getCustomDecoder(): ?callable
     {
         return $this->customDecoder;
     }

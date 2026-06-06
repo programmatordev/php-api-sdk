@@ -105,7 +105,7 @@ final class Transport
             priority: self::CONTENT_LENGTH_PLUGIN_PRIORITY
         );
 
-        if ($authentication = $this->authBuilder->authentication()) {
+        if ($authentication = $this->authBuilder->getAuthentication()) {
             $plugins->add(
                 plugin: new AuthenticationPlugin($authentication),
                 priority: self::AUTHENTICATION_PLUGIN_PRIORITY
@@ -128,7 +128,7 @@ final class Transport
 
         $plugins->merge($this->pluginBuilder);
 
-        return $plugins->all();
+        return $plugins->getPlugins();
     }
 
     private function buildCachePlugin(): ?Plugin

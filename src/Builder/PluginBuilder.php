@@ -19,7 +19,7 @@ class PluginBuilder
 
     public function merge(self $builder): self
     {
-        foreach ($builder->entries() as $priority => $plugins) {
+        foreach ($builder->getEntries() as $priority => $plugins) {
             foreach ($plugins as $plugin) {
                 $this->add($plugin, $priority);
             }
@@ -31,7 +31,7 @@ class PluginBuilder
     /**
      * @return array<int, list<Plugin>>
      */
-    public function entries(): array
+    public function getEntries(): array
     {
         return $this->plugins;
     }
@@ -39,7 +39,7 @@ class PluginBuilder
     /**
      * @return list<Plugin>
      */
-    public function all(): array
+    public function getPlugins(): array
     {
         if ($this->plugins === []) {
             return [];

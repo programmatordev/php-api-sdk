@@ -18,7 +18,7 @@ class PluginBuilderTest extends AbstractTestCase
             ->add($low, priority: 8)
             ->add($high, priority: 40)
             ->add($middle, priority: 16)
-            ->all();
+            ->getPlugins();
 
         $this->assertSame([$high, $middle, $low], $plugins);
     }
@@ -31,7 +31,7 @@ class PluginBuilderTest extends AbstractTestCase
         $plugins = (new PluginBuilder())
             ->add($first, priority: 16)
             ->add($second, priority: 16)
-            ->all();
+            ->getPlugins();
 
         $this->assertSame([$first, $second], $plugins);
     }
@@ -46,7 +46,7 @@ class PluginBuilderTest extends AbstractTestCase
         $plugins = (new PluginBuilder())
             ->add($low, priority: 8)
             ->merge($source)
-            ->all();
+            ->getPlugins();
 
         $this->assertSame([$high, $low], $plugins);
     }

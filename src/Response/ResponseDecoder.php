@@ -22,7 +22,7 @@ final class ResponseDecoder
         $response->getBody()->rewind();
         $contents = $response->getBody()->getContents();
 
-        return match ($this->responseBuilder->format()) {
+        return match ($this->responseBuilder->getFormat()) {
             ResponseFormat::Raw => $contents,
             ResponseFormat::Json => $this->decodeJson($contents),
             ResponseFormat::Xml => $this->decodeXml($contents),
@@ -66,7 +66,7 @@ final class ResponseDecoder
 
     private function decodeCustom(ResponseInterface $response): mixed
     {
-        $decoder = $this->responseBuilder->customDecoder();
+        $decoder = $this->responseBuilder->getCustomDecoder();
 
         if ($decoder === null) {
             throw new RuntimeException('A custom response decoder must be configured.');
