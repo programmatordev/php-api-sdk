@@ -2,6 +2,7 @@
 
 namespace ProgrammatorDev\Api;
 
+use Http\Client\Common\Plugin;
 use Http\Client\Common\Plugin\AuthenticationPlugin;
 use Http\Client\Common\Plugin\CachePlugin;
 use Http\Client\Common\Plugin\ContentLengthPlugin;
@@ -32,6 +33,12 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class Api
 {
+    private const CONTENT_TYPE_PLUGIN_PRIORITY = 50;
+    private const CONTENT_LENGTH_PLUGIN_PRIORITY = 40;
+    private const AUTHENTICATION_PLUGIN_PRIORITY = 30;
+    private const CACHE_PLUGIN_PRIORITY = 20;
+    private const LOGGER_PLUGIN_PRIORITY = 10;
+
     private ?string $baseUrl = null;
 
     private array $queryDefaults = [];
@@ -212,60 +219,78 @@ class Api
         // https://docs.php-http.org/en/latest/plugins/content-type.html
         $plugins->add(
             plugin: new ContentTypePlugin(),
-            priority: 50
+            priority: self::CONTENT_TYPE_PLUGIN_PRIORITY
         );
 
         // https://docs.php-http.org/en/latest/plugins/content-length.html
         $plugins->add(
             plugin: new ContentLengthPlugin(),
-            priority: 40
+            priority: self::CONTENT_LENGTH_PLUGIN_PRIORITY
         );
 
         // https://docs.php-http.org/en/latest/message/authentication.html
         if ($authentication = $this->authBuilder->authentication()) {
             $plugins->add(
                 plugin: new AuthenticationPlugin($authentication),
-                priority: 30
+                priority: self::AUTHENTICATION_PLUGIN_PRIORITY
             );
         }
 
         // https://docs.php-http.org/en/latest/plugins/cache.html
-        if ($this->cacheBuilder) {
-            $cacheOptions = [
-                'default_ttl' => $this->cacheBuilder->getDefaultTtl(),
-                'methods' => $this->cacheBuilder->getMethods(),
-                'respect_response_cache_directives' => $this->cacheBuilder->getResponseCacheDirectives(),
-                'cache_listeners' => []
-            ];
-
-            if ($this->loggerBuilder) {
-                $cacheOptions['cache_listeners'][] = new CacheLoggerListener($this->loggerBuilder);
-            }
-
+        if ($cachePlugin = $this->buildCachePlugin()) {
             $plugins->add(
-                plugin: new CachePlugin(
-                    $this->cacheBuilder->getPool(),
-                    $this->clientBuilder->getStreamFactory(),
-                    $cacheOptions
-                ),
-                priority: 20
+                plugin: $cachePlugin,
+                priority: self::CACHE_PLUGIN_PRIORITY
             );
         }
 
         // https://docs.php-http.org/en/latest/plugins/logger.html
-        if ($this->loggerBuilder) {
+        if ($loggerPlugin = $this->buildLoggerPlugin()) {
             $plugins->add(
-                plugin: new LoggerPlugin(
-                    $this->loggerBuilder->getLogger(),
-                    $this->loggerBuilder->getFormatter()
-                ),
-                priority: 10
+                plugin: $loggerPlugin,
+                priority: self::LOGGER_PLUGIN_PRIORITY
             );
         }
 
         $plugins->merge($this->pluginBuilder);
 
         return $plugins->all();
+    }
+
+    private function buildCachePlugin(): ?Plugin
+    {
+        if ($this->cacheBuilder === null) {
+            return null;
+        }
+
+        $cacheOptions = [
+            'default_ttl' => $this->cacheBuilder->getDefaultTtl(),
+            'methods' => $this->cacheBuilder->getMethods(),
+            'respect_response_cache_directives' => $this->cacheBuilder->getResponseCacheDirectives(),
+            'cache_listeners' => []
+        ];
+
+        if ($this->loggerBuilder) {
+            $cacheOptions['cache_listeners'][] = new CacheLoggerListener($this->loggerBuilder);
+        }
+
+        return new CachePlugin(
+            $this->cacheBuilder->getPool(),
+            $this->clientBuilder->getStreamFactory(),
+            $cacheOptions
+        );
+    }
+
+    private function buildLoggerPlugin(): ?Plugin
+    {
+        if ($this->loggerBuilder === null) {
+            return null;
+        }
+
+        return new LoggerPlugin(
+            $this->loggerBuilder->getLogger(),
+            $this->loggerBuilder->getFormatter()
+        );
     }
 
     public function addPreRequestListener(callable $listener, int $priority = 0): self

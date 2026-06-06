@@ -46,3 +46,5 @@ Sets the response cache directives respected by the cache plugin.
 The cache plugin runs at priority `20`, after authentication and before the logger plugin.
 
 When logging is configured, cache hit/miss/write events are logged through the cache plugin listener.
+
+See [Logging](logging.md) for cache log output.

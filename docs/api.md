@@ -127,6 +127,8 @@ $this
     ->streamFactory($streamFactory);
 ```
 
+See [HTTP Client](http-client.md) for client and factory configuration.
+
 ## `logger(LoggerInterface $logger): LoggerBuilder`
 
 Public access to PSR-3 logger configuration.
@@ -136,6 +138,8 @@ $api
     ->logger($logger)
     ->formatter($formatter);
 ```
+
+See [Logging](logging.md) for logger formatting and cache logging.
 
 ## `responses(): ResponseBuilder`
 
