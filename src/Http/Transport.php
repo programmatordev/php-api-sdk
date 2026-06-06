@@ -41,8 +41,8 @@ final class Transport
         private readonly ?CacheBuilder $cacheBuilder = null,
         private readonly ?LoggerBuilder $loggerBuilder = null,
         private readonly ?string $baseUrl = null,
-        private readonly array $queryDefaults = [],
-        private readonly array $headerDefaults = []
+        private readonly array $defaultQueries = [],
+        private readonly array $defaultHeaders = []
     ) {}
 
     /**
@@ -63,12 +63,12 @@ final class Transport
         $query = $options->getQuery();
         $headers = $options->getHeaders();
 
-        if (!empty($this->queryDefaults)) {
-            $query = array_merge($this->queryDefaults, $query);
+        if (!empty($this->defaultQueries)) {
+            $query = array_merge($this->defaultQueries, $query);
         }
 
-        if (!empty($this->headerDefaults)) {
-            $headers = array_merge($this->headerDefaults, $headers);
+        if (!empty($this->defaultHeaders)) {
+            $headers = array_merge($this->defaultHeaders, $headers);
         }
 
         $request = $this->createRequest(

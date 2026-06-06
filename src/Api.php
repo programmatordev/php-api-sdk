@@ -26,9 +26,9 @@ abstract class Api
 {
     private ?string $baseUrl = null;
 
-    private array $queryDefaults = [];
+    private array $defaultQueries = [];
 
-    private array $headerDefaults = [];
+    private array $defaultHeaders = [];
 
     private Config $config;
 
@@ -113,28 +113,28 @@ abstract class Api
 
     protected function defaultQuery(string $name, mixed $value): static
     {
-        $this->queryDefaults[$name] = $value;
+        $this->defaultQueries[$name] = $value;
 
         return $this;
     }
 
     protected function defaultQueries(array $query): static
     {
-        $this->queryDefaults = array_merge($this->queryDefaults, $query);
+        $this->defaultQueries = array_merge($this->defaultQueries, $query);
 
         return $this;
     }
 
     protected function defaultHeader(string $name, mixed $value): static
     {
-        $this->headerDefaults[$name] = $value;
+        $this->defaultHeaders[$name] = $value;
 
         return $this;
     }
 
     protected function defaultHeaders(array $headers): static
     {
-        $this->headerDefaults = array_merge($this->headerDefaults, $headers);
+        $this->defaultHeaders = array_merge($this->defaultHeaders, $headers);
 
         return $this;
     }
@@ -204,8 +204,8 @@ abstract class Api
             cacheBuilder: $this->cacheBuilder,
             loggerBuilder: $this->loggerBuilder,
             baseUrl: $this->baseUrl,
-            queryDefaults: $this->queryDefaults,
-            headerDefaults: $this->headerDefaults
+            defaultQueries: $this->defaultQueries,
+            defaultHeaders: $this->defaultHeaders
         );
     }
 
