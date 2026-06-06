@@ -101,6 +101,16 @@ abstract class Resource
         return $this->send(Method::OPTIONS, $path, $pathParams, $query);
     }
 
+    protected function connect(string $path, array $pathParams = [], array $query = []): Response
+    {
+        return $this->send(Method::CONNECT, $path, $pathParams, $query);
+    }
+
+    protected function trace(string $path, array $pathParams = [], array $query = []): Response
+    {
+        return $this->send(Method::TRACE, $path, $pathParams, $query);
+    }
+
     protected function config(): Config
     {
         return $this->api->config();

@@ -17,6 +17,8 @@ class UserResource extends Resource
             'DELETE' => $this->delete('/users/{id}', ['id' => 1]),
             'HEAD' => $this->head('/users'),
             'OPTIONS' => $this->options('/users'),
+            'CONNECT' => $this->connect('/users'),
+            'TRACE' => $this->trace('/users'),
         };
     }
 

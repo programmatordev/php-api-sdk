@@ -2,8 +2,10 @@
 
 namespace ProgrammatorDev\Api\Helper;
 
-class StringHelper
+final class StringHelper
 {
+    private function __construct() {}
+
     public static function reduceDuplicateSlashes(string $string): string
     {
         return preg_replace('#(^|[^:])//+#', '\\1/', $string);

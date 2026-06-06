@@ -96,6 +96,8 @@ $this->patch('/users/{id}', ['id' => $id]);
 $this->delete('/users/{id}', ['id' => $id]);
 $this->head('/users');
 $this->options('/users');
+$this->connect('/users');
+$this->trace('/users');
 ```
 
 All helpers accept:
@@ -111,7 +113,9 @@ array $query = []
 Protected escape hatch for methods without a named helper.
 
 ```php
+use ProgrammatorDev\Api\Http\Method;
+
 return $this
-    ->send('TRACE', '/debug')
+    ->send(Method::TRACE, '/debug')
     ->raw();
 ```

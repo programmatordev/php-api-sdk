@@ -50,6 +50,8 @@ $this->patch('/users/{id}', ['id' => $id]);
 $this->delete('/users/{id}', ['id' => $id]);
 $this->head('/users');
 $this->options('/users');
+$this->connect('/users');
+$this->trace('/users');
 ```
 
 Each helper executes the request immediately and returns a `Response` wrapper.

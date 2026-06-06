@@ -216,6 +216,8 @@ class ResourceTest extends AbstractTestCase
             'delete' => ['DELETE'],
             'head' => ['HEAD'],
             'options' => ['OPTIONS'],
+            'connect' => ['CONNECT'],
+            'trace' => ['TRACE'],
         ];
     }
 }
