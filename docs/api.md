@@ -59,12 +59,20 @@ $this->baseUrl('https://api.example.com');
 
 Full request URLs passed to resources override the configured base URL.
 
-## `queryDefaults(array $query): static`
+## `defaultQuery(string $name, mixed $value): static`
+
+Protected fluent helper for configuring one query parameter applied to every request.
+
+```php
+$this->defaultQuery('api_key', $apiKey);
+```
+
+## `defaultQueries(array $query): static`
 
 Protected fluent helper for configuring query parameters applied to every request.
 
 ```php
-$this->queryDefaults(['api_key' => $apiKey, 'locale' => 'en']);
+$this->defaultQueries(['api_key' => $apiKey, 'locale' => 'en']);
 ```
 
 Query merge order is:
@@ -73,12 +81,20 @@ Query merge order is:
 API defaults < resource options < endpoint-specific options
 ```
 
-## `headerDefaults(array $headers): static`
+## `defaultHeader(string $name, mixed $value): static`
+
+Protected fluent helper for configuring one header applied to every request.
+
+```php
+$this->defaultHeader('Accept', 'application/json');
+```
+
+## `defaultHeaders(array $headers): static`
 
 Protected fluent helper for configuring headers applied to every request.
 
 ```php
-$this->headerDefaults(['Accept' => 'application/json']);
+$this->defaultHeaders(['Accept' => 'application/json']);
 ```
 
 Header names are not normalized by the package.

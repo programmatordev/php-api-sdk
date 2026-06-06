@@ -194,7 +194,7 @@ final class ExampleApi extends Api
 
         $this
             ->baseUrl('https://api.example.com')
-            ->queryDefaults(['api_key' => $apiKey]);
+            ->defaultQueries(['api_key' => $apiKey]);
 
         $this->config($options);
     }

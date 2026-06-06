@@ -16,7 +16,7 @@ class FakeApi extends Api
 
         $this
             ->baseUrl('https://api.example.com')
-            ->queryDefaults(['locale' => 'en'])
+            ->defaultQueries(['locale' => 'en'])
             ->responses()
             ->json();
     }
@@ -24,5 +24,19 @@ class FakeApi extends Api
     public function users(): UserResource
     {
         return $this->resource(UserResource::class);
+    }
+
+    public function withDefaultQuery(string $name, mixed $value): self
+    {
+        $this->defaultQuery($name, $value);
+
+        return $this;
+    }
+
+    public function withDefaultHeader(string $name, mixed $value): self
+    {
+        $this->defaultHeader($name, $value);
+
+        return $this;
     }
 }

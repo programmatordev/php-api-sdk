@@ -111,14 +111,28 @@ class Api
         return $this;
     }
 
-    protected function queryDefaults(array $query): static
+    protected function defaultQuery(string $name, mixed $value): static
+    {
+        $this->queryDefaults[$name] = $value;
+
+        return $this;
+    }
+
+    protected function defaultQueries(array $query): static
     {
         $this->queryDefaults = array_merge($this->queryDefaults, $query);
 
         return $this;
     }
 
-    protected function headerDefaults(array $headers): static
+    protected function defaultHeader(string $name, mixed $value): static
+    {
+        $this->headerDefaults[$name] = $value;
+
+        return $this;
+    }
+
+    protected function defaultHeaders(array $headers): static
     {
         $this->headerDefaults = array_merge($this->headerDefaults, $headers);
 

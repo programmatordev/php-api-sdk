@@ -47,10 +47,10 @@ Use `query()` only when the API requires credentials in the URL.
 $this->auth()->query('api_key', $apiKey);
 ```
 
-For non-sensitive default query parameters such as `locale`, `units`, or `timezone`, use `queryDefaults()` instead:
+For non-sensitive default query parameters such as `locale`, `units`, or `timezone`, use `defaultQueries()` instead:
 
 ```php
-$this->queryDefaults(['units' => 'metric']);
+$this->defaultQueries(['units' => 'metric']);
 ```
 
 ## HTTPlug Authentication Objects

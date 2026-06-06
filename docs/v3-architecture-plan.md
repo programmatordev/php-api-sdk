@@ -315,7 +315,7 @@ The v3 test utilities should focus on helping SDK authors test resources, respon
 | `Api::buildPath` | Path parameter replacement inside `Resource`/transport `get('/x/{id}', ['id' => $id])` |
 | `setBaseUrl` / `getBaseUrl` | Fluent `baseUrl(...)`, optional getter only if useful |
 | SDK-specific global options | Generic config bag exposed to resources/responses/entities through context |
-| Query/header defaults | Fluent `queryDefaults(...)`, `headerDefaults(...)` |
+| Query/header defaults | Fluent `defaultQueries(...)`, `defaultHeaders(...)` |
 | Per-resource query options | New `RequestOptions`, exposed through `Resource::query(...)` and SDK-specific traits |
 | `setAuthentication` | Fluent `auth()` helper wrapping HTTPlug authentication plus low-level authentication injection |
 | Client/factory injection | Keep builder-style or fluent config methods |
@@ -403,7 +403,7 @@ final class ExampleApi extends Api
             ->baseUrl('https://api.example.com')
             ->auth()->bearer($token)
             ->config(['timezone' => 'UTC'])
-            ->queryDefaults(['locale' => 'en'])
+            ->defaultQueries(['locale' => 'en'])
             ->responses()->json();
     }
 

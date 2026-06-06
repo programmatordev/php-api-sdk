@@ -25,8 +25,8 @@ final class ExampleApi extends Api
 
         $this
             ->baseUrl('https://api.example.com')
-            ->queryDefaults(['locale' => 'en'])
-            ->headerDefaults(['Accept' => 'application/json']);
+            ->defaultQueries(['locale' => 'en'])
+            ->defaultHeaders(['Accept' => 'application/json']);
 
         $this->auth()->query('api_key', $apiKey);
     }

@@ -38,4 +38,28 @@ class ApiTest extends AbstractTestCase
         $this->assertSame(['id' => 1, 'name' => 'John'], $response->data());
         $this->assertSame('https://api.example.com/users/1?locale=en', (string) $client->getLastRequest()->getUri());
     }
+
+    public function testApiCanSendRequestWithDefaultQuery(): void
+    {
+        $client = new Client();
+        $client->addResponse(new Response(body: '{"id":1,"name":"John"}'));
+
+        (new FakeApi($client))
+            ->withDefaultQuery('units', 'metric')
+            ->send(Method::GET, '/users/{id}', ['id' => 1]);
+
+        $this->assertSame('https://api.example.com/users/1?locale=en&units=metric', (string) $client->getLastRequest()->getUri());
+    }
+
+    public function testApiCanSendRequestWithDefaultHeader(): void
+    {
+        $client = new Client();
+        $client->addResponse(new Response(body: '{"id":1,"name":"John"}'));
+
+        (new FakeApi($client))
+            ->withDefaultHeader('Accept', 'application/json')
+            ->send(Method::GET, '/users/{id}', ['id' => 1]);
+
+        $this->assertSame('application/json', $client->getLastRequest()->getHeaderLine('Accept'));
+    }
 }
