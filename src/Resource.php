@@ -2,7 +2,10 @@
 
 namespace ProgrammatorDev\Api;
 
+use ProgrammatorDev\Api\Config\Config;
+use ProgrammatorDev\Api\Http\Method;
 use ProgrammatorDev\Api\Request\RequestOptions;
+use ProgrammatorDev\Api\Response\Response;
 use Psr\Http\Message\StreamInterface;
 
 abstract class Resource

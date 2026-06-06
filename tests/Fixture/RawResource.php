@@ -3,7 +3,7 @@
 namespace ProgrammatorDev\Api\Test\Fixture;
 
 use ProgrammatorDev\Api\Resource;
-use ProgrammatorDev\Api\Response;
+use ProgrammatorDev\Api\Response\Response;
 
 class RawResource extends Resource
 {

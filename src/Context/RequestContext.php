@@ -2,7 +2,6 @@
 
 namespace ProgrammatorDev\Api\Context;
 
-use ProgrammatorDev\Api\Context;
 use Psr\Http\Message\RequestInterface;
 
 class RequestContext

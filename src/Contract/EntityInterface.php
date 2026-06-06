@@ -1,6 +1,8 @@
 <?php
 
-namespace ProgrammatorDev\Api;
+namespace ProgrammatorDev\Api\Contract;
+
+use ProgrammatorDev\Api\Context\Context;
 
 interface EntityInterface
 {

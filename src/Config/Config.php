@@ -1,6 +1,6 @@
 <?php
 
-namespace ProgrammatorDev\Api;
+namespace ProgrammatorDev\Api\Config;
 
 class Config
 {

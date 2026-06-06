@@ -1,6 +1,6 @@
 <?php
 
-namespace ProgrammatorDev\Api;
+namespace ProgrammatorDev\Api\Http;
 
 use Http\Client\Common\Plugin;
 use Http\Client\Common\Plugin\AuthenticationPlugin;
@@ -15,6 +15,7 @@ use ProgrammatorDev\Api\Builder\HookBuilder;
 use ProgrammatorDev\Api\Builder\Listener\CacheLoggerListener;
 use ProgrammatorDev\Api\Builder\LoggerBuilder;
 use ProgrammatorDev\Api\Builder\PluginBuilder;
+use ProgrammatorDev\Api\Context\Context;
 use ProgrammatorDev\Api\Context\RequestContext;
 use ProgrammatorDev\Api\Context\ResponseContext;
 use ProgrammatorDev\Api\Helper\StringHelper;

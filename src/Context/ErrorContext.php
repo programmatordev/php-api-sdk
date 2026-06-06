@@ -2,8 +2,7 @@
 
 namespace ProgrammatorDev\Api\Context;
 
-use ProgrammatorDev\Api\Context;
-use ProgrammatorDev\Api\Response;
+use ProgrammatorDev\Api\Response\Response;
 
 class ErrorContext
 {

@@ -4,7 +4,7 @@ namespace ProgrammatorDev\Api\Test\Unit;
 
 use Nyholm\Psr7\Response;
 use ProgrammatorDev\Api\Builder\ResponseBuilder;
-use ProgrammatorDev\Api\ResponseDecoder;
+use ProgrammatorDev\Api\Response\ResponseDecoder;
 use ProgrammatorDev\Api\Test\Support\AbstractTestCase;
 use RuntimeException;
 use SimpleXMLElement;

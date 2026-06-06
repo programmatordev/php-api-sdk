@@ -1,6 +1,6 @@
 <?php
 
-namespace ProgrammatorDev\Api;
+namespace ProgrammatorDev\Api\Response;
 
 use ProgrammatorDev\Api\Builder\ResponseBuilder;
 use Psr\Http\Message\ResponseInterface;

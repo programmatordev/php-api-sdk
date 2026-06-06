@@ -2,7 +2,7 @@
 
 namespace ProgrammatorDev\Api\Builder;
 
-use ProgrammatorDev\Api\Method;
+use ProgrammatorDev\Api\Http\Method;
 use Psr\Cache\CacheItemPoolInterface;
 
 class CacheBuilder

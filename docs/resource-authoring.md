@@ -140,8 +140,8 @@ return $this
 Entities must implement `EntityInterface`:
 
 ```php
-use ProgrammatorDev\Api\Context;
-use ProgrammatorDev\Api\EntityInterface;
+use ProgrammatorDev\Api\Context\Context;
+use ProgrammatorDev\Api\Contract\EntityInterface;
 
 final class User implements EntityInterface
 {
@@ -209,8 +209,8 @@ When a response is mapped, the API creates a context with that config. The same 
 Entities can use config values during hydration:
 
 ```php
-use ProgrammatorDev\Api\Context;
-use ProgrammatorDev\Api\EntityInterface;
+use ProgrammatorDev\Api\Context\Context;
+use ProgrammatorDev\Api\Contract\EntityInterface;
 
 final class User implements EntityInterface
 {
@@ -234,9 +234,9 @@ final class User implements EntityInterface
 Response envelopes receive the same context:
 
 ```php
-use ProgrammatorDev\Api\Context;
-use ProgrammatorDev\Api\Response;
-use ProgrammatorDev\Api\ResponseEnvelopeInterface;
+use ProgrammatorDev\Api\Context\Context;
+use ProgrammatorDev\Api\Response\Response;
+use ProgrammatorDev\Api\Contract\ResponseEnvelopeInterface;
 
 final class UserResponse implements ResponseEnvelopeInterface
 {
@@ -268,9 +268,9 @@ return $this
 Envelope classes must implement `ResponseEnvelopeInterface`:
 
 ```php
-use ProgrammatorDev\Api\Context;
-use ProgrammatorDev\Api\Response;
-use ProgrammatorDev\Api\ResponseEnvelopeInterface;
+use ProgrammatorDev\Api\Context\Context;
+use ProgrammatorDev\Api\Response\Response;
+use ProgrammatorDev\Api\Contract\ResponseEnvelopeInterface;
 
 final class UserResponse implements ResponseEnvelopeInterface
 {

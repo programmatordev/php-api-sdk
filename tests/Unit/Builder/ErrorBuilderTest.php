@@ -4,10 +4,10 @@ namespace ProgrammatorDev\Api\Test\Unit\Builder;
 
 use Nyholm\Psr7\Response as PsrResponse;
 use ProgrammatorDev\Api\Builder\ErrorBuilder;
-use ProgrammatorDev\Api\Config;
-use ProgrammatorDev\Api\Context;
+use ProgrammatorDev\Api\Config\Config;
+use ProgrammatorDev\Api\Context\Context;
 use ProgrammatorDev\Api\Context\ErrorContext;
-use ProgrammatorDev\Api\Response;
+use ProgrammatorDev\Api\Response\Response;
 use ProgrammatorDev\Api\Test\Support\AbstractTestCase;
 
 class ErrorBuilderTest extends AbstractTestCase

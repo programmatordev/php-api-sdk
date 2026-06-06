@@ -1,6 +1,8 @@
 <?php
 
-namespace ProgrammatorDev\Api;
+namespace ProgrammatorDev\Api\Context;
+
+use ProgrammatorDev\Api\Config\Config;
 
 class Context
 {

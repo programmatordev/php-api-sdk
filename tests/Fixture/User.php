@@ -2,8 +2,8 @@
 
 namespace ProgrammatorDev\Api\Test\Fixture;
 
-use ProgrammatorDev\Api\Context;
-use ProgrammatorDev\Api\EntityInterface;
+use ProgrammatorDev\Api\Context\Context;
+use ProgrammatorDev\Api\Contract\EntityInterface;
 
 class User implements EntityInterface
 {

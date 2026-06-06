@@ -2,7 +2,7 @@
 
 namespace ProgrammatorDev\Api\Builder;
 
-use ProgrammatorDev\Api\ResponseFormat;
+use ProgrammatorDev\Api\Response\ResponseFormat;
 use Psr\Http\Message\ResponseInterface;
 
 class ResponseBuilder

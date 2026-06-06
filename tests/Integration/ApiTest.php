@@ -5,7 +5,7 @@ namespace ProgrammatorDev\Api\Test\Integration;
 use Http\Mock\Client;
 use Nyholm\Psr7\Response;
 use ProgrammatorDev\Api\Api;
-use ProgrammatorDev\Api\Method;
+use ProgrammatorDev\Api\Http\Method;
 use ProgrammatorDev\Api\Test\Fixture\FakeApi;
 use ProgrammatorDev\Api\Test\Support\AbstractTestCase;
 

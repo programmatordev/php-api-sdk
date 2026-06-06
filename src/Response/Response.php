@@ -1,7 +1,10 @@
 <?php
 
-namespace ProgrammatorDev\Api;
+namespace ProgrammatorDev\Api\Response;
 
+use ProgrammatorDev\Api\Context\Context;
+use ProgrammatorDev\Api\Contract\EntityInterface;
+use ProgrammatorDev\Api\Contract\ResponseEnvelopeInterface;
 use Psr\Http\Message\ResponseInterface;
 
 class Response
