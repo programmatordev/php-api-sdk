@@ -16,10 +16,10 @@ class ErrorBuilderTest extends AbstractTestCase
     {
         $builder = new ErrorBuilder();
 
+        $this->expectNotToPerformAssertions();
+
         $builder->status(404, fn(): \Throwable => new \RuntimeException('Not found'));
         $builder->throwIfMatched($this->context(statusCode: 200));
-
-        $this->assertTrue(true);
     }
 
     public function testMatchedStatusThrowsConfiguredThrowable(): void
@@ -89,11 +89,12 @@ class ErrorBuilderTest extends AbstractTestCase
     public function testCustomHandlerDoesNotThrowWhenNotMatched(): void
     {
         $builder = new ErrorBuilder();
+
+        $this->expectNotToPerformAssertions();
+
         $builder->when(fn(): ?\Throwable => null);
 
         $builder->throwIfMatched($this->context(statusCode: 200));
-
-        $this->assertTrue(true);
     }
 
     public function testCustomHandlerMustReturnThrowableOrNull(): void
@@ -115,7 +116,7 @@ class ErrorBuilderTest extends AbstractTestCase
         $context = new Context(new Config(['timezone' => 'UTC']));
 
         return new ErrorContext(
-            response: new Response($data ?? [], new PsrResponse(status: $statusCode), $context),
+            response: new Response($data, new PsrResponse(status: $statusCode), $context),
             context: $context
         );
     }
