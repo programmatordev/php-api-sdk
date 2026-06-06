@@ -30,7 +30,7 @@ Returns the raw PSR response.
 $status = $response->raw()->getStatusCode();
 ```
 
-### `entity(string $class, ?string $key = null): Entity`
+### `entity(string $class, ?string $key = null): EntityInterface`
 
 Maps decoded response data to an entity class.
 
@@ -40,7 +40,7 @@ return $this
     ->entity(User::class, key: 'data');
 ```
 
-The class must implement `Entity`.
+The class must implement `EntityInterface`.
 
 ### `collection(string $class, ?string $key = null): array`
 
@@ -52,7 +52,7 @@ return $this
     ->collection(User::class, key: 'data');
 ```
 
-### `as(string $class): ResponseEnvelope`
+### `as(string $class): ResponseEnvelopeInterface`
 
 Maps the response to a custom envelope.
 
@@ -62,9 +62,9 @@ return $this
     ->as(UserResponse::class);
 ```
 
-The class must implement `ResponseEnvelope`.
+The class must implement `ResponseEnvelopeInterface`.
 
-## `Entity`
+## `EntityInterface`
 
 Entities used by response mapping must implement:
 
@@ -72,7 +72,7 @@ Entities used by response mapping must implement:
 public static function fromArray(array $data, ?Context $context = null): static;
 ```
 
-## `ResponseEnvelope`
+## `ResponseEnvelopeInterface`
 
 Response envelopes used by `Response::as()` must implement:
 
@@ -87,8 +87,8 @@ public static function fromResponse(Response $response, ?Context $context = null
 SDK users do not fetch context from `Response`. The package passes context into entity and envelope hydration methods:
 
 ```php
-Entity::fromArray(array $data, ?Context $context = null)
-ResponseEnvelope::fromResponse(Response $response, ?Context $context = null)
+EntityInterface::fromArray(array $data, ?Context $context = null)
+ResponseEnvelopeInterface::fromResponse(Response $response, ?Context $context = null)
 ```
 
 ### `config(): Config`

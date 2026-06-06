@@ -8,4 +8,4 @@ This reference is split by where methods are available.
 - [Plugins](plugins.md): `PluginBuilder` helpers and internal plugin order.
 - [Hooks](hooks.md): `HookBuilder`, request hooks, response hooks, and hook contexts.
 - [Resources](resources.md): resource modifiers and protected request helpers.
-- [Responses](responses.md): `Response`, `Entity`, `ResponseEnvelope`, and `Context`.
+- [Responses](responses.md): `Response`, `EntityInterface`, `ResponseEnvelopeInterface`, and `Context`.

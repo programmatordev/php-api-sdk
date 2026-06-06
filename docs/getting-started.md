@@ -46,13 +46,13 @@ $user = $api->users()->find(1);
 
 ## Create An Entity
 
-Entities are typed response objects. Classes used with `Response::entity()` and `Response::collection()` must implement `Entity`.
+Entities are typed response objects. Classes used with `Response::entity()` and `Response::collection()` must implement `EntityInterface`.
 
 ```php
 use ProgrammatorDev\Api\Context;
-use ProgrammatorDev\Api\Entity;
+use ProgrammatorDev\Api\EntityInterface;
 
-final class User implements Entity
+final class User implements EntityInterface
 {
     public function __construct(
         public readonly int $id,
@@ -133,9 +133,9 @@ If an API returns metadata, pagination, or any custom envelope, create a respons
 ```php
 use ProgrammatorDev\Api\Context;
 use ProgrammatorDev\Api\Response;
-use ProgrammatorDev\Api\ResponseEnvelope;
+use ProgrammatorDev\Api\ResponseEnvelopeInterface;
 
-final class UserResponse implements ResponseEnvelope
+final class UserResponse implements ResponseEnvelopeInterface
 {
     public function __construct(
         public readonly User $user,

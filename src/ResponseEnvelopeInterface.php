@@ -2,7 +2,7 @@
 
 namespace ProgrammatorDev\Api;
 
-interface ResponseEnvelope
+interface ResponseEnvelopeInterface
 {
     public static function fromResponse(Response $response, ?Context $context = null): static;
 }

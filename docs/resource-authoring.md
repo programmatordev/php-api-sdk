@@ -137,12 +137,13 @@ return $this
     ->entity(User::class);
 ```
 
-Entities must implement `Entity`:
+Entities must implement `EntityInterface`:
 
 ```php
 use ProgrammatorDev\Api\Context;
+use ProgrammatorDev\Api\EntityInterface;
 
-final class User implements Entity
+final class User implements EntityInterface
 {
     public static function fromArray(array $data, ?Context $context = null): static
     {
@@ -179,7 +180,7 @@ return $this
 The flow is:
 
 ```text
-SDK constructor options -> Api config -> Context -> Entity or ResponseEnvelope
+SDK constructor options -> Api config -> Context -> EntityInterface or ResponseEnvelopeInterface
 ```
 
 Start by accepting SDK options and storing them in config:
@@ -202,13 +203,16 @@ final class ExampleApi extends Api
 
 When a response is mapped, the API creates a context with that config. The same context is passed to:
 
-- `Entity::fromArray(array $data, ?Context $context = null)`
-- `ResponseEnvelope::fromResponse(Response $response, ?Context $context = null)`
+- `EntityInterface::fromArray(array $data, ?Context $context = null)`
+- `ResponseEnvelopeInterface::fromResponse(Response $response, ?Context $context = null)`
 
 Entities can use config values during hydration:
 
 ```php
-final class User implements Entity
+use ProgrammatorDev\Api\Context;
+use ProgrammatorDev\Api\EntityInterface;
+
+final class User implements EntityInterface
 {
     public function __construct(
         private readonly int $id,
@@ -230,7 +234,11 @@ final class User implements Entity
 Response envelopes receive the same context:
 
 ```php
-final class UserResponse implements ResponseEnvelope
+use ProgrammatorDev\Api\Context;
+use ProgrammatorDev\Api\Response;
+use ProgrammatorDev\Api\ResponseEnvelopeInterface;
+
+final class UserResponse implements ResponseEnvelopeInterface
 {
     public function __construct(
         private readonly User $user,
@@ -257,12 +265,14 @@ return $this
     ->as(UserResponse::class);
 ```
 
-Envelope classes must implement `ResponseEnvelope`:
+Envelope classes must implement `ResponseEnvelopeInterface`:
 
 ```php
 use ProgrammatorDev\Api\Context;
+use ProgrammatorDev\Api\Response;
+use ProgrammatorDev\Api\ResponseEnvelopeInterface;
 
-final class UserResponse implements ResponseEnvelope
+final class UserResponse implements ResponseEnvelopeInterface
 {
     public function __construct(
         private readonly User $user,

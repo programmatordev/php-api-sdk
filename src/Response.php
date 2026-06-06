@@ -27,11 +27,11 @@ class Response
     }
 
     /**
-     * @template T of Entity
+     * @template T of EntityInterface
      * @param class-string<T> $class
      * @return T
      */
-    public function entity(string $class, ?string $key = null): Entity
+    public function entity(string $class, ?string $key = null): EntityInterface
     {
         $this->assertEntityClass($class);
 
@@ -45,7 +45,7 @@ class Response
     }
 
     /**
-     * @template T of Entity
+     * @template T of EntityInterface
      * @param class-string<T> $class
      * @return T[]
      */
@@ -61,7 +61,7 @@ class Response
 
         $context = $this->context;
 
-        return array_map(static function (mixed $item) use ($class, $context): Entity {
+        return array_map(static function (mixed $item) use ($class, $context): EntityInterface {
             if (!is_array($item)) {
                 throw new \UnexpectedValueException('Collection item data must be an array.');
             }
@@ -71,11 +71,11 @@ class Response
     }
 
     /**
-     * @template T of ResponseEnvelope
+     * @template T of ResponseEnvelopeInterface
      * @param class-string<T> $class
      * @return T
      */
-    public function as(string $class): ResponseEnvelope
+    public function as(string $class): ResponseEnvelopeInterface
     {
         $this->assertResponseEnvelopeClass($class);
 
@@ -103,11 +103,11 @@ class Response
      */
     private function assertEntityClass(string $class): void
     {
-        if (!is_subclass_of($class, Entity::class)) {
+        if (!is_subclass_of($class, EntityInterface::class)) {
             throw new \InvalidArgumentException(sprintf(
                 'Entity class "%s" must implement %s.',
                 $class,
-                Entity::class
+                EntityInterface::class
             ));
         }
     }
@@ -117,11 +117,11 @@ class Response
      */
     private function assertResponseEnvelopeClass(string $class): void
     {
-        if (!is_subclass_of($class, ResponseEnvelope::class)) {
+        if (!is_subclass_of($class, ResponseEnvelopeInterface::class)) {
             throw new \InvalidArgumentException(sprintf(
                 'Response envelope class "%s" must implement %s.',
                 $class,
-                ResponseEnvelope::class
+                ResponseEnvelopeInterface::class
             ));
         }
     }

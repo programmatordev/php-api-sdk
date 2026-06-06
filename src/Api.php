@@ -2,7 +2,6 @@
 
 namespace ProgrammatorDev\Api;
 
-use JsonException;
 use ProgrammatorDev\Api\Builder\AuthBuilder;
 use ProgrammatorDev\Api\Builder\CacheBuilder;
 use ProgrammatorDev\Api\Builder\ClientBuilder;
@@ -17,8 +16,6 @@ use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Log\LoggerInterface;
-use RuntimeException;
-use Throwable;
 
 class Api
 {
@@ -59,9 +56,9 @@ class Api
 
     /**
      * @throws ClientExceptionInterface
-     * @throws JsonException
-     * @throws RuntimeException
-     * @throws Throwable
+     * @throws \JsonException
+     * @throws \RuntimeException
+     * @throws \Throwable
      */
     public function send(
         string $method,

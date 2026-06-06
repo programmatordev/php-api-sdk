@@ -139,13 +139,13 @@ Responsibilities:
 Custom envelopes should implement:
 
 ```php
-interface ResponseEnvelope
+interface ResponseEnvelopeInterface
 {
     public static function fromResponse(Response $response, ?Context $context = null): static;
 }
 ```
 
-`Response::as()` should require `ResponseEnvelope`.
+`Response::as()` should require `ResponseEnvelopeInterface`.
 
 The wrapper should be named `Response`, not `ApiResponse`. PSR responses are referenced through `ResponseInterface`, so the shorter package name is acceptable and keeps SDK authoring readable.
 
@@ -163,7 +163,7 @@ public function findWithMeta(int $id): UserResponse
 }
 ```
 
-### `Entity`
+### Entity Interface
 
 Required contract for typed response objects used by `Response::entity()` and `Response::collection()`.
 
@@ -181,7 +181,7 @@ Non-goals:
 Proposed contract:
 
 ```php
-interface Entity
+interface EntityInterface
 {
     public static function fromArray(array $data, ?Context $context = null): static;
 }
@@ -335,9 +335,9 @@ The v3 test utilities should focus on helping SDK authors test resources, respon
 - v3 should remove old v2 public low-level methods instead of keeping deprecated aliases.
 - SDK-wide options should be stored in a generic config bag.
 - SDK config should be available through context objects, not by injecting `Api` into entities.
-- `Response::entity()` and `Response::collection()` should require classes that implement `Entity`.
+- `Response::entity()` and `Response::collection()` should require classes that implement `EntityInterface`.
 - `Response::as()` should support API-specific response envelope classes such as item, collection, metadata, and pagination responses.
-- `Response::as()` should require a `ResponseEnvelope` contract with `fromResponse(Response $response, ?Context $context = null)`.
+- `Response::as()` should require a `ResponseEnvelopeInterface` contract with `fromResponse(Response $response, ?Context $context = null)`.
 - `Response::collection()` should return a plain array by default.
 - Do not add a generic collection object in the first phase. A future `collect()` helper can be considered later if arrays become limiting.
 - Symfony EventDispatcher has been replaced with a smaller request/response pipeline.
@@ -382,7 +382,7 @@ The v3 test utilities should focus on helping SDK authors test resources, respon
 - `body(string|StreamInterface)` should not guess `Content-Type`.
 - `responses()->json()` should decode all responses, including error responses.
 - v3 should not throw for HTTP error status codes by default. SDK authors opt into error behavior through `errors()`.
-- Main author-facing classes should stay in the root namespace: `Api`, `Resource`, `Response`, `Entity`, and `ResponseEnvelope`.
+- Main author-facing classes should stay in the root namespace: `Api`, `Resource`, `Response`, `EntityInterface`, and `ResponseEnvelopeInterface`.
 - Internal/supporting classes can live in subnamespaces such as `Request`, `Context`, and `Builder`.
 - Package exception classes can be decided as implementation needs emerge.
 - Tests should use generic fake SDK fixtures, not downstream SDK names or classes.
@@ -477,7 +477,7 @@ Future-phase questions should be answered when that phase starts, not before:
 ## First Implementation Slice
 
 1. Add fake SDK fixtures under tests.
-2. Add `Resource`, `RequestOptions`, `Response`, and `Entity`.
+2. Add `Resource`, `RequestOptions`, `Response`, and `EntityInterface`.
 3. Add protected/fluent resource creation and request execution to `Api`.
 4. Prove one simple endpoint flow with a mock PSR client:
 
