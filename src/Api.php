@@ -94,6 +94,13 @@ abstract class Api
         return $apiResponse;
     }
 
+    public function setup(): ApiSetup
+    {
+        return new ApiSetup(
+            fn(string $method, array $arguments): mixed => $this->{$method}(...$arguments)
+        );
+    }
+
     /**
      * @template T of Resource
      * @param class-string<T> $class
@@ -154,31 +161,31 @@ abstract class Api
         return $this->authBuilder;
     }
 
-    public function hooks(): HookBuilder
+    protected function hooks(): HookBuilder
     {
         return $this->hookBuilder;
     }
 
-    public function plugins(): PluginBuilder
+    protected function plugins(): PluginBuilder
     {
         return $this->pluginBuilder;
     }
 
-    public function cache(CacheItemPoolInterface $pool): CacheBuilder
+    protected function cache(CacheItemPoolInterface $pool): CacheBuilder
     {
         $this->cacheBuilder = new CacheBuilder($pool);
 
         return $this->cacheBuilder;
     }
 
-    public function client(ClientInterface $client): ClientBuilder
+    protected function client(ClientInterface $client): ClientBuilder
     {
         $this->clientBuilder->client($client);
 
         return $this->clientBuilder;
     }
 
-    public function logger(LoggerInterface $logger): LoggerBuilder
+    protected function logger(LoggerInterface $logger): LoggerBuilder
     {
         $this->loggerBuilder = new LoggerBuilder($logger);
 

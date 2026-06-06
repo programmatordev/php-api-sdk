@@ -16,46 +16,41 @@ use Psr\Http\Message\RequestInterface;
 
 class AuthBuilder
 {
-    /** @var Authentication[] */
-    private array $authentications = [];
+    private ?Authentication $authentication = null;
 
     public function bearer(string $token): self
     {
-        return $this->chain(new Bearer($token));
+        return $this->use(new Bearer($token));
     }
 
     public function basic(string $username, string $password): self
     {
-        return $this->chain(new BasicAuth($username, $password));
+        return $this->use(new BasicAuth($username, $password));
     }
 
     public function header(string $name, string|array $value): self
     {
-        return $this->chain(new Header($name, $value));
+        return $this->use(new Header($name, $value));
     }
 
     public function query(string $name, mixed $value): self
     {
-        return $this->chain(new QueryParam([$name => $value]));
+        return $this->use(new QueryParam([$name => $value]));
     }
 
     public function wsse(string $username, string $password, string $hashAlgorithm = 'sha1'): self
     {
-        return $this->chain(new Wsse($username, $password, $hashAlgorithm));
+        return $this->use(new Wsse($username, $password, $hashAlgorithm));
     }
 
     public function conditional(RequestMatcher $matcher, Authentication $authentication): self
     {
-        return $this->chain(new RequestConditional($matcher, $authentication));
+        return $this->use(new RequestConditional($matcher, $authentication));
     }
 
     public function chain(Authentication ...$authentications): self
     {
-        foreach ($authentications as $authentication) {
-            $this->authentications[] = $authentication;
-        }
-
-        return $this;
+        return $this->use(new Chain($authentications));
     }
 
     /**
@@ -63,21 +58,18 @@ class AuthBuilder
      */
     public function custom(callable $callback): self
     {
-        $this->authentications[] = new CallbackAuthentication($callback);
+        return $this->use(new CallbackAuthentication($callback));
+    }
+
+    public function use(Authentication $authentication): self
+    {
+        $this->authentication = $authentication;
 
         return $this;
     }
 
     public function getAuthentication(): ?Authentication
     {
-        if ($this->authentications === []) {
-            return null;
-        }
-
-        if (count($this->authentications) === 1) {
-            return $this->authentications[0];
-        }
-
-        return new Chain($this->authentications);
+        return $this->authentication;
     }
 }

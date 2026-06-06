@@ -108,6 +108,22 @@ class AuthenticationTest extends AbstractTestCase
         $this->assertSame('chain', $client->getLastRequest()->getHeaderLine('X-Chain-Auth'));
     }
 
+    public function testConfiguredAuthenticationReplacesPreviousAuthentication(): void
+    {
+        $client = $this->client();
+
+        (new JsonApi($client))
+            ->useBearerAuth('secret')
+            ->useQueryAuth('appid', 'key')
+            ->raw()
+            ->fetch();
+
+        parse_str($client->getLastRequest()->getUri()->getQuery(), $query);
+
+        $this->assertSame('', $client->getLastRequest()->getHeaderLine('Authorization'));
+        $this->assertSame('key', $query['appid']);
+    }
+
     public function testCustomAuthenticationCallbackCanBeUsed(): void
     {
         $client = $this->client();

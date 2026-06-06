@@ -17,7 +17,7 @@ $this->plugins()->add($plugin, priority: 16);
 SDK users can also add plugins to a concrete API instance:
 
 ```php
-$api->plugins()->add($retryPlugin, priority: 20);
+$api->setup()->plugins()->add($retryPlugin, priority: 20);
 ```
 
 Higher priority plugins run earlier. Plugins with the same priority are preserved in insertion order.

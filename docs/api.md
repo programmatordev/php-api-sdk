@@ -35,6 +35,18 @@ $api->config(['timezone' => 'UTC']);
 $api->config()->get('timezone');
 ```
 
+## `setup(): ApiSetup`
+
+Public access to SDK setup and extension points without adding every setup method to the concrete SDK surface.
+
+```php
+$api->setup()->plugins()->add($plugin);
+$api->setup()->client($client);
+$api->setup()->auth()->bearer($token);
+```
+
+SDK authors can call the same setup methods directly from subclasses.
+
 ## `resource(string $class): Resource`
 
 Protected helper for creating resource instances from an API class.
@@ -115,11 +127,13 @@ See [Authentication](authentication.md) for helper methods, HTTPlug authenticati
 
 ## `hooks(): HookBuilder`
 
-Public access to request and response hooks.
+Protected access to request and response hooks. SDK users can access hooks through `setup()`.
 
 ```php
 $this->hooks()->beforeRequest($hook);
 $this->hooks()->afterResponse($hook);
+
+$api->setup()->hooks()->beforeRequest($hook);
 ```
 
 Hooks are SDK-author extension points. They run around the raw HTTP request and response, before response decoding and error handling.
@@ -128,10 +142,12 @@ See [Hooks](hooks.md) for hook context objects, return values, and priority beha
 
 ## `plugins(): PluginBuilder`
 
-Public access to HTTPlug plugin configuration.
+Protected access to HTTPlug plugin configuration. SDK users can access plugins through `setup()`.
 
 ```php
-$api->plugins()->add($plugin, priority: 16);
+$this->plugins()->add($plugin, priority: 16);
+
+$api->setup()->plugins()->add($plugin, priority: 16);
 ```
 
 Higher priority plugins run earlier. Same-priority plugins are preserved in insertion order.
@@ -140,23 +156,27 @@ See [Plugins](plugins.md) for internal plugin order and priority guidance.
 
 ## `cache(CacheItemPoolInterface $pool): CacheBuilder`
 
-Public access to PSR-6 HTTP response cache configuration.
+Protected access to PSR-6 HTTP response cache configuration. SDK users can access cache through `setup()`.
 
 ```php
-$api
+$this
     ->cache($pool)
     ->defaultTtl(3600)
     ->methods(['GET', 'HEAD']);
+
+$api->setup()->cache($pool)->defaultTtl(3600);
 ```
 
 See [Cache](cache.md) for cache options and plugin order.
 
 ## `client(ClientInterface $client): ClientBuilder`
 
-Public access to PSR-18 client configuration.
+Protected access to PSR-18 client configuration. SDK users can access client configuration through `setup()`.
 
 ```php
-$api->client($client);
+$this->client($client);
+
+$api->setup()->client($client);
 ```
 
 SDK authors can configure PSR-17 factories on the returned builder:
@@ -172,12 +192,14 @@ See [HTTP Client](http-client.md) for client and factory configuration.
 
 ## `logger(LoggerInterface $logger): LoggerBuilder`
 
-Public access to PSR-3 logger configuration.
+Protected access to PSR-3 logger configuration. SDK users can access logging through `setup()`.
 
 ```php
-$api
+$this
     ->logger($logger)
     ->formatter($formatter);
+
+$api->setup()->logger($logger);
 ```
 
 See [Logging](logging.md) for logger formatting and cache logging.

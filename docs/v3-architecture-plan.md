@@ -107,7 +107,7 @@ Builder-backed features can follow the same shape when endpoint-specific behavio
 API-level builders configure global defaults:
 
 ```php
-$api->cache($pool)->defaultTtl(3600);
+$api->setup()->cache($pool)->defaultTtl(3600);
 ```
 
 Request-local overrides should live on the pending request/resource flow instead of mutating the API-level builder:

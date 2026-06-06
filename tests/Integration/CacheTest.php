@@ -20,7 +20,7 @@ class CacheTest extends AbstractTestCase
 
         $api = new JsonApi($client);
         $api
-            ->cache(new ArrayAdapter())
+            ->setup()->cache(new ArrayAdapter())
             ->defaultTtl(60);
 
         $first = $api->raw()->fetch();

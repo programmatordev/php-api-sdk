@@ -29,15 +29,7 @@ $this->auth()->wsse($username, $password);
 $this->auth()->wsse($username, $password, hashAlgorithm: 'sha512');
 ```
 
-Multiple calls are chained in order:
-
-```php
-$this->auth()
-    ->bearer($token)
-    ->query('appid', $apiKey);
-```
-
-Internally, multiple authentication rules become an [HTTPlug](https://httplug.io/) authentication chain.
+Calling another helper replaces the previously configured authentication. Use `chain()` when an SDK needs multiple authentication rules.
 
 ## Query Authentication
 
@@ -55,7 +47,7 @@ $this->defaultQueries(['units' => 'metric']);
 
 ## HTTPlug Authentication Objects
 
-Use `chain()` when an SDK needs to reuse specific [HTTPlug authentication implementations](https://docs.php-http.org/en/latest/message/authentication.html):
+Use `chain()` when an SDK needs to compose specific [HTTPlug authentication implementations](https://docs.php-http.org/en/latest/message/authentication.html):
 
 ```php
 use Http\Message\Authentication\Bearer;

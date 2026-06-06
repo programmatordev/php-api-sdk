@@ -62,4 +62,27 @@ class ApiTest extends AbstractTestCase
 
         $this->assertSame('application/json', $client->getLastRequest()->getHeaderLine('Accept'));
     }
+
+    public function testApiSetupCanConfigureRequestBehavior(): void
+    {
+        $client = new Client();
+        $client->addResponse(new Response(body: '{"id":1,"name":"John"}'));
+
+        $api = new class extends Api {};
+        $setup = $api->setup();
+
+        $setup->client($client);
+        $setup
+            ->baseUrl('https://api.example.com')
+            ->defaultQuery('locale', 'en')
+            ->defaultHeader('Accept', 'application/json');
+
+        $setup->responses()->json();
+
+        $response = $api->send(Method::GET, '/users/{id}', ['id' => 1]);
+
+        $this->assertSame(['id' => 1, 'name' => 'John'], $response->data());
+        $this->assertSame('https://api.example.com/users/1?locale=en', (string) $client->getLastRequest()->getUri());
+        $this->assertSame('application/json', $client->getLastRequest()->getHeaderLine('Accept'));
+    }
 }

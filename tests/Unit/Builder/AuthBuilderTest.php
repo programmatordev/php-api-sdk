@@ -27,29 +27,46 @@ class AuthBuilderTest extends AbstractTestCase
         $this->assertSame('Bearer token', $request->getHeaderLine('Authorization'));
     }
 
-    public function testMultipleAuthenticationsAreReturnedAsChain(): void
+    public function testAuthenticationHelpersReplacePreviousAuthentication(): void
     {
         $authentication = (new AuthBuilder())
             ->bearer('token')
             ->query('appid', 'key')
             ->getAuthentication();
 
+        $request = $authentication->authenticate(new Request('GET', 'https://api.example.com/weather'));
+
+        $this->assertSame('', $request->getHeaderLine('Authorization'));
+        $this->assertSame('appid=key', $request->getUri()->getQuery());
+    }
+
+    public function testExplicitChainComposesHttplugAuthenticationObjects(): void
+    {
+        $authentication = (new AuthBuilder())
+            ->chain(
+                new Header('X-Api-Key', 'secret'),
+                new Header('X-Second-Auth', 'second')
+            )
+            ->getAuthentication();
+
         $this->assertInstanceOf(Chain::class, $authentication);
 
         $request = $authentication->authenticate(new Request('GET', 'https://api.example.com/weather'));
 
-        $this->assertSame('Bearer token', $request->getHeaderLine('Authorization'));
-        $this->assertSame('appid=key', $request->getUri()->getQuery());
+        $this->assertSame('secret', $request->getHeaderLine('X-Api-Key'));
+        $this->assertSame('second', $request->getHeaderLine('X-Second-Auth'));
     }
 
-    public function testExplicitChainAcceptsHttplugAuthenticationObjects(): void
+    public function testUseReplacesAuthenticationWithHttplugAuthenticationObject(): void
     {
         $authentication = (new AuthBuilder())
-            ->chain(new Header('X-Api-Key', 'secret'))
+            ->bearer('token')
+            ->use(new Header('X-Api-Key', 'secret'))
             ->getAuthentication();
 
         $request = $authentication->authenticate(new Request('GET', 'https://api.example.com/weather'));
 
+        $this->assertSame('', $request->getHeaderLine('Authorization'));
         $this->assertSame('secret', $request->getHeaderLine('X-Api-Key'));
     }
 

@@ -31,7 +31,7 @@ class PluginTest extends AbstractTestCase
         $client = $this->client(responses: 1);
         $api = new JsonApi($client);
 
-        $api->plugins()->add($this->headerPlugin('user'), priority: 20);
+        $api->setup()->plugins()->add($this->headerPlugin('user'), priority: 20);
         $api->raw()->fetch();
 
         $this->assertSame(['user'], $client->getLastRequest()->getHeader('X-Plugin-Order'));
