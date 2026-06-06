@@ -2,7 +2,6 @@
 
 namespace ProgrammatorDev\Api\Test\Integration;
 
-use Http\Mock\Client;
 use Nyholm\Psr7\Response;
 use ProgrammatorDev\Api\Test\Fixture\JsonApi;
 use ProgrammatorDev\Api\Test\Support\AbstractTestCase;
@@ -12,8 +11,7 @@ class CacheTest extends AbstractTestCase
 {
     public function testSdkUserCanConfigureCache(): void
     {
-        $client = new Client();
-        $client->addResponse(new Response(
+        $client = $this->mockClient(new Response(
             headers: ['Cache-Control' => 'max-age=60'],
             body: '{"id":1}'
         ));

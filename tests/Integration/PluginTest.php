@@ -3,18 +3,17 @@
 namespace ProgrammatorDev\Api\Test\Integration;
 
 use Http\Client\Common\Plugin;
-use Http\Mock\Client;
-use Http\Promise\Promise;
 use Nyholm\Psr7\Response;
+use ProgrammatorDev\Api\Test\Fixture\AuthStatePlugin;
+use ProgrammatorDev\Api\Test\Fixture\HeaderPlugin;
 use ProgrammatorDev\Api\Test\Fixture\JsonApi;
 use ProgrammatorDev\Api\Test\Support\AbstractTestCase;
-use Psr\Http\Message\RequestInterface;
 
 class PluginTest extends AbstractTestCase
 {
     public function testConfiguredPluginsAreAppliedByPriorityOrder(): void
     {
-        $client = $this->client(responses: 1);
+        $client = $this->mockClient();
 
         (new JsonApi($client))
             ->usePlugin($this->headerPlugin('low'), priority: 8)
@@ -28,7 +27,7 @@ class PluginTest extends AbstractTestCase
 
     public function testSdkUserCanConfigurePlugins(): void
     {
-        $client = $this->client(responses: 1);
+        $client = $this->mockClient();
         $api = new JsonApi($client);
 
         $api->setup()->plugins()->add($this->headerPlugin('user'), priority: 20);
@@ -39,7 +38,7 @@ class PluginTest extends AbstractTestCase
 
     public function testConfiguredPluginsWithSamePriorityAreAppliedInInsertionOrder(): void
     {
-        $client = $this->client(responses: 1);
+        $client = $this->mockClient();
 
         (new JsonApi($client))
             ->usePlugin($this->headerPlugin('first'), priority: 16)
@@ -52,7 +51,7 @@ class PluginTest extends AbstractTestCase
 
     public function testPluginPriorityCanTargetInternalAuthOrder(): void
     {
-        $client = $this->client(responses: 1);
+        $client = $this->mockClient();
 
         (new JsonApi($client))
             ->useBearerAuth('secret')
@@ -69,7 +68,10 @@ class PluginTest extends AbstractTestCase
 
     public function testConfiguredPluginsAreNotDuplicatedAcrossRequests(): void
     {
-        $client = $this->client(responses: 2);
+        $client = $this->mockClient(
+            new Response(body: '{}'),
+            new Response(body: '{}')
+        );
         $api = (new JsonApi($client))->usePlugin($this->headerPlugin('once'), priority: 16);
 
         $api->raw()->fetch();
@@ -81,38 +83,11 @@ class PluginTest extends AbstractTestCase
 
     private function headerPlugin(string $value): Plugin
     {
-        return new class($value) implements Plugin {
-            public function __construct(private readonly string $value) {}
-
-            public function handleRequest(RequestInterface $request, callable $next, callable $first): Promise
-            {
-                return $next($request->withAddedHeader('X-Plugin-Order', $this->value));
-            }
-        };
+        return new HeaderPlugin('X-Plugin-Order', $value, append: true);
     }
 
     private function authStatePlugin(string $label): Plugin
     {
-        return new class($label) implements Plugin {
-            public function __construct(private readonly string $label) {}
-
-            public function handleRequest(RequestInterface $request, callable $next, callable $first): Promise
-            {
-                $state = $request->hasHeader('Authorization') ? 'present' : 'missing';
-
-                return $next($request->withAddedHeader('X-Auth-State', sprintf('%s:%s', $this->label, $state)));
-            }
-        };
-    }
-
-    private function client(int $responses): Client
-    {
-        $client = new Client();
-
-        for ($i = 0; $i < $responses; $i++) {
-            $client->addResponse(new Response(body: '{}'));
-        }
-
-        return $client;
+        return new AuthStatePlugin($label);
     }
 }

@@ -2,7 +2,6 @@
 
 namespace ProgrammatorDev\Api\Test\Integration;
 
-use Http\Mock\Client;
 use Nyholm\Psr7\Response;
 use ProgrammatorDev\Api\Test\Fixture\InvalidApiKeyException;
 use ProgrammatorDev\Api\Test\Fixture\JsonApi;
@@ -13,8 +12,7 @@ class ErrorHandlingTest extends AbstractTestCase
 {
     public function testHttpErrorStatusDoesNotThrowByDefault(): void
     {
-        $client = new Client();
-        $client->addResponse(new Response(status: 404, body: '{"message":"Missing user"}'));
+        $client = $this->mockClient(new Response(status: 404, body: '{"message":"Missing user"}'));
 
         $response = (new JsonApi($client))->raw()->fetch();
 
@@ -24,8 +22,7 @@ class ErrorHandlingTest extends AbstractTestCase
 
     public function testConfiguredStatusErrorThrows(): void
     {
-        $client = new Client();
-        $client->addResponse(new Response(status: 404, body: '{"message":"Missing user"}'));
+        $client = $this->mockClient(new Response(status: 404, body: '{"message":"Missing user"}'));
 
         $this->expectException(NotFoundException::class);
         $this->expectExceptionMessage('Missing user');
@@ -38,8 +35,7 @@ class ErrorHandlingTest extends AbstractTestCase
 
     public function testConfiguredStatusErrorCanMapDirectlyToThrowableClass(): void
     {
-        $client = new Client();
-        $client->addResponse(new Response(status: 404, body: '{"message":"Missing user"}'));
+        $client = $this->mockClient(new Response(status: 404, body: '{"message":"Missing user"}'));
 
         $this->expectException(NotFoundException::class);
 
@@ -51,8 +47,7 @@ class ErrorHandlingTest extends AbstractTestCase
 
     public function testConfiguredStatusErrorCanMapMultipleStatuses(): void
     {
-        $client = new Client();
-        $client->addResponse(new Response(status: 401, body: '{"message":"Invalid API key"}'));
+        $client = $this->mockClient(new Response(status: 401, body: '{"message":"Invalid API key"}'));
 
         $this->expectException(InvalidApiKeyException::class);
 
@@ -64,8 +59,7 @@ class ErrorHandlingTest extends AbstractTestCase
 
     public function testConfiguredCustomErrorHandlerThrowsWhenMatched(): void
     {
-        $client = new Client();
-        $client->addResponse(new Response(status: 401, body: '{"code":"invalid_api_key","message":"Invalid API key"}'));
+        $client = $this->mockClient(new Response(status: 401, body: '{"code":"invalid_api_key","message":"Invalid API key"}'));
 
         $this->expectException(InvalidApiKeyException::class);
         $this->expectExceptionMessage('Invalid API key');
@@ -78,8 +72,7 @@ class ErrorHandlingTest extends AbstractTestCase
 
     public function testConfiguredCustomErrorHandlerDoesNotThrowWhenUnmatched(): void
     {
-        $client = new Client();
-        $client->addResponse(new Response(status: 401, body: '{"code":"rate_limited","message":"Too many requests"}'));
+        $client = $this->mockClient(new Response(status: 401, body: '{"code":"rate_limited","message":"Too many requests"}'));
 
         $response = (new JsonApi($client))
             ->throwInvalidApiKeyErrors()

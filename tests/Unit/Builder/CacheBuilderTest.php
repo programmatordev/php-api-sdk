@@ -8,7 +8,7 @@ use Psr\Cache\CacheItemPoolInterface;
 
 class CacheBuilderTest extends AbstractTestCase
 {
-    public function testDefaults()
+    public function testCacheBuilderUsesDefaults(): void
     {
         $pool = $this->createMock(CacheItemPoolInterface::class);
 
@@ -20,7 +20,7 @@ class CacheBuilderTest extends AbstractTestCase
         $this->assertSame(['max-age'], $cacheBuilder->getResponseCacheDirectives());
     }
 
-    public function testDependencyInjection()
+    public function testCacheBuilderAcceptsConstructorValues(): void
     {
         $pool = $this->createMock(CacheItemPoolInterface::class);
         $defaultTtl = 600;
@@ -29,13 +29,13 @@ class CacheBuilderTest extends AbstractTestCase
 
         $cacheBuilder = new CacheBuilder($pool, $defaultTtl, $methods, $responseCacheDirectives);
 
-        $this->assertInstanceOf(CacheItemPoolInterface::class, $cacheBuilder->getPool());
+        $this->assertSame($pool, $cacheBuilder->getPool());
         $this->assertSame($defaultTtl, $cacheBuilder->getDefaultTtl());
         $this->assertSame($methods, $cacheBuilder->getMethods());
         $this->assertSame($responseCacheDirectives, $cacheBuilder->getResponseCacheDirectives());
     }
 
-    public function testFluentMethods()
+    public function testCacheBuilderCanBeConfiguredFluently(): void
     {
         $pool = $this->createMock(CacheItemPoolInterface::class);
         $defaultTtl = 600;
@@ -48,7 +48,7 @@ class CacheBuilderTest extends AbstractTestCase
             ->methods($methods)
             ->responseCacheDirectives($responseCacheDirectives);
 
-        $this->assertInstanceOf(CacheItemPoolInterface::class, $cacheBuilder->getPool());
+        $this->assertSame($pool, $cacheBuilder->getPool());
         $this->assertSame($defaultTtl, $cacheBuilder->getDefaultTtl());
         $this->assertSame($methods, $cacheBuilder->getMethods());
         $this->assertSame($responseCacheDirectives, $cacheBuilder->getResponseCacheDirectives());

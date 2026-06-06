@@ -2,7 +2,6 @@
 
 namespace ProgrammatorDev\Api\Test\Integration;
 
-use Http\Mock\Client;
 use Nyholm\Psr7\Response;
 use ProgrammatorDev\Api\Context\RequestContext;
 use ProgrammatorDev\Api\Context\ResponseContext;
@@ -14,7 +13,7 @@ class HookTest extends AbstractTestCase
 {
     public function testBeforeRequestHookCanReplaceRequest(): void
     {
-        $client = $this->client();
+        $client = $this->mockClient(new Response(body: '{"ok":false}'));
 
         (new JsonApi($client))
             ->beforeRequest(fn (RequestContext $context) => $context->request()->withHeader('X-Hook', 'before'))
@@ -26,7 +25,7 @@ class HookTest extends AbstractTestCase
 
     public function testAfterResponseHookCanReplaceResponse(): void
     {
-        $client = $this->client();
+        $client = $this->mockClient(new Response(body: '{"ok":false}'));
 
         $response = (new JsonApi($client))
             ->afterResponse(fn (ResponseContext $context) => new Response(status: 202, body: '{"ok":true}'))
@@ -39,7 +38,7 @@ class HookTest extends AbstractTestCase
 
     public function testHookReturningNullLeavesObjectUnchanged(): void
     {
-        $client = $this->client();
+        $client = $this->mockClient(new Response(body: '{"ok":false}'));
 
         $response = (new JsonApi($client))
             ->beforeRequest(fn (RequestContext $context) => null)
@@ -54,7 +53,7 @@ class HookTest extends AbstractTestCase
 
     public function testHooksRunByPriorityAndInsertionOrder(): void
     {
-        $client = $this->client();
+        $client = $this->mockClient(new Response(body: '{"ok":false}'));
 
         (new JsonApi($client))
             ->beforeRequest(fn (RequestContext $context) => $context->request()->withAddedHeader('X-Hook-Order', 'low'), priority: 10)
@@ -68,7 +67,7 @@ class HookTest extends AbstractTestCase
 
     public function testHooksCanReadSdkConfig(): void
     {
-        $client = $this->client();
+        $client = $this->mockClient(new Response(body: '{"ok":false}'));
 
         $api = new JsonApi($client);
         $api->config(['tenant' => 'acme']);
@@ -86,7 +85,7 @@ class HookTest extends AbstractTestCase
         $this->expectException(UnexpectedValueException::class);
         $this->expectExceptionMessage('Before request hooks must return a RequestInterface instance or null.');
 
-        (new JsonApi($this->client()))
+        (new JsonApi($this->mockClient(new Response(body: '{"ok":false}'))))
             ->beforeRequest(fn (RequestContext $context) => 'invalid')
             ->raw()
             ->fetch();
@@ -97,17 +96,9 @@ class HookTest extends AbstractTestCase
         $this->expectException(UnexpectedValueException::class);
         $this->expectExceptionMessage('After response hooks must return a ResponseInterface instance or null.');
 
-        (new JsonApi($this->client()))
+        (new JsonApi($this->mockClient(new Response(body: '{"ok":false}'))))
             ->afterResponse(fn (ResponseContext $context) => 'invalid')
             ->raw()
             ->fetch();
-    }
-
-    private function client(): Client
-    {
-        $client = new Client();
-        $client->addResponse(new Response(body: '{"ok":false}'));
-
-        return $client;
     }
 }

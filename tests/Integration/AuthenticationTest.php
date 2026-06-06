@@ -2,8 +2,6 @@
 
 namespace ProgrammatorDev\Api\Test\Integration;
 
-use Http\Mock\Client;
-use Nyholm\Psr7\Response;
 use ProgrammatorDev\Api\Test\Fixture\JsonApi;
 use ProgrammatorDev\Api\Test\Support\AbstractTestCase;
 
@@ -11,7 +9,7 @@ class AuthenticationTest extends AbstractTestCase
 {
     public function testBearerAuthenticationAddsAuthorizationHeader(): void
     {
-        $client = $this->client();
+        $client = $this->mockClient();
 
         (new JsonApi($client))
             ->useBearerAuth('secret')
@@ -23,7 +21,7 @@ class AuthenticationTest extends AbstractTestCase
 
     public function testBasicAuthenticationAddsAuthorizationHeader(): void
     {
-        $client = $this->client();
+        $client = $this->mockClient();
 
         (new JsonApi($client))
             ->useBasicAuth('user', 'pass')
@@ -35,7 +33,7 @@ class AuthenticationTest extends AbstractTestCase
 
     public function testHeaderAuthenticationAddsConfiguredHeader(): void
     {
-        $client = $this->client();
+        $client = $this->mockClient();
 
         (new JsonApi($client))
             ->useHeaderAuth('X-Api-Key', 'secret')
@@ -47,21 +45,21 @@ class AuthenticationTest extends AbstractTestCase
 
     public function testQueryAuthenticationAddsConfiguredQueryParameter(): void
     {
-        $client = $this->client();
+        $client = $this->mockClient();
 
         (new JsonApi($client))
             ->useQueryAuth('appid', 'secret')
             ->raw()
             ->fetch();
 
-        parse_str($client->getLastRequest()->getUri()->getQuery(), $query);
+        $query = $this->queryFromLastRequest($client);
 
         $this->assertSame('secret', $query['appid']);
     }
 
     public function testWsseAuthenticationAddsWsseHeaders(): void
     {
-        $client = $this->client();
+        $client = $this->mockClient();
 
         (new JsonApi($client))
             ->useWsseAuth('user', 'pass')
@@ -74,7 +72,7 @@ class AuthenticationTest extends AbstractTestCase
 
     public function testConditionalAuthenticationAddsAuthenticationWhenMatched(): void
     {
-        $client = $this->client();
+        $client = $this->mockClient();
 
         (new JsonApi($client))
             ->useConditionalAuth()
@@ -86,7 +84,7 @@ class AuthenticationTest extends AbstractTestCase
 
     public function testConditionalAuthenticationDoesNotAddAuthenticationWhenUnmatched(): void
     {
-        $client = $this->client();
+        $client = $this->mockClient();
 
         (new JsonApi($client))
             ->useConditionalAuth()
@@ -98,7 +96,7 @@ class AuthenticationTest extends AbstractTestCase
 
     public function testChainedAuthenticationCanBeUsed(): void
     {
-        $client = $this->client();
+        $client = $this->mockClient();
 
         (new JsonApi($client))
             ->useChainedAuth('X-Chain-Auth', 'chain')
@@ -110,7 +108,7 @@ class AuthenticationTest extends AbstractTestCase
 
     public function testConfiguredAuthenticationReplacesPreviousAuthentication(): void
     {
-        $client = $this->client();
+        $client = $this->mockClient();
 
         (new JsonApi($client))
             ->useBearerAuth('secret')
@@ -118,7 +116,7 @@ class AuthenticationTest extends AbstractTestCase
             ->raw()
             ->fetch();
 
-        parse_str($client->getLastRequest()->getUri()->getQuery(), $query);
+        $query = $this->queryFromLastRequest($client);
 
         $this->assertSame('', $client->getLastRequest()->getHeaderLine('Authorization'));
         $this->assertSame('key', $query['appid']);
@@ -126,7 +124,7 @@ class AuthenticationTest extends AbstractTestCase
 
     public function testCustomAuthenticationCallbackCanBeUsed(): void
     {
-        $client = $this->client();
+        $client = $this->mockClient();
 
         (new JsonApi($client))
             ->useCustomAuth('X-Custom-Auth', 'custom')
@@ -134,13 +132,5 @@ class AuthenticationTest extends AbstractTestCase
             ->fetch();
 
         $this->assertSame('custom', $client->getLastRequest()->getHeaderLine('X-Custom-Auth'));
-    }
-
-    private function client(): Client
-    {
-        $client = new Client();
-        $client->addResponse(new Response(body: '{}'));
-
-        return $client;
     }
 }

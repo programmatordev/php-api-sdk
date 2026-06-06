@@ -2,15 +2,13 @@
 
 namespace ProgrammatorDev\Api\Test\Integration;
 
-use Http\Client\Common\Plugin;
-use Http\Mock\Client;
-use Http\Promise\Promise;
 use Nyholm\Psr7\Response;
 use ProgrammatorDev\Api\Api;
 use ProgrammatorDev\Api\Context\RequestContext;
 use ProgrammatorDev\Api\Context\ResponseContext;
 use ProgrammatorDev\Api\Http\Method;
 use ProgrammatorDev\Api\Test\Fixture\FakeApi;
+use ProgrammatorDev\Api\Test\Fixture\HeaderPlugin;
 use ProgrammatorDev\Api\Test\Support\AbstractTestCase;
 use Psr\Http\Message\RequestInterface;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
@@ -36,8 +34,7 @@ class ApiTest extends AbstractTestCase
 
     public function testApiCanSendPublicRequest(): void
     {
-        $client = new Client();
-        $client->addResponse(new Response(body: '{"id":1,"name":"John"}'));
+        $client = $this->mockClient(new Response(body: '{"id":1,"name":"John"}'));
 
         $response = (new FakeApi($client))->send(Method::GET, '/users/{id}', ['id' => 1]);
 
@@ -47,8 +44,7 @@ class ApiTest extends AbstractTestCase
 
     public function testApiCanSendRequestWithDefaultQuery(): void
     {
-        $client = new Client();
-        $client->addResponse(new Response(body: '{"id":1,"name":"John"}'));
+        $client = $this->mockClient(new Response(body: '{"id":1,"name":"John"}'));
 
         (new FakeApi($client))
             ->withDefaultQuery('units', 'metric')
@@ -59,8 +55,7 @@ class ApiTest extends AbstractTestCase
 
     public function testApiCanSendRequestWithDefaultHeader(): void
     {
-        $client = new Client();
-        $client->addResponse(new Response(body: '{"id":1,"name":"John"}'));
+        $client = $this->mockClient(new Response(body: '{"id":1,"name":"John"}'));
 
         (new FakeApi($client))
             ->withDefaultHeader('Accept', 'application/json')
@@ -71,8 +66,7 @@ class ApiTest extends AbstractTestCase
 
     public function testApiSetupCanConfigureRequestBehavior(): void
     {
-        $client = new Client();
-        $client->addResponse(new Response(body: '{"id":1,"name":"John"}'));
+        $client = $this->mockClient(new Response(body: '{"id":1,"name":"John"}'));
 
         $api = new class extends Api {};
         $setup = $api->setup();
@@ -94,8 +88,7 @@ class ApiTest extends AbstractTestCase
 
     public function testApiSendUsesConfiguredPipeline(): void
     {
-        $client = new Client();
-        $client->addResponse(new Response(body: '{"ok":false}'));
+        $client = $this->mockClient(new Response(body: '{"ok":false}'));
 
         $api = new class extends Api {};
         $setup = $api->setup();
@@ -104,7 +97,7 @@ class ApiTest extends AbstractTestCase
         $setup->baseUrl('https://api.example.com');
 
         $setup->auth()->header('X-Auth', 'secret');
-        $setup->plugins()->add($this->headerPlugin('X-Plugin', 'plugin'));
+        $setup->plugins()->add(new HeaderPlugin('X-Plugin', 'plugin'));
         $setup->hooks()->beforeRequest(
             fn (RequestContext $context): RequestInterface => $context->request()->withHeader('X-Before-Hook', 'before')
         );
@@ -123,8 +116,7 @@ class ApiTest extends AbstractTestCase
 
     public function testApiSendUsesConfiguredErrors(): void
     {
-        $client = new Client();
-        $client->addResponse(new Response(status: 404, body: '{"message":"Missing"}'));
+        $client = $this->mockClient(new Response(status: 404, body: '{"message":"Missing"}'));
 
         $api = new class extends Api {};
         $setup = $api->setup();
@@ -143,8 +135,7 @@ class ApiTest extends AbstractTestCase
 
     public function testApiSendUsesConfiguredCache(): void
     {
-        $client = new Client();
-        $client->addResponse(new Response(
+        $client = $this->mockClient(new Response(
             headers: ['Cache-Control' => 'max-age=60'],
             body: '{"id":1}'
         ));
@@ -164,20 +155,5 @@ class ApiTest extends AbstractTestCase
         $this->assertSame(['id' => 1], $first->data());
         $this->assertSame(['id' => 1], $second->data());
         $this->assertCount(1, $client->getRequests());
-    }
-
-    private function headerPlugin(string $name, string $value): Plugin
-    {
-        return new class($name, $value) implements Plugin {
-            public function __construct(
-                private readonly string $name,
-                private readonly string $value
-            ) {}
-
-            public function handleRequest(RequestInterface $request, callable $next, callable $first): Promise
-            {
-                return $next($request->withHeader($this->name, $this->value));
-            }
-        };
     }
 }

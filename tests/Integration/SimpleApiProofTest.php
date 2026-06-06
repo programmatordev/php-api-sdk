@@ -2,7 +2,6 @@
 
 namespace ProgrammatorDev\Api\Test\Integration;
 
-use Http\Mock\Client;
 use Nyholm\Psr7\Response;
 use ProgrammatorDev\Api\Test\Fixture\Simple\SimpleApi;
 use ProgrammatorDev\Api\Test\Fixture\Simple\SimpleEntity;
@@ -18,8 +17,7 @@ class SimpleApiProofTest extends AbstractTestCase
 
     public function testItemCanBeMappedToEntity(): void
     {
-        $client = new Client();
-        $client->addResponse(new Response(body: self::ITEM_RESPONSE));
+        $client = $this->mockClient(new Response(body: self::ITEM_RESPONSE));
 
         $api = new SimpleApi('test-key', ['locale' => 'pt', 'version' => 'v2']);
         $api->setup()->client($client);
@@ -32,7 +30,7 @@ class SimpleApiProofTest extends AbstractTestCase
         $this->assertSame('pt', $item->getLocale());
         $this->assertSame('v2', $item->getVersion());
 
-        parse_str($client->getLastRequest()->getUri()->getQuery(), $query);
+        $query = $this->queryFromLastRequest($client);
 
         $this->assertSame('/items/1', $client->getLastRequest()->getUri()->getPath());
         $this->assertSame('test-key', $query['api_key']);
@@ -42,8 +40,7 @@ class SimpleApiProofTest extends AbstractTestCase
 
     public function testItemCanBeMappedToEnvelope(): void
     {
-        $client = new Client();
-        $client->addResponse(new Response(status: 202, body: self::ITEM_RESPONSE));
+        $client = $this->mockClient(new Response(status: 202, body: self::ITEM_RESPONSE));
 
         $api = new SimpleApi('test-key');
         $api->setup()->client($client);
@@ -60,8 +57,7 @@ class SimpleApiProofTest extends AbstractTestCase
 
     public function testItemsCanBeMappedToCollection(): void
     {
-        $client = new Client();
-        $client->addResponse(new Response(body: '{
+        $client = $this->mockClient(new Response(body: '{
             "data": [
                 {"id": 1, "name": "First item"},
                 {"id": 2, "name": "Second item"}
@@ -78,7 +74,7 @@ class SimpleApiProofTest extends AbstractTestCase
         $this->assertSame('Second item', $items[1]->getName());
         $this->assertSame('pt', $items[0]->getLocale());
 
-        parse_str($client->getLastRequest()->getUri()->getQuery(), $query);
+        $query = $this->queryFromLastRequest($client);
 
         $this->assertSame('/items', $client->getLastRequest()->getUri()->getPath());
         $this->assertSame('test-key', $query['api_key']);

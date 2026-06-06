@@ -10,7 +10,7 @@ use Psr\Http\Message\StreamFactoryInterface;
 
 class ClientBuilderTest extends AbstractTestCase
 {
-    public function testDefaults()
+    public function testClientBuilderUsesDiscoveredDefaults(): void
     {
         $clientBuilder = new ClientBuilder();
 
@@ -19,7 +19,7 @@ class ClientBuilderTest extends AbstractTestCase
         $this->assertInstanceOf(StreamFactoryInterface::class, $clientBuilder->getStreamFactory());
     }
 
-    public function testDependencyInjection()
+    public function testClientBuilderAcceptsConstructorValues(): void
     {
         $client = $this->createMock(ClientInterface::class);
         $requestFactory = $this->createMock(RequestFactoryInterface::class);
@@ -28,11 +28,11 @@ class ClientBuilderTest extends AbstractTestCase
         $clientBuilder = new ClientBuilder($client, $requestFactory, $streamFactory);
 
         $this->assertInstanceOf(ClientInterface::class, $clientBuilder->getClient());
-        $this->assertInstanceOf(RequestFactoryInterface::class, $clientBuilder->getRequestFactory());
-        $this->assertInstanceOf(StreamFactoryInterface::class, $clientBuilder->getStreamFactory());
+        $this->assertSame($requestFactory, $clientBuilder->getRequestFactory());
+        $this->assertSame($streamFactory, $clientBuilder->getStreamFactory());
     }
 
-    public function testFluentMethods()
+    public function testClientBuilderCanBeConfiguredFluently(): void
     {
         $client = $this->createMock(ClientInterface::class);
         $requestFactory = $this->createMock(RequestFactoryInterface::class);
@@ -44,8 +44,7 @@ class ClientBuilderTest extends AbstractTestCase
             ->streamFactory($streamFactory);
 
         $this->assertInstanceOf(ClientInterface::class, $clientBuilder->getClient());
-        $this->assertInstanceOf(RequestFactoryInterface::class, $clientBuilder->getRequestFactory());
-        $this->assertInstanceOf(StreamFactoryInterface::class, $clientBuilder->getStreamFactory());
+        $this->assertSame($requestFactory, $clientBuilder->getRequestFactory());
+        $this->assertSame($streamFactory, $clientBuilder->getStreamFactory());
     }
-
 }

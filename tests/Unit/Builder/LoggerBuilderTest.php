@@ -9,28 +9,28 @@ use Psr\Log\LoggerInterface;
 
 class LoggerBuilderTest extends AbstractTestCase
 {
-    public function testDefaults()
+    public function testLoggerBuilderUsesDefaults(): void
     {
         $logger = $this->createMock(LoggerInterface::class);
 
         $loggerBuilder = new LoggerBuilder($logger);
 
-        $this->assertInstanceOf(LoggerInterface::class, $loggerBuilder->getLogger());
+        $this->assertSame($logger, $loggerBuilder->getLogger());
         $this->assertInstanceOf(Formatter\SimpleFormatter::class, $loggerBuilder->getFormatter());
     }
 
-    public function testDependencyInjection()
+    public function testLoggerBuilderAcceptsConstructorValues(): void
     {
         $logger = $this->createMock(LoggerInterface::class);
         $formatter = $this->createMock(Formatter::class);
 
         $loggerBuilder = new LoggerBuilder($logger, $formatter);
 
-        $this->assertInstanceOf(LoggerInterface::class, $loggerBuilder->getLogger());
-        $this->assertInstanceOf(Formatter::class, $loggerBuilder->getFormatter());
+        $this->assertSame($logger, $loggerBuilder->getLogger());
+        $this->assertSame($formatter, $loggerBuilder->getFormatter());
     }
 
-    public function testFluentMethods()
+    public function testLoggerBuilderCanBeConfiguredFluently(): void
     {
         $logger = $this->createMock(LoggerInterface::class);
         $formatter = $this->createMock(Formatter::class);
@@ -39,7 +39,7 @@ class LoggerBuilderTest extends AbstractTestCase
             ->logger($logger)
             ->formatter($formatter);
 
-        $this->assertInstanceOf(LoggerInterface::class, $loggerBuilder->getLogger());
-        $this->assertInstanceOf(Formatter::class, $loggerBuilder->getFormatter());
+        $this->assertSame($logger, $loggerBuilder->getLogger());
+        $this->assertSame($formatter, $loggerBuilder->getFormatter());
     }
 }
