@@ -85,6 +85,19 @@ Authentication is applied automatically to outgoing requests.
 
 See [Authentication](authentication.md) for helper methods, HTTPlug authentication objects, and custom auth callbacks.
 
+## `hooks(): HookBuilder`
+
+Public access to request and response hooks.
+
+```php
+$this->hooks()->beforeRequest($hook);
+$this->hooks()->afterResponse($hook);
+```
+
+Hooks are SDK-author extension points. They run around the raw HTTP request and response, before response decoding and error handling.
+
+See [Hooks](hooks.md) for hook context objects, return values, and priority behavior.
+
 ## `plugins(): PluginBuilder`
 
 Public access to HTTPlug plugin configuration.

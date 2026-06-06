@@ -12,11 +12,14 @@ use ProgrammatorDev\Api\Builder\AuthBuilder;
 use ProgrammatorDev\Api\Builder\CacheBuilder;
 use ProgrammatorDev\Api\Builder\ClientBuilder;
 use ProgrammatorDev\Api\Builder\ErrorBuilder;
+use ProgrammatorDev\Api\Builder\HookBuilder;
 use ProgrammatorDev\Api\Builder\Listener\CacheLoggerListener;
 use ProgrammatorDev\Api\Builder\LoggerBuilder;
 use ProgrammatorDev\Api\Builder\PluginBuilder;
 use ProgrammatorDev\Api\Builder\ResponseBuilder;
 use ProgrammatorDev\Api\Context\ErrorContext;
+use ProgrammatorDev\Api\Context\RequestContext;
+use ProgrammatorDev\Api\Context\ResponseContext;
 use ProgrammatorDev\Api\Event\PostRequestEvent;
 use ProgrammatorDev\Api\Event\PreRequestEvent;
 use ProgrammatorDev\Api\Helper\StringHelper;
@@ -60,6 +63,8 @@ class Api
 
     private ErrorBuilder $errorBuilder;
 
+    private HookBuilder $hookBuilder;
+
     private EventDispatcher $eventDispatcher;
 
     public function __construct()
@@ -70,6 +75,7 @@ class Api
         $this->pluginBuilder = new PluginBuilder();
         $this->responseBuilder = new ResponseBuilder();
         $this->errorBuilder = new ErrorBuilder();
+        $this->hookBuilder = new HookBuilder();
         $this->eventDispatcher = new EventDispatcher();
     }
 
@@ -86,6 +92,7 @@ class Api
     {
         $options ??= new RequestOptions();
         $path = $this->buildPath($path, $pathParams);
+        $context = new Context($this->config);
 
         $response = $this->sendRequest(
             method: $method,
@@ -93,10 +100,10 @@ class Api
             query: $options->getQuery(),
             headers: $options->getHeaders(),
             body: $options->getBody(),
-            options: $options
+            options: $options,
+            context: $context
         );
 
-        $context = new Context($this->config);
         $apiResponse = new Response(
             data: $this->getResponseData($response),
             rawResponse: $response,
@@ -152,6 +159,11 @@ class Api
     protected function auth(): AuthBuilder
     {
         return $this->authBuilder;
+    }
+
+    public function hooks(): HookBuilder
+    {
+        return $this->hookBuilder;
     }
 
     public function plugins(): PluginBuilder
@@ -336,9 +348,12 @@ class Api
         array $query = [],
         array $headers = [],
         string|StreamInterface|null $body = null,
-        ?RequestOptions $options = null
+        ?RequestOptions $options = null,
+        ?Context $context = null
     ): ResponseInterface
     {
+        $context ??= new Context($this->config);
+
         if (!empty($this->queryDefaults)) {
             $query = array_merge($this->queryDefaults, $query);
         }
@@ -351,13 +366,18 @@ class Api
         $request = $this->createRequest($method, $url, $headers, $body);
         $plugins = $this->buildPlugins();
 
-        // pre request listener
+        $request = $this->hookBuilder->applyBeforeRequestHooks(
+            new RequestContext($request, $context)
+        );
+
         $request = $this->eventDispatcher->dispatch(new PreRequestEvent($request))->getRequest();
 
-        // request
         $response = $this->clientBuilder->getClient($plugins)->sendRequest($request);
 
-        // post request listener
+        $response = $this->hookBuilder->applyAfterResponseHooks(
+            new ResponseContext($request, $response, $context)
+        );
+
         return $this->eventDispatcher->dispatch(new PostRequestEvent($request, $response))->getResponse();
     }
 

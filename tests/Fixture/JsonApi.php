@@ -8,6 +8,8 @@ use Http\Message\Authentication\Header as HeaderAuthentication;
 use Http\Message\RequestMatcher\RequestMatcher;
 use ProgrammatorDev\Api\Api;
 use ProgrammatorDev\Api\Context\ErrorContext;
+use ProgrammatorDev\Api\Context\RequestContext;
+use ProgrammatorDev\Api\Context\ResponseContext;
 use Psr\Http\Message\RequestInterface;
 
 class JsonApi extends Api
@@ -127,6 +129,26 @@ class JsonApi extends Api
     public function usePlugin(Plugin $plugin, int $priority = 0): self
     {
         $this->plugins()->add($plugin, $priority);
+
+        return $this;
+    }
+
+    /**
+     * @param callable(RequestContext): mixed $hook
+     */
+    public function beforeRequest(callable $hook, int $priority = 0): self
+    {
+        $this->hooks()->beforeRequest($hook, $priority);
+
+        return $this;
+    }
+
+    /**
+     * @param callable(ResponseContext): mixed $hook
+     */
+    public function afterResponse(callable $hook, int $priority = 0): self
+    {
+        $this->hooks()->afterResponse($hook, $priority);
 
         return $this;
     }

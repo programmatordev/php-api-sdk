@@ -28,5 +28,6 @@ SDK packages should also require or suggest concrete PSR-18 and PSR-17 implement
 - [Cache](cache.md): configure PSR-6 HTTP response caching.
 - [Logging](logging.md): configure PSR-3 logging and HTTP/cache log output.
 - [Plugins](plugins.md): configure HTTPlug middleware and priority ordering.
+- [Hooks](hooks.md): run SDK-author callbacks around requests and responses.
 - [Resource Authoring](resource-authoring.md): deeper guide for resource methods, query/header options, request bodies, entity mapping, collections, envelopes, and API-specific traits.
 - [API Reference](api-reference.md): current v3 authoring methods and contracts.

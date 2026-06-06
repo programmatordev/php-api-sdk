@@ -266,7 +266,7 @@ $this->hooks()->beforeRequest(
 );
 
 $this->hooks()->afterResponse(
-    fn (ResponseContext $context) => $context->rawResponse()
+    fn (ResponseContext $context) => $context->response()
 );
 ```
 
@@ -348,6 +348,7 @@ The v3 test utilities should focus on helping SDK authors test resources, respon
 - `Response::collection()` should return a plain array by default.
 - Do not add a generic collection object in the first phase. A future `collect()` helper can be considered later if arrays become limiting.
 - Symfony EventDispatcher should be replaced with a smaller request/response pipeline.
+- v3-native hooks are represented by `HookBuilder`, `RequestContext`, and `ResponseContext`.
 - Method constants are not central to v3 because resources expose `get`, `post`, `put`, `patch`, and `delete` helpers.
 - Prefer fluent configuration over public getters.
 - Use HTTPlug `PluginClientBuilder` behavior for plugin priority ordering and same-priority plugin preservation.
