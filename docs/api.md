@@ -16,6 +16,12 @@ $response = $api->send('GET', '/users/{id}', ['id' => 1]);
 
 Path parameters are encoded and replaced in `{name}` placeholders.
 
+`send()` still runs through the configured SDK pipeline:
+
+- Base URL, default query parameters, and default headers.
+- Authentication, plugins, cache, and hooks.
+- Response decoding and error mapping.
+
 ## `config(?array $values = null): Config`
 
 Public.
