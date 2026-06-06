@@ -342,6 +342,7 @@ The v3 test utilities should focus on helping SDK authors test resources, respon
 - Do not add a generic collection object in the first phase. A future `collect()` helper can be considered later if arrays become limiting.
 - Symfony EventDispatcher has been replaced with a smaller request/response pipeline.
 - v3-native hooks are represented by `HookBuilder`, `RequestContext`, and `ResponseContext`.
+- Response body decoding is represented by `ResponseDecoder` and `ResponseFormat`; transport returns raw PSR responses and does not decode. Common formats use `raw()`, `json()`, and `xml()`, while custom response decoding uses `custom()`.
 - Method constants are not central to v3 because resources expose `get`, `post`, `put`, `patch`, and `delete` helpers.
 - Prefer fluent configuration over public getters.
 - Use HTTPlug `PluginClientBuilder` behavior for plugin priority ordering and same-priority plugin preservation.

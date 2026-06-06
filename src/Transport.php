@@ -19,7 +19,7 @@ use ProgrammatorDev\Api\Context\RequestContext;
 use ProgrammatorDev\Api\Context\ResponseContext;
 use ProgrammatorDev\Api\Helper\StringHelper;
 use ProgrammatorDev\Api\Request\RequestOptions;
-use Psr\Http\Client\ClientExceptionInterface as ClientException;
+use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
@@ -45,7 +45,8 @@ final class Transport
     ) {}
 
     /**
-     * @throws ClientException
+     * @throws ClientExceptionInterface
+     * @throws \UnexpectedValueException
      */
     public function send(
         string $method,

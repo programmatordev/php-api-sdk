@@ -172,17 +172,18 @@ Protected access to response decoding configuration.
 
 ```php
 $this->responses()->json();
+$this->responses()->xml();
+$this->responses()->custom($decoder);
 ```
 
-When JSON decoding is enabled:
+Available response formats:
 
-- JSON response bodies are decoded into arrays.
-- Empty response bodies become `null`.
-- Invalid JSON throws `JsonException`.
+- `raw()`: response bodies are returned as strings.
+- `json()`: response bodies are decoded into arrays; empty bodies become `null`; invalid JSON throws `JsonException`.
+- `xml()`: response bodies are decoded into `SimpleXMLElement`; empty bodies become `null`; invalid XML throws `RuntimeException`.
+- `custom()`: receives the raw PSR response and returns the value used as `Response::data()`.
 
-When JSON decoding is not enabled, `Response::data()` returns the raw response body string.
-
-This area will grow as response transforms and errors are finalized.
+When no format is configured, `raw()` is used.
 
 ## `errors(): ErrorBuilder`
 

@@ -38,6 +38,9 @@ class HookBuilder
         return $this;
     }
 
+    /**
+     * @throws UnexpectedValueException
+     */
     public function applyBeforeRequestHooks(RequestContext $context): RequestInterface
     {
         $request = $context->request();
@@ -59,6 +62,9 @@ class HookBuilder
         return $request;
     }
 
+    /**
+     * @throws UnexpectedValueException
+     */
     public function applyAfterResponseHooks(ResponseContext $context): ResponseInterface
     {
         $response = $context->response();

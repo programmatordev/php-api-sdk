@@ -12,7 +12,11 @@ Returns response data.
 
 When `responses()->json()` is enabled on the API, JSON bodies are decoded into arrays, empty bodies become `null`, and invalid JSON throws `JsonException`.
 
-When JSON decoding is not enabled, this returns the raw response body string.
+When `responses()->xml()` is enabled, XML bodies are decoded into `SimpleXMLElement`, empty bodies become `null`, and invalid XML throws `RuntimeException`.
+
+When `responses()->custom()` is enabled, the configured callable receives the raw PSR response and returns the value used as `Response::data()`.
+
+When no response format is configured, this returns the raw response body string.
 
 ```php
 $data = $response->data();

@@ -2,19 +2,61 @@
 
 namespace ProgrammatorDev\Api\Builder;
 
+use ProgrammatorDev\Api\ResponseFormat;
+use Psr\Http\Message\ResponseInterface;
+
 class ResponseBuilder
 {
-    private bool $decodeJson = false;
+    private ResponseFormat $format = ResponseFormat::Raw;
 
-    public function json(): self
+    /** @var null|callable(ResponseInterface): mixed */
+    private $customDecoder = null;
+
+    public function raw(): self
     {
-        $this->decodeJson = true;
+        $this->format = ResponseFormat::Raw;
+        $this->customDecoder = null;
 
         return $this;
     }
 
-    public function shouldDecodeJson(): bool
+    public function json(): self
     {
-        return $this->decodeJson;
+        $this->format = ResponseFormat::Json;
+        $this->customDecoder = null;
+
+        return $this;
+    }
+
+    public function xml(): self
+    {
+        $this->format = ResponseFormat::Xml;
+        $this->customDecoder = null;
+
+        return $this;
+    }
+
+    /**
+     * @param callable(ResponseInterface): mixed $decoder
+     */
+    public function custom(callable $decoder): self
+    {
+        $this->format = ResponseFormat::Custom;
+        $this->customDecoder = $decoder;
+
+        return $this;
+    }
+
+    public function format(): ResponseFormat
+    {
+        return $this->format;
+    }
+
+    /**
+     * @return null|callable(ResponseInterface): mixed
+     */
+    public function customDecoder(): ?callable
+    {
+        return $this->customDecoder;
     }
 }

@@ -13,6 +13,7 @@
     ],
     "require": {
         "php": ">=8.1",
+        "ext-simplexml": "*",
         "nyholm/append-query-string": "^1.0",
         "php-http/cache-plugin": "^2.1",
         "php-http/client-common": "^2.7",

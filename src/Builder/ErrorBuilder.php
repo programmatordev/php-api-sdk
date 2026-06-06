@@ -51,6 +51,9 @@ class ErrorBuilder
         return $this;
     }
 
+    /**
+     * @throws \Throwable
+     */
     public function throwIfMatched(ErrorContext $context): void
     {
         $handler = $this->statusHandlers[$context->statusCode()] ?? null;

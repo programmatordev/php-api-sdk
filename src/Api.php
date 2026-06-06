@@ -2,6 +2,7 @@
 
 namespace ProgrammatorDev\Api;
 
+use JsonException;
 use ProgrammatorDev\Api\Builder\AuthBuilder;
 use ProgrammatorDev\Api\Builder\CacheBuilder;
 use ProgrammatorDev\Api\Builder\ClientBuilder;
@@ -12,11 +13,12 @@ use ProgrammatorDev\Api\Builder\PluginBuilder;
 use ProgrammatorDev\Api\Builder\ResponseBuilder;
 use ProgrammatorDev\Api\Context\ErrorContext;
 use ProgrammatorDev\Api\Request\RequestOptions;
-use Psr\Http\Client\ClientExceptionInterface as ClientException;
+use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
 use Psr\Cache\CacheItemPoolInterface;
-use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerInterface;
+use RuntimeException;
+use Throwable;
 
 class Api
 {
@@ -56,7 +58,10 @@ class Api
     }
 
     /**
-     * @throws ClientException
+     * @throws ClientExceptionInterface
+     * @throws JsonException
+     * @throws RuntimeException
+     * @throws Throwable
      */
     public function send(
         string $method,
@@ -77,7 +82,7 @@ class Api
         );
 
         $apiResponse = new Response(
-            data: $this->getResponseData($response),
+            data: $this->responseDecoder()->decode($response),
             rawResponse: $response,
             context: $context
         );
@@ -188,19 +193,8 @@ class Api
         );
     }
 
-    private function getResponseData(ResponseInterface $response): mixed
+    private function responseDecoder(): ResponseDecoder
     {
-        $response->getBody()->rewind();
-        $contents = $response->getBody()->getContents();
-
-        if (!$this->responseBuilder->shouldDecodeJson()) {
-            return $contents;
-        }
-
-        if ($contents === '') {
-            return null;
-        }
-
-        return json_decode($contents, true, flags: JSON_THROW_ON_ERROR);
+        return new ResponseDecoder($this->responseBuilder);
     }
 }
