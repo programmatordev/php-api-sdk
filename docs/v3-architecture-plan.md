@@ -534,5 +534,5 @@ Before tagging v3:
 - [x] SDK author test fixtures.
 - [ ] README update.
 - [ ] `UPGRADE-3.0.md`.
-- [ ] Simple API proof.
+- [x] Simple API proof.
 - [ ] Complex API proof.
