@@ -78,7 +78,7 @@ class Response
      * @param class-string<T> $class
      * @return T
      */
-    public function as(string $class): ResponseEnvelopeInterface
+    public function envelope(string $class): ResponseEnvelopeInterface
     {
         $this->assertResponseEnvelopeClass($class);
 

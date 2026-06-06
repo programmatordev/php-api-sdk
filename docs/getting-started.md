@@ -159,7 +159,7 @@ public function findWithMeta(int $id): UserResponse
 {
     return $this
         ->get('/users/{id}', ['id' => $id])
-        ->as(UserResponse::class);
+        ->envelope(UserResponse::class);
 }
 ```
 

@@ -65,7 +65,7 @@ class UserResource extends Resource
     {
         return $this
             ->get('/users/{id}', ['id' => $id])
-            ->as(UserEnvelope::class);
+            ->envelope(UserEnvelope::class);
     }
 
     public function findWithEndpointLocale(int|string $id, string $locale): User

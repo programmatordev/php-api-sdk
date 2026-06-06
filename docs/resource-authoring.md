@@ -257,12 +257,12 @@ final class UserResponse implements ResponseEnvelopeInterface
 
 Keep context usage focused on hydration decisions. Entities should still be data/value objects by default and should not perform hidden network calls.
 
-Use `as()` when the response carries metadata, pagination, or any API-specific envelope:
+Use `envelope()` when the response carries metadata, pagination, or any API-specific envelope:
 
 ```php
 return $this
     ->get('/users/{id}', ['id' => $id])
-    ->as(UserResponse::class);
+    ->envelope(UserResponse::class);
 ```
 
 Envelope classes must implement `ResponseEnvelopeInterface`:
@@ -317,7 +317,7 @@ final class FixtureResource extends Resource
         return $this
             ->include('participants', 'league')
             ->get('/fixtures/{id}', ['id' => $id])
-            ->as(FixtureResponse::class);
+            ->envelope(FixtureResponse::class);
     }
 }
 ```

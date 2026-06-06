@@ -32,7 +32,7 @@ class ResponseTest extends AbstractTestCase
     {
         $response = new Response(['data' => ['id' => 1, 'name' => 'John']], new PsrResponse());
 
-        $envelope = $response->as(UserEnvelope::class);
+        $envelope = $response->envelope(UserEnvelope::class);
 
         $this->assertNull($envelope->getTimezone());
     }
@@ -43,7 +43,7 @@ class ResponseTest extends AbstractTestCase
         $context = new Context($config);
         $response = new Response(['data' => ['id' => 1, 'name' => 'John']], new PsrResponse(), $context);
 
-        $envelope = $response->as(UserEnvelope::class);
+        $envelope = $response->envelope(UserEnvelope::class);
 
         $this->assertSame('UTC', $envelope->getTimezone());
     }
@@ -144,7 +144,7 @@ class ResponseTest extends AbstractTestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('must implement');
 
-        $response->as(\stdClass::class);
+        $response->envelope(\stdClass::class);
     }
 
     public function testEntityRejectsNonArrayData(): void
@@ -221,7 +221,7 @@ class ResponseTest extends AbstractTestCase
     {
         $response = new Response(['data' => ['id' => 1, 'name' => 'John']], new PsrResponse(status: 202));
 
-        $envelope = $response->as(UserEnvelope::class);
+        $envelope = $response->envelope(UserEnvelope::class);
 
         $this->assertSame(202, $envelope->getStatusCode());
         $this->assertSame(1, $envelope->getUser()->getId());

@@ -145,7 +145,7 @@ interface ResponseEnvelopeInterface
 }
 ```
 
-`Response::as()` should require `ResponseEnvelopeInterface`.
+`Response::envelope()` should require `ResponseEnvelopeInterface`.
 
 The wrapper should be named `Response`, not `ApiResponse`. PSR responses are referenced through `ResponseInterface`, so the shorter package name is acceptable and keeps SDK authoring readable.
 
@@ -159,7 +159,7 @@ public function find(int $id): User
 
 public function findWithMeta(int $id): UserResponse
 {
-    return $this->get('/users/{id}', ['id' => $id])->as(UserResponse::class);
+    return $this->get('/users/{id}', ['id' => $id])->envelope(UserResponse::class);
 }
 ```
 
@@ -325,7 +325,7 @@ The v3 test utilities should focus on helping SDK authors test resources, respon
 | `ResponseContentsEvent` for JSON | Removed; first-class `responses()->json()` |
 | Post-response listener for errors | First-class status and callback-based error mapping, while preserving hooks |
 | Raw response body return | `Response::data()` or `Response::raw()` depending on configuration |
-| Manual entity construction in resources | `Response::entity(...)`, `Response::collection(...)`, and `Response::as(...)` helpers |
+| Manual entity construction in resources | `Response::entity(...)`, `Response::collection(...)`, and `Response::envelope(...)` helpers |
 
 ## Decisions
 
@@ -336,8 +336,8 @@ The v3 test utilities should focus on helping SDK authors test resources, respon
 - SDK-wide options should be stored in a generic config bag.
 - SDK config should be available through context objects, not by injecting `Api` into entities.
 - `Response::entity()` and `Response::collection()` should require classes that implement `EntityInterface`.
-- `Response::as()` should support API-specific response envelope classes such as item, collection, metadata, and pagination responses.
-- `Response::as()` should require a `ResponseEnvelopeInterface` contract with `fromResponse(Response $response, ?Context $context = null)`.
+- `Response::envelope()` should support API-specific response envelope classes such as item, collection, metadata, and pagination responses.
+- `Response::envelope()` should require a `ResponseEnvelopeInterface` contract with `fromResponse(Response $response, ?Context $context = null)`.
 - `Response::collection()` should return a plain array by default.
 - Do not add a generic collection object in the first phase. A future `collect()` helper can be considered later if arrays become limiting.
 - Symfony EventDispatcher has been replaced with a smaller request/response pipeline.
@@ -351,7 +351,7 @@ The v3 test utilities should focus on helping SDK authors test resources, respon
 - `get`, `post`, `put`, `patch`, and `delete` should execute immediately.
 - SDK authors choose whether resource methods return entities directly or custom response envelopes.
 - Resource constructors may remain public.
-- Use PHPDoc generics where useful, especially for `Api::resource()`, `Response::entity()`, `Response::collection()`, and `Response::as()`.
+- Use PHPDoc generics where useful, especially for `Api::resource()`, `Response::entity()`, `Response::collection()`, and `Response::envelope()`.
 - No reset methods for resource options in the first phase.
 - Merge order should be global defaults, then resource options, then endpoint-specific options.
 - Client configuration is global API setup only. Do not add `Resource::client()`.
@@ -372,7 +372,7 @@ The v3 test utilities should focus on helping SDK authors test resources, respon
 - Fluent config should use grouped builders such as `auth()`, `responses()`, `errors()`, `plugins()`, `cache()`, `logger()`, and `hooks()`.
 - `auth()` should mirror and wrap HTTPlug authentication behavior rather than inventing new authentication primitives.
 - `Response::entity()` and `Response::collection()` should support an optional key for extracting entity data from decoded response envelopes.
-- `Response::as()` should receive the full decoded `Response`, leaving envelope classes responsible for extracting their data.
+- `Response::envelope()` should receive the full decoded `Response`, leaving envelope classes responsible for extracting their data.
 - Response data access should stay simple in the first phase. No dot notation or nested key helpers.
 - Request body helpers should be friendly for SDK authors while converting to PSR-7 streams internally.
 - Resource body helpers should be fluent: `json()`, `form()`, and `body()`.
@@ -424,7 +424,7 @@ final class UserResource extends Resource
         return $this
             ->query('active', true)
             ->get('/users')
-            ->as(UserCollection::class);
+            ->envelope(UserCollection::class);
     }
 
     public function find(int $id): User
@@ -445,7 +445,7 @@ final class FixtureResource extends Resource
     {
         return $this
             ->get('/v3/football/fixtures/{id}', ['id' => $id])
-            ->as(FixtureItem::class);
+            ->envelope(FixtureItem::class);
     }
 }
 ```

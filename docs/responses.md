@@ -52,14 +52,14 @@ return $this
     ->collection(User::class, key: 'data');
 ```
 
-### `as(string $class): ResponseEnvelopeInterface`
+### `envelope(string $class): ResponseEnvelopeInterface`
 
 Maps the response to a custom envelope.
 
 ```php
 return $this
     ->get('/users/{id}', ['id' => $id])
-    ->as(UserResponse::class);
+    ->envelope(UserResponse::class);
 ```
 
 The class must implement `ResponseEnvelopeInterface`.
@@ -74,7 +74,7 @@ public static function fromArray(array $data, ?Context $context = null): static;
 
 ## `ResponseEnvelopeInterface`
 
-Response envelopes used by `Response::as()` must implement:
+Response envelopes used by `Response::envelope()` must implement:
 
 ```php
 public static function fromResponse(Response $response, ?Context $context = null): static;
