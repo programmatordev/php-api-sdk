@@ -32,7 +32,7 @@ SDK packages should also require or suggest concrete PSR-18 and PSR-17 implement
 - [Getting Started](01-getting-started.md): create a small SDK with an API facade, resource, entity, and response mapping.
 - [Design Approach](02-design-approach.md): the reasoning behind fluent SDK authoring, clean SDK usage, and hackability.
 - [API](03-api.md): SDK facade setup methods, configuration, and extension points.
-- [Resource Authoring](04-resource-authoring.md): deeper guide for resource methods, query/header options, request bodies, entity mapping, collections, envelopes, and API-specific traits.
+- [Resource Authoring](04-resource-authoring.md): deeper guide for resource methods, query/header options, request bodies, entity mapping, collections, envelopes, and API-specific resource chains.
 - [Resources](05-resources.md): resource classes and endpoint request helpers.
 - [Responses](06-responses.md): decoded data, raw responses, entities, collections, envelopes, and context.
 - [Authentication](07-authentication.md): configure bearer, basic, header, query, HTTPlug, and custom authentication.
@@ -41,7 +41,7 @@ SDK packages should also require or suggest concrete PSR-18 and PSR-17 implement
 - [Logging](10-logging.md): configure PSR-3 logging and HTTP/cache log output.
 - [Plugins](11-plugins.md): configure HTTPlug middleware and priority ordering.
 - [Hooks](12-hooks.md): run SDK-author callbacks around requests and responses.
-- [API Reference](13-api-reference.md): current v3 authoring methods and contracts.
+- [API Reference](13-api-reference.md): authoring methods and contracts.
 
 ## Navigation
 

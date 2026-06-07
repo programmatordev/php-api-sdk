@@ -1,6 +1,6 @@
 # Getting Started
 
-These examples describe the work-in-progress `v3.0` authoring API.
+These examples show the current SDK authoring API.
 
 ## Install
 
