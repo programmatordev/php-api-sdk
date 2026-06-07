@@ -12,6 +12,7 @@ final class UserResource extends Resource
     public function find(int $id): User
     {
         return $this
+            ->endpoint()
             ->get('/users/{id}', ['id' => $id])
             ->entity(User::class);
     }
@@ -61,10 +62,9 @@ The base class for endpoint groups.
 Responsibilities:
 
 - Provide `endpoint()` as the SDK-author request builder entrypoint.
-- Hold immutable per-resource request options.
-- Allow generic query/header customization through primitives like `query`, `queries`, `header`, and `headers`.
+- Hold immutable resource-chain infrastructure overrides such as `withCache()`.
 - Return a fresh resource instance by default when created through `Api::resource()`.
-- Execute requests immediately through endpoint HTTP helpers like `get`, `post`, `put`, `patch`, and `delete`.
+- Keep SDK-user autocomplete focused on domain methods and explicit infrastructure overrides.
 
 Non-goals:
 
@@ -475,7 +475,6 @@ Future-phase questions should be answered when that phase starts, not before:
 - Exact hook method names and context details.
 - Whether any public configuration getters are useful for testing or advanced extension.
 - Whether `Method` remains as a tiny compatibility helper or is removed entirely.
-- How endpoint-local cache options should work without muddying request options or cloning full API builders.
 - Whether `config()` ever supports nested keys.
 - Whether a future `collect()` helper should return a small generic collection object.
 
@@ -483,14 +482,14 @@ Future-phase questions should be answered when that phase starts, not before:
 
 1. Add fake SDK fixtures under tests.
 2. Add `Resource`, `RequestOptions`, `Response`, and `EntityInterface`.
-3. Add protected/fluent resource creation and request execution to `Api`.
-4. Prove one simple endpoint flow with a mock PSR client:
+3. Add protected/fluent resource creation and endpoint request execution.
+4. Prove endpoint flows with focused fake resources and mock PSR clients:
 
 ```php
 $user = $api->users()->find(1);
 ```
 
-5. Add tests for path parameter replacement, fluent query options, query merge order, and entity mapping.
+5. Add tests for path parameter replacement, endpoint query options, query merge order, and entity mapping.
 
 Do not add collection mapping, custom envelopes, SDK config, entity context, JSON decoding, errors, hooks, body helpers, auth, plugins, cache, or logger in the first slice. Preserve momentum by getting the authoring experience right first.
 
