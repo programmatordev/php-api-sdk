@@ -37,7 +37,7 @@ final class ExampleApi extends Api
 }
 ```
 
-`Api::resource()` creates a fresh resource instance. Resource option modifiers are immutable, so fluent customizations do not leak into later calls.
+`Api::resource()` creates a fresh resource instance. Resource-chain infrastructure overrides, such as `withCache()`, are immutable, so fluent customizations do not leak into later calls.
 
 ## Endpoint Requests
 

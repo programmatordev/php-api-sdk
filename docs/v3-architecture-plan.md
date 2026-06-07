@@ -353,10 +353,10 @@ The v3 test utilities should focus on helping SDK authors test resources, respon
 - SDK authors choose whether resource methods return entities directly or custom response envelopes.
 - Resource constructors may remain public.
 - Use PHPDoc generics where useful, especially for `Api::resource()`, `Response::entity()`, `Response::collection()`, and `Response::envelope()`.
-- No reset methods for resource options are needed because generic resource options are not part of the base feature set.
+- No reset methods are needed for generic query/header customization because those methods are not part of the base `Resource` API.
 - Merge order should be global defaults, then endpoint options, then endpoint method query arguments.
 - Client configuration is global API setup only. Do not add `Resource::client()`.
-- Defer request-local plugins, cache, hooks, and similar pipeline options until the request-local architecture is clearer. Avoid ad hoc builder cloning or one-off request option shapes. If request-local cache is added later, prefer a smaller cache options object that stores only override values such as default TTL, methods, and cache directives, then merge it with the API-level cache builder during send.
+- Request-local cache now uses `PipelineOptions` so endpoint defaults and resource-chain overrides can be layered over the API-level cache builder. Defer request-local plugins, logger, hooks, and similar pipeline features until there is a concrete need, and reuse the same pipeline option shape where it fits.
 - Header names should not be normalized manually.
 - Path parameters should be encoded with `rawurlencode`.
 - Query strings should use `http_build_query(..., PHP_QUERY_RFC3986)`.

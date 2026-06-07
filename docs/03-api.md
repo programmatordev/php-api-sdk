@@ -2,7 +2,7 @@
 
 `Api` is the SDK facade. Concrete SDKs extend it and expose resources through purpose-built methods.
 
-Methods not listed here are legacy, internal, or still being reshaped for v3.
+This page documents the public API facade methods available to SDK authors and advanced SDK users.
 
 ## `send(string $method, string $path, array $pathParams = [], array $query = [], array $headers = [], string|StreamInterface|null $body = null): Response`
 
