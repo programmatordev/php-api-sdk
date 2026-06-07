@@ -69,6 +69,17 @@ class ErrorBuilderTest extends AbstractTestCase
         $builder->status(404, \stdClass::class);
     }
 
+    public function testStatusHandlerMustReturnThrowable(): void
+    {
+        $builder = new ErrorBuilder();
+        $builder->status(404, fn(): string => 'invalid');
+
+        $this->expectException(\UnexpectedValueException::class);
+        $this->expectExceptionMessage('Status error handler must return a Throwable.');
+
+        $builder->throwIfMatched($this->context(statusCode: 404));
+    }
+
     public function testCustomHandlerThrowsWhenMatched(): void
     {
         $builder = new ErrorBuilder();

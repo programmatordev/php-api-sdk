@@ -63,7 +63,13 @@ class ErrorBuilder
         }
 
         if ($handler !== null) {
-            throw $handler($context);
+            $throwable = $handler($context);
+
+            if (! $throwable instanceof \Throwable) {
+                throw new \UnexpectedValueException('Status error handler must return a Throwable.');
+            }
+
+            throw $throwable;
         }
 
         foreach ($this->handlers as $handler) {

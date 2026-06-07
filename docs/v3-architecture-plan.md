@@ -246,12 +246,12 @@ Current hook capabilities:
 
 These capabilities remain through first-class APIs:
 
-- JSON decoding.
+- Response decoding.
 - Error mapping.
 - Request hooks.
 - Response hooks.
 
-Decision: v3 replaces the Symfony EventDispatcher dependency with a smaller request/response pipeline. The pipeline supports request hooks and response hooks, while common features are first-class fluent APIs.
+Decision: v3 replaces the Symfony EventDispatcher dependency with a smaller request/response pipeline. The pipeline supports request hooks and response hooks, while common features are first-class fluent APIs. Response decoding replaces the earlier idea of using transform hooks for common body parsing.
 
 Hooks should receive lightweight context objects rather than long argument lists:
 
@@ -287,11 +287,10 @@ afterResponse hooks
 decode body
 create Response wrapper
 error handling
-transform hooks
 return Response
 ```
 
-Error handling should run before transform hooks so API-specific error mapping sees the original decoded API response shape.
+Error handling runs after response decoding so API-specific error mapping can inspect the decoded API response shape.
 
 ### Helpers and Test Utilities
 
@@ -365,7 +364,7 @@ The v3 test utilities should focus on helping SDK authors test resources, respon
 - Full URL paths should continue to override the configured base URL.
 - Invalid JSON should throw when JSON decoding is enabled.
 - Empty JSON response bodies should decode to `null` without throwing.
-- Pipeline order should be request hooks, send, response hooks, decode, response wrapper, errors, transforms, return.
+- Pipeline order should be request hooks, send, response hooks, decode, response wrapper, errors, return.
 - Hooks should return replacement objects/data. Returning `null` means no change.
 - Error handling should support both status maps and custom callbacks.
 - Error callbacks should receive an `ErrorContext` object and return a `Throwable` when matched or `null` when not matched.
@@ -521,7 +520,7 @@ Before tagging v3:
 - [x] Plugin support.
 - [x] Request hooks.
 - [x] Response hooks.
-- [x] Response content transformation.
+- [x] Response decoding and custom decoder.
 - [x] Query defaults.
 - [x] Header defaults.
 - [x] Base URL handling.

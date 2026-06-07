@@ -7,6 +7,7 @@ use ProgrammatorDev\Api\Test\Fixture\JsonApi;
 use ProgrammatorDev\Api\Test\Fixture\PlainApi;
 use ProgrammatorDev\Api\Test\Fixture\XmlApi;
 use ProgrammatorDev\Api\Test\Support\AbstractTestCase;
+use Psr\Http\Message\ResponseInterface;
 use SimpleXMLElement;
 
 class ResponseDecodingTest extends AbstractTestCase
@@ -74,5 +75,23 @@ class ResponseDecodingTest extends AbstractTestCase
         $this->expectException(\RuntimeException::class);
 
         (new XmlApi($client))->raw()->fetch();
+    }
+
+    public function testCustomDecoderRunsThroughApiResourcePipeline(): void
+    {
+        $client = $this->mockClient(new Response(status: 202, body: 'accepted'));
+
+        $response = (new PlainApi($client))
+            ->decodeWith(fn (ResponseInterface $response): array => [
+                'status' => $response->getStatusCode(),
+                'body' => (string) $response->getBody(),
+            ])
+            ->raw()
+            ->fetch();
+
+        $this->assertSame([
+            'status' => 202,
+            'body' => 'accepted',
+        ], $response->data());
     }
 }
