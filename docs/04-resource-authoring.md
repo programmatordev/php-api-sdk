@@ -327,40 +327,46 @@ final class UserResponse implements ResponseEnvelopeInterface
 }
 ```
 
-## API-Specific Traits
+## API-Specific Resource Chains
 
-Keep API-specific vocabulary out of the base package. Add it in SDK packages through traits or API-specific base resources.
+Keep API-specific vocabulary out of the base package. Add it in SDK resources with small fluent methods that use the generic endpoint helpers underneath.
 
-For example, an SDK can add includes without making the generic package know what an include is:
+For example, an SDK can expose a status filter without making the generic package know what a status filter is:
 
 ```php
-use ProgrammatorDev\Api\Endpoint;
-
-trait HasIncludes
+final class UserResource extends Resource
 {
-    protected function applyIncludes(Endpoint $endpoint, array $includes): Endpoint
+    private ?string $status = null;
+
+    public function withStatus(string $status): static
     {
-        return $endpoint->query('include', implode(';', $includes));
+        $clone = clone $this;
+        $clone->status = $status;
+
+        return $clone;
     }
-}
-```
 
-Then use it in that SDK's resources:
-
-```php
-final class FixtureResource extends Resource
-{
-    use HasIncludes;
-
-    public function find(int $id, array $includes = []): FixtureResponse
+    public function all(): array
     {
         return $this
-            ->applyIncludes($this->endpoint(), $includes)
-            ->get('/fixtures/{id}', ['id' => $id])
-            ->envelope(FixtureResponse::class);
+            ->endpoint()
+            ->query('status', $this->status)
+            ->get('/users')
+            ->collection(User::class, key: 'data');
     }
 }
 ```
+
+SDK users get a fluent API-specific chain:
+
+```php
+$users = $api
+    ->users()
+    ->withStatus('active')
+    ->all();
+```
+
+Use the same pattern for API-specific concepts such as includes, filters, selects, pagination options, or locale settings. Clone the resource in `with*` methods so a configured chain does not leak into later calls.
 
 ## Navigation
 

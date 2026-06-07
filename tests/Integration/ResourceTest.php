@@ -146,6 +146,34 @@ class ResourceTest extends AbstractTestCase
         $this->assertSame('https://api.example.com/users/2?locale=en', (string) $requests[1]->getUri());
     }
 
+    public function testSdkSpecificResourceChainCanSetQueryOptions(): void
+    {
+        $this->client->addResponse(new Response(body: '{"data":[{"id":1,"name":"John"}]}'));
+
+        $this->api
+            ->users()
+            ->withStatus('active')
+            ->all();
+
+        $this->assertSame('https://api.example.com/users?locale=en&status=active', (string) $this->client->getLastRequest()->getUri());
+    }
+
+    public function testSdkSpecificResourceChainDoesNotLeakBetweenResourceCalls(): void
+    {
+        $this->client->addResponse(new Response(body: '{"data":[{"id":1,"name":"John"}]}'));
+        $this->client->addResponse(new Response(body: '{"data":[{"id":2,"name":"Jane"}]}'));
+
+        $users = $this->api->users();
+
+        $users->withStatus('active')->all();
+        $users->all();
+
+        $requests = $this->client->getRequests();
+
+        $this->assertSame('https://api.example.com/users?locale=en&status=active', (string) $requests[0]->getUri());
+        $this->assertSame('https://api.example.com/users?locale=en', (string) $requests[1]->getUri());
+    }
+
     public function testEndpointQueryOverridesGlobalDefaults(): void
     {
         $this->client->addResponse(new Response(body: '{"id":1,"name":"John"}'));

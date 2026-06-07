@@ -8,6 +8,16 @@ use Psr\Http\Message\StreamInterface;
 
 class UserResource extends Resource
 {
+    private ?string $status = null;
+
+    public function withStatus(string $status): static
+    {
+        $clone = clone $this;
+        $clone->status = $status;
+
+        return $clone;
+    }
+
     public function sendWithVerb(string $verb): void
     {
         match ($verb) {
@@ -66,6 +76,7 @@ class UserResource extends Resource
     {
         return $this
             ->endpoint()
+            ->query('status', $this->status)
             ->get('/users')
             ->collection(User::class, key: 'data');
     }
