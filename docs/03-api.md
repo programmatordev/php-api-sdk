@@ -132,7 +132,7 @@ $this->auth()
 
 Authentication is applied automatically to outgoing requests.
 
-See [Authentication](authentication.md) for helper methods, HTTPlug authentication objects, and custom auth callbacks.
+See [Authentication](07-authentication.md) for helper methods, HTTPlug authentication objects, and custom auth callbacks.
 
 ## `hooks(): HookBuilder`
 
@@ -147,7 +147,7 @@ $api->setup()->hooks()->beforeRequest($hook);
 
 Hooks are SDK-author extension points. They run around the raw HTTP request and response, before response decoding and error handling.
 
-See [Hooks](hooks.md) for hook context objects, return values, and priority behavior.
+See [Hooks](12-hooks.md) for hook context objects, return values, and priority behavior.
 
 ## `plugins(): PluginBuilder`
 
@@ -161,7 +161,7 @@ $api->setup()->plugins()->add($plugin, priority: 16);
 
 Higher priority plugins run earlier. Same-priority plugins are preserved in insertion order.
 
-See [Plugins](plugins.md) for internal plugin order and priority guidance.
+See [Plugins](11-plugins.md) for internal plugin order and priority guidance.
 
 ## `cache(CacheItemPoolInterface $pool): CacheBuilder`
 
@@ -176,7 +176,7 @@ $this
 $api->setup()->cache($pool)->defaultTtl(3600);
 ```
 
-See [Cache](cache.md) for cache options and plugin order.
+See [Cache](09-cache.md) for cache options and plugin order.
 
 ## `client(ClientInterface $client): ClientBuilder`
 
@@ -197,7 +197,7 @@ $this
     ->streamFactory($streamFactory);
 ```
 
-See [HTTP Client](http-client.md) for client and factory configuration.
+See [HTTP Client](08-http-client.md) for client and factory configuration.
 
 ## `logger(LoggerInterface $logger): LoggerBuilder`
 
@@ -211,7 +211,7 @@ $this
 $api->setup()->logger($logger);
 ```
 
-See [Logging](logging.md) for logger formatting and cache logging.
+See [Logging](10-logging.md) for logger formatting and cache logging.
 
 ## `responses(): ResponseBuilder`
 
@@ -327,3 +327,8 @@ Sets multiple option values.
 ```php
 $api->config()->merge(['timezone' => 'UTC', 'units' => 'metric']);
 ```
+
+## Navigation
+
+- Previous: [Design Approach](02-design-approach.md)
+- Next: [Resource Authoring](04-resource-authoring.md)

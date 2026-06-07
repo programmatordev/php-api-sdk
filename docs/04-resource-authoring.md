@@ -325,3 +325,8 @@ final class FixtureResource extends Resource
     }
 }
 ```
+
+## Navigation
+
+- Previous: [API](03-api.md)
+- Next: [Resources](05-resources.md)

@@ -4,7 +4,7 @@ Plugins are [HTTPlug](https://httplug.io/) middleware applied to outgoing reques
 
 See the [PHP-HTTP plugin documentation](https://docs.php-http.org/en/latest/plugins/index.html) for the underlying plugin system used here.
 
-HTTP clients and PSR-17 factories are configured through [HTTP Client](http-client.md). Plugins are configured separately so middleware order remains explicit.
+HTTP clients and PSR-17 factories are configured through [HTTP Client](08-http-client.md). Plugins are configured separately so middleware order remains explicit.
 
 SDK authors can configure plugins from the `Api` class:
 
@@ -60,3 +60,8 @@ $this->plugins()->add($second, priority: 16);
 ```
 
 The request reaches `$first` before `$second`.
+
+## Navigation
+
+- Previous: [Logging](10-logging.md)
+- Next: [Hooks](12-hooks.md)

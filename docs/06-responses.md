@@ -135,3 +135,8 @@ It exposes:
 - `response(): Response`
 - `apiContext(): Context`
 - `statusCode(): int`
+
+## Navigation
+
+- Previous: [Resources](05-resources.md)
+- Next: [Authentication](07-authentication.md)

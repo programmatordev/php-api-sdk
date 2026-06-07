@@ -70,4 +70,9 @@ HTTPlug plugins are not configured on the client builder. They are configured th
 $api->setup()->plugins()->add($plugin, priority: 25);
 ```
 
-See [Plugins](plugins.md) for plugin order and priority guidance.
+See [Plugins](11-plugins.md) for plugin order and priority guidance.
+
+## Navigation
+
+- Previous: [Authentication](07-authentication.md)
+- Next: [Cache](09-cache.md)

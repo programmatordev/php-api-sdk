@@ -119,3 +119,8 @@ return $this
     ->send(Method::TRACE, '/debug')
     ->raw();
 ```
+
+## Navigation
+
+- Previous: [Resource Authoring](04-resource-authoring.md)
+- Next: [Responses](06-responses.md)

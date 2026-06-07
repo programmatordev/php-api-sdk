@@ -96,3 +96,8 @@ create Response
 errors
 return Response
 ```
+
+## Navigation
+
+- Previous: [Plugins](11-plugins.md)
+- Next: [API Reference](13-api-reference.md)

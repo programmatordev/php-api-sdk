@@ -73,3 +73,8 @@ $response = $api->send('GET', '/new-endpoint/{id}', ['id' => 1]);
 ```
 
 That request still uses configured base URL, defaults, auth, plugins, cache, hooks, response decoding, and error handling.
+
+## Navigation
+
+- Previous: [Getting Started](01-getting-started.md)
+- Next: [API](03-api.md)

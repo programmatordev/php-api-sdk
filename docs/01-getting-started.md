@@ -163,6 +163,7 @@ public function findWithMeta(int $id): UserResponse
 }
 ```
 
-## Next Steps
+## Navigation
 
-- Read [Resource Authoring](resource-authoring.md) for the full resource API.
+- Previous: [Documentation](00-index.md)
+- Next: [Design Approach](02-design-approach.md)
