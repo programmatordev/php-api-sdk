@@ -28,7 +28,7 @@ abstract class Resource
 
     protected function endpoint(): Endpoint
     {
-        return Endpoint::for($this->api, $this->pipelineOptions);
+        return new Endpoint($this->api, $this->pipelineOptions);
     }
 
     private function withPipelineOptions(PipelineOptions $pipelineOptions): static

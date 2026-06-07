@@ -11,15 +11,13 @@ use Psr\Http\Message\StreamInterface;
 
 class Endpoint
 {
+    private RequestOptions $options;
+
     public function __construct(
         private readonly Api $api,
-        private RequestOptions $options,
         private PipelineOptions $pipelineOptions
-    ) {}
-
-    public static function for(Api $api, ?PipelineOptions $pipelineOptions = null): static
-    {
-        return new static($api, new RequestOptions(), $pipelineOptions ?? new PipelineOptions());
+    ) {
+        $this->options = new RequestOptions();
     }
 
     /**
