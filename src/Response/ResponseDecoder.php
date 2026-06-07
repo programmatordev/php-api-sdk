@@ -46,6 +46,8 @@ final class ResponseDecoder
             return null;
         }
 
+        // libxml error handling is global, so restore the previous setting after
+        // parsing to avoid changing behavior for calling applications.
         $previous = libxml_use_internal_errors(true);
         libxml_clear_errors();
 

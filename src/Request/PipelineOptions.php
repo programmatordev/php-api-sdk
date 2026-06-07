@@ -2,6 +2,12 @@
 
 namespace ProgrammatorDev\Api\Request;
 
+/**
+ * Stores request-local pipeline configuration.
+ *
+ * Defaults are SDK-author intent, overrides are SDK-user intent. They are applied
+ * in that order so resource-chain overrides can win without mutating API globals.
+ */
 class PipelineOptions
 {
     /**

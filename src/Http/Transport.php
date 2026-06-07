@@ -99,6 +99,8 @@ final class Transport
     {
         $plugins = new PluginBuilder();
 
+        // Internal plugins are registered before user plugins so custom plugins can
+        // still run before, between, or after them by choosing a priority.
         $plugins->add(
             plugin: new ContentTypePlugin(),
             priority: self::CONTENT_TYPE_PLUGIN_PRIORITY
@@ -145,6 +147,8 @@ final class Transport
             return null;
         }
 
+        // Request-local pipeline options adjust a clone so endpoint defaults and
+        // resource overrides do not leak into the API-level cache configuration.
         $cacheBuilder = clone $this->cacheBuilder;
         $pipelineOptions->applyTo(PipelineOption::CACHE, $cacheBuilder);
 
