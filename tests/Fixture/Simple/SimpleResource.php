@@ -9,6 +9,7 @@ class SimpleResource extends Resource
     public function find(int|string $id): SimpleEntity
     {
         return $this
+            ->endpoint()
             ->get('/items/{id}', ['id' => $id])
             ->entity(SimpleEntity::class);
     }
@@ -16,6 +17,7 @@ class SimpleResource extends Resource
     public function findResponse(int|string $id): SimpleResponse
     {
         return $this
+            ->endpoint()
             ->get('/items/{id}', ['id' => $id])
             ->envelope(SimpleResponse::class);
     }
@@ -26,6 +28,7 @@ class SimpleResource extends Resource
     public function all(): array
     {
         return $this
+            ->endpoint()
             ->get('/items')
             ->collection(SimpleEntity::class, key: 'data');
     }

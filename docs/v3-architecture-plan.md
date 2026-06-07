@@ -60,11 +60,11 @@ The base class for endpoint groups.
 
 Responsibilities:
 
-- Provide protected HTTP helpers like `get`, `post`, `put`, `patch`, and `delete`.
+- Provide `endpoint()` as the SDK-author request builder entrypoint.
 - Hold immutable per-resource request options.
 - Allow generic query/header customization through primitives like `query`, `queries`, `header`, and `headers`.
 - Return a fresh resource instance by default when created through `Api::resource()`.
-- Execute requests immediately when `get`, `post`, `put`, `patch`, or `delete` are called.
+- Execute requests immediately through endpoint HTTP helpers like `get`, `post`, `put`, `patch`, and `delete`.
 
 Non-goals:
 
@@ -78,28 +78,29 @@ Immutable request state used by resources.
 
 Responsibilities:
 
-- Store per-resource/per-request query parameters.
-- Store per-resource/per-request headers.
+- Store endpoint-local query parameters.
+- Store endpoint-local headers.
 - Store body/payload options when needed.
 - Merge cleanly with API defaults during request execution.
 
-This avoids cloning and mutating the whole API instance for resource modifiers.
+This avoids cloning and mutating the whole API instance for endpoint-specific request options.
 
-Resource options should be configured fluently before calling the HTTP method:
+Endpoint-local options should be configured fluently before calling the HTTP method:
 
 ```php
 return $this
+    ->endpoint()
     ->query('active', true)
     ->get('/users/{id}', ['id' => $id])
     ->entity(User::class);
 ```
 
-The path remains an argument of `get`, `post`, `put`, `patch`, and `delete`. Query and header options are configured through fluent resource methods.
+The path remains an argument of `get`, `post`, `put`, `patch`, and `delete`. Query and header options are configured through fluent endpoint methods.
 
 Query merge order:
 
 ```text
-global API defaults < resource options < endpoint-specific options
+global API defaults < endpoint options < endpoint method query argument
 ```
 
 Builder-backed features can follow the same shape when endpoint-specific behavior is useful.
@@ -316,7 +317,7 @@ The v3 test utilities should focus on helping SDK authors test resources, respon
 | `setBaseUrl` / `getBaseUrl` | Fluent `baseUrl(...)`, optional getter only if useful |
 | SDK-specific global options | Generic config bag exposed to resources/responses/entities through context |
 | Query/header defaults | Fluent `defaultQueries(...)`, `defaultHeaders(...)` |
-| Per-resource query options | New `RequestOptions`, exposed through `Resource::query(...)` and SDK-specific traits |
+| Per-resource query options | Removed as a generic base feature; SDK authors should use explicit method arguments or API-specific state and apply options through `Endpoint` |
 | `setAuthentication` | Fluent `auth()` helper wrapping HTTPlug authentication plus low-level authentication injection |
 | Client/factory injection | Keep builder-style or fluent config methods |
 | Plugins | Use HTTPlug `PluginClientBuilder`-style priority handling; preserve multiple plugins at the same priority |
@@ -346,14 +347,13 @@ The v3 test utilities should focus on helping SDK authors test resources, respon
 - Method constants are not central to v3 because resources expose `get`, `post`, `put`, `patch`, and `delete` helpers.
 - Prefer fluent configuration over public getters.
 - Use HTTPlug `PluginClientBuilder` behavior for plugin priority ordering and same-priority plugin preservation.
-- Keep `Resource::query()`, `Resource::queries()`, `Resource::header()`, and `Resource::headers()` as generic public primitives.
-- Resource modifiers should be immutable and return cloned resources.
+- Do not keep generic query/header modifiers on `Resource`; `Endpoint` owns request-local options.
 - `get`, `post`, `put`, `patch`, and `delete` should execute immediately.
 - SDK authors choose whether resource methods return entities directly or custom response envelopes.
 - Resource constructors may remain public.
 - Use PHPDoc generics where useful, especially for `Api::resource()`, `Response::entity()`, `Response::collection()`, and `Response::envelope()`.
-- No reset methods for resource options in the first phase.
-- Merge order should be global defaults, then resource options, then endpoint-specific options.
+- No reset methods for resource options are needed because generic resource options are not part of the base feature set.
+- Merge order should be global defaults, then endpoint options, then endpoint method query arguments.
 - Client configuration is global API setup only. Do not add `Resource::client()`.
 - Defer request-local plugins, cache, hooks, and similar pipeline options until the request-local architecture is clearer. Avoid ad hoc builder cloning or one-off request option shapes. If request-local cache is added later, prefer a smaller cache options object that stores only override values such as default TTL, methods, and cache directives, then merge it with the API-level cache builder during send.
 - Header names should not be normalized manually.
@@ -422,6 +422,7 @@ final class UserResource extends Resource
     public function all(): UserCollection
     {
         return $this
+            ->endpoint()
             ->query('active', true)
             ->get('/users')
             ->envelope(UserCollection::class);
@@ -430,6 +431,7 @@ final class UserResource extends Resource
     public function find(int $id): User
     {
         return $this
+            ->endpoint()
             ->get('/users/{id}', ['id' => $id])
             ->entity(User::class, key: 'data');
     }
@@ -444,6 +446,7 @@ final class FixtureResource extends Resource
     public function find(int $id): FixtureItem
     {
         return $this
+            ->endpoint()
             ->get('/v3/football/fixtures/{id}', ['id' => $id])
             ->envelope(FixtureItem::class);
     }

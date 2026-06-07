@@ -99,7 +99,7 @@ $this->defaultQueries(['api_key' => $apiKey, 'locale' => 'en']);
 Query merge order is:
 
 ```text
-API defaults < resource options < endpoint-specific options
+API defaults < endpoint options < endpoint method query argument
 ```
 
 ## `defaultHeader(string $name, mixed $value): static`

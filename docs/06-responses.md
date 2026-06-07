@@ -36,6 +36,7 @@ Maps decoded response data to an entity class.
 
 ```php
 return $this
+    ->endpoint()
     ->get('/users/{id}', ['id' => $id])
     ->entity(User::class, key: 'data');
 ```
@@ -48,6 +49,7 @@ Maps list data to a plain array of entities.
 
 ```php
 return $this
+    ->endpoint()
     ->get('/users')
     ->collection(User::class, key: 'data');
 ```
@@ -58,6 +60,7 @@ Maps the response to a custom envelope.
 
 ```php
 return $this
+    ->endpoint()
     ->get('/users/{id}', ['id' => $id])
     ->envelope(UserResponse::class);
 ```

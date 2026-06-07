@@ -71,7 +71,7 @@ final class User implements EntityInterface
 
 ## Create A Resource
 
-Resources group endpoint methods. Use protected HTTP helpers and response mapping helpers to keep the endpoint code compact.
+Resources group endpoint methods. Use `endpoint()` to start an endpoint request builder, then map the response.
 
 ```php
 use ProgrammatorDev\Api\Resource;
@@ -81,6 +81,7 @@ final class UserResource extends Resource
     public function find(int $id): User
     {
         return $this
+            ->endpoint()
             ->get('/users/{id}', ['id' => $id])
             ->entity(User::class);
     }
@@ -91,6 +92,7 @@ final class UserResource extends Resource
     public function all(): array
     {
         return $this
+            ->endpoint()
             ->get('/users')
             ->collection(User::class, key: 'data');
     }
@@ -98,6 +100,7 @@ final class UserResource extends Resource
     public function create(string $name): User
     {
         return $this
+            ->endpoint()
             ->json(['name' => $name])
             ->post('/users')
             ->entity(User::class, key: 'data');
@@ -108,22 +111,31 @@ final class UserResource extends Resource
 Path parameters are passed as the second argument to the HTTP helper:
 
 ```php
-$this->get('/users/{id}', ['id' => $id]);
+$this->endpoint()->get('/users/{id}', ['id' => $id]);
 ```
 
 Endpoint-specific query parameters can be passed as the third argument:
 
 ```php
-$this->get('/users/{id}', ['id' => $id], ['locale' => 'pt']);
+$this->endpoint()->get('/users/{id}', ['id' => $id], ['locale' => 'pt']);
 ```
 
-Reusable query and header options are fluent and immutable:
+SDK authors decide how SDK users customize requests. Often a method argument is enough:
 
 ```php
-$activeUsers = $api
-    ->users()
-    ->query('active', true)
-    ->all();
+final class UserResource extends Resource
+{
+    public function all(bool $active = true): array
+    {
+        return $this
+            ->endpoint()
+            ->query('active', $active)
+            ->get('/users')
+            ->collection(User::class, key: 'data');
+    }
+}
+
+$activeUsers = $api->users()->all(active: true);
 ```
 
 ## Map Enveloped Responses
@@ -158,6 +170,7 @@ Then return it from the resource:
 public function findWithMeta(int $id): UserResponse
 {
     return $this
+        ->endpoint()
         ->get('/users/{id}', ['id' => $id])
         ->envelope(UserResponse::class);
 }

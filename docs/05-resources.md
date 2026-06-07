@@ -2,102 +2,131 @@
 
 `Resource` is the base class for endpoint groups.
 
-Public resource modifiers are available on resource instances. Protected request helpers are for SDK resource classes.
+`Resource` keeps the SDK-user-facing domain surface small. SDK resource classes call `endpoint()` to start an endpoint request builder.
 
-## `query(string $name, mixed $value): static`
+## `endpoint(): Endpoint`
 
-Public resource modifier.
+Protected SDK-author helper.
 
-Returns a cloned resource with one query option.
+Returns a fresh endpoint request builder.
 
 ```php
 return $this
-    ->query('active', true)
+    ->endpoint()
     ->get('/users')
-    ->collection(User::class, key: 'data');
+    ->raw();
 ```
 
-Null query values are omitted.
+## Endpoint Body Helpers
 
-## `queries(array $query): static`
+Endpoint body helpers are immutable and return a cloned endpoint builder.
 
-Public resource modifier.
-
-Returns a cloned resource with multiple query options.
-
-```php
-$this->queries(['active' => true, 'locale' => 'pt']);
-```
-
-## `header(string $name, mixed $value): static`
-
-Public resource modifier.
-
-Returns a cloned resource with one header option.
-
-```php
-$this->header('X-Tenant', $tenant);
-```
-
-## `headers(array $headers): static`
-
-Public resource modifier.
-
-Returns a cloned resource with multiple header options.
-
-```php
-$this->headers(['X-Tenant' => $tenant]);
-```
-
-## `json(array $data): static`
-
-Public resource modifier.
+### `json(array $data): static`
 
 Sets a JSON request body and `Content-Type: application/json`.
 
 ```php
 return $this
+    ->endpoint()
     ->json(['name' => 'John'])
     ->post('/users')
     ->entity(User::class);
 ```
 
-## `form(array $data): static`
-
-Public resource modifier.
+### `form(array $data): static`
 
 Sets a form-encoded request body and `Content-Type: application/x-www-form-urlencoded`.
 
 ```php
-$this->form(['name' => 'John Doe']);
+return $this
+    ->endpoint()
+    ->form(['name' => 'John Doe'])
+    ->post('/users')
+    ->entity(User::class);
 ```
 
-## `body(mixed $body): static`
-
-Public resource modifier.
+### `body(mixed $body): static`
 
 Sets a raw string, stream, or null request body.
 
 ```php
-$this->body($stream);
+return $this
+    ->endpoint()
+    ->body($stream)
+    ->post('/uploads')
+    ->raw();
 ```
 
 Passing an array throws. Use `json()` or `form()` for array data.
 
-## HTTP Helpers
+## Endpoint Query And Headers
 
-Protected resource helpers execute the request immediately and return `Response`:
+### `query(string $name, mixed $value): static`
+
+Sets one endpoint-local query option.
 
 ```php
-$this->get('/users');
-$this->post('/users');
-$this->put('/users/{id}', ['id' => $id]);
-$this->patch('/users/{id}', ['id' => $id]);
-$this->delete('/users/{id}', ['id' => $id]);
-$this->head('/users');
-$this->options('/users');
-$this->connect('/users');
-$this->trace('/users');
+return $this
+    ->endpoint()
+    ->query('active', true)
+    ->get('/users')
+    ->collection(User::class, key: 'data');
+```
+
+### `queries(array $query): static`
+
+Sets multiple endpoint-local query options.
+
+```php
+return $this
+    ->endpoint()
+    ->queries(['active' => true, 'locale' => 'pt'])
+    ->get('/users')
+    ->collection(User::class, key: 'data');
+```
+
+### `header(string $name, mixed $value): static`
+
+Sets one endpoint-local header.
+
+```php
+return $this
+    ->endpoint()
+    ->header('X-Upload-Type', 'avatar')
+    ->body($stream)
+    ->post('/uploads')
+    ->raw();
+```
+
+### `headers(array $headers): static`
+
+Sets multiple endpoint-local headers.
+
+```php
+return $this
+    ->endpoint()
+    ->headers(['X-Upload-Type' => 'avatar'])
+    ->body($stream)
+    ->post('/uploads')
+    ->raw();
+```
+
+## Endpoint HTTP Methods
+
+Endpoint HTTP helpers execute the request immediately and return `Response`:
+
+```php
+$endpoint = $this->endpoint();
+
+$endpoint->get('/users');
+$endpoint->post('/users');
+$endpoint->put('/users/{id}', ['id' => $id]);
+$endpoint->patch('/users/{id}', ['id' => $id]);
+$endpoint->delete('/users/{id}', ['id' => $id]);
+$endpoint->head('/users');
+$endpoint->options('/users');
+$endpoint->connect('/users');
+$endpoint->trace('/users');
 ```
 
 All helpers accept:
@@ -106,18 +135,6 @@ All helpers accept:
 string $path
 array $pathParams = []
 array $query = []
-```
-
-## `send(string $method, string $path, array $pathParams = [], array $query = []): Response`
-
-Protected escape hatch for methods without a named helper.
-
-```php
-use ProgrammatorDev\Api\Http\Method;
-
-return $this
-    ->send(Method::TRACE, '/debug')
-    ->raw();
 ```
 
 ## Navigation

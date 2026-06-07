@@ -101,6 +101,18 @@ class ResourceTest extends AbstractTestCase
         $this->assertSame('stream-body', (string) $request->getBody());
     }
 
+    public function testEndpointCanSetRequestQueryAndHeaders(): void
+    {
+        $this->client->addResponse(new Response(body: '{"id":1,"name":"John"}'));
+
+        $this->api->users()->findWithEndpointOptions(1);
+
+        $request = $this->client->getLastRequest();
+
+        $this->assertSame('https://api.example.com/users/1?locale=en&active=1', (string) $request->getUri());
+        $this->assertSame('acme', $request->getHeaderLine('X-Tenant'));
+    }
+
     public function testResourceBodyRejectsArrayData(): void
     {
         $this->expectException(\InvalidArgumentException::class);
@@ -118,14 +130,14 @@ class ResourceTest extends AbstractTestCase
         $this->assertSame('https://api.example.com/users/john%2Fdoe?locale=en', (string) $this->client->getLastRequest()->getUri());
     }
 
-    public function testResourceOptionsAreImmutable(): void
+    public function testEndpointOptionsDoNotLeakBetweenResourceCalls(): void
     {
         $this->client->addResponse(new Response(body: '{"id":1,"name":"John"}'));
         $this->client->addResponse(new Response(body: '{"id":2,"name":"Jane"}'));
 
         $users = $this->api->users();
 
-        $users->query('active', true)->find(1);
+        $users->findWithActive(1);
         $users->find(2);
 
         $requests = $this->client->getRequests();
@@ -134,13 +146,12 @@ class ResourceTest extends AbstractTestCase
         $this->assertSame('https://api.example.com/users/2?locale=en', (string) $requests[1]->getUri());
     }
 
-    public function testEndpointQueryOverridesResourceAndGlobalDefaults(): void
+    public function testEndpointQueryOverridesGlobalDefaults(): void
     {
         $this->client->addResponse(new Response(body: '{"id":1,"name":"John"}'));
 
         $this->api
             ->users()
-            ->query('locale', 'fr')
             ->findWithEndpointLocale(1, 'pt');
 
         $this->assertSame('https://api.example.com/users/1?locale=pt', (string) $this->client->getLastRequest()->getUri());
@@ -163,8 +174,7 @@ class ResourceTest extends AbstractTestCase
 
         $this->api
             ->users()
-            ->query('empty', null)
-            ->find(1);
+            ->findWithEmptyQuery(1);
 
         $this->assertSame('https://api.example.com/users/1?locale=en', (string) $this->client->getLastRequest()->getUri());
     }

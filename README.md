@@ -33,7 +33,7 @@ SDK packages should also require or suggest concrete PSR-18 and PSR-17 implement
 - [Design Approach](docs/02-design-approach.md): the reasoning behind fluent SDK authoring, clean SDK usage, and hackability.
 - [API](docs/03-api.md): SDK facade setup methods, configuration, and extension points.
 - [Resource Authoring](docs/04-resource-authoring.md): deeper guide for resource methods, query/header options, request bodies, entity mapping, collections, envelopes, and API-specific traits.
-- [Resources](docs/05-resources.md): resource modifiers and protected request helpers.
+- [Resources](docs/05-resources.md): resource classes and endpoint request helpers.
 - [Responses](docs/06-responses.md): decoded data, raw responses, entities, collections, envelopes, and context.
 - [Authentication](docs/07-authentication.md): configure bearer, basic, header, query, HTTPlug, and custom authentication.
 - [HTTP Client](docs/08-http-client.md): configure PSR-18 clients and PSR-17 factories.
