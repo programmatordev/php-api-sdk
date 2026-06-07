@@ -39,6 +39,42 @@ $this->cache($pool)->responseCacheDirectives(['max-age']);
 
 Sets the response cache directives respected by the cache plugin.
 
+## Resource And Endpoint Overrides
+
+SDK users can override cache behavior for one resource chain with `withCache()`:
+
+```php
+$fixtures = $api
+    ->fixtures()
+    ->withCache(fn (CacheBuilder $cache) => $cache->defaultTtl(30))
+    ->live();
+```
+
+SDK authors can set endpoint-specific cache defaults on the endpoint builder:
+
+```php
+public function live(): FixtureCollection
+{
+    return $this
+        ->endpoint()
+        ->cache(fn (CacheBuilder $cache) => $cache->defaultTtl(60))
+        ->get('/fixtures/live')
+        ->envelope(FixtureCollection::class);
+}
+```
+
+Cache overrides require API-level cache configuration, because the global cache configuration provides the PSR-6 pool:
+
+```php
+$api->setup()->cache($pool);
+```
+
+Cache configuration is merged in this order:
+
+```text
+API cache config < endpoint cache defaults < resource withCache override
+```
+
 ## Internal Order
 
 The cache plugin runs at priority `20`, after authentication and before the logger plugin.

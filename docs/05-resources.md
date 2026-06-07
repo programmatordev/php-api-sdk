@@ -137,6 +137,19 @@ array $pathParams = []
 array $query = []
 ```
 
+## Resource Cache Overrides
+
+`withCache()` lets SDK users override cache behavior for one resource chain while keeping query, headers, body, and verbs inside `Endpoint`.
+
+```php
+$users = $api
+    ->users()
+    ->withCache(fn (CacheBuilder $cache) => $cache->defaultTtl(30))
+    ->all();
+```
+
+See [Cache](09-cache.md) for endpoint cache defaults, merge order, and the API-level cache requirement.
+
 ## Navigation
 
 - Previous: [Resource Authoring](04-resource-authoring.md)

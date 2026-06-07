@@ -3,6 +3,8 @@
 namespace ProgrammatorDev\Api;
 
 use ProgrammatorDev\Api\Http\Method;
+use ProgrammatorDev\Api\Request\PipelineOption;
+use ProgrammatorDev\Api\Request\PipelineOptions;
 use ProgrammatorDev\Api\Request\RequestOptions;
 use ProgrammatorDev\Api\Response\Response;
 use Psr\Http\Message\StreamInterface;
@@ -11,12 +13,23 @@ class Endpoint
 {
     public function __construct(
         private readonly Api $api,
-        private RequestOptions $options
+        private RequestOptions $options,
+        private PipelineOptions $pipelineOptions
     ) {}
 
-    public static function for(Api $api): static
+    public static function for(Api $api, ?PipelineOptions $pipelineOptions = null): static
     {
-        return new static($api, new RequestOptions());
+        return new static($api, new RequestOptions(), $pipelineOptions ?? new PipelineOptions());
+    }
+
+    /**
+     * @param callable(\ProgrammatorDev\Api\Builder\CacheBuilder): mixed $configure
+     */
+    public function cache(callable $configure): static
+    {
+        return $this->withPipelineOptions(
+            $this->pipelineOptions->withDefault(PipelineOption::CACHE, $configure)
+        );
     }
 
     public function json(array $data): static
@@ -117,7 +130,8 @@ class Endpoint
             method: $method,
             path: $path,
             pathParams: $pathParams,
-            options: $this->options->withQueries($query)
+            options: $this->options->withQueries($query),
+            pipelineOptions: $this->pipelineOptions
         );
     }
 
@@ -125,6 +139,14 @@ class Endpoint
     {
         $clone = clone $this;
         $clone->options = $options;
+
+        return $clone;
+    }
+
+    private function withPipelineOptions(PipelineOptions $pipelineOptions): static
+    {
+        $clone = clone $this;
+        $clone->pipelineOptions = $pipelineOptions;
 
         return $clone;
     }

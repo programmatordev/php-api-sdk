@@ -19,6 +19,8 @@ use ProgrammatorDev\Api\Context\Context;
 use ProgrammatorDev\Api\Context\RequestContext;
 use ProgrammatorDev\Api\Context\ResponseContext;
 use ProgrammatorDev\Api\Helper\UrlHelper;
+use ProgrammatorDev\Api\Request\PipelineOption;
+use ProgrammatorDev\Api\Request\PipelineOptions;
 use ProgrammatorDev\Api\Request\RequestOptions;
 use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Message\RequestInterface;
@@ -54,10 +56,12 @@ final class Transport
         string $path,
         array $pathParams = [],
         ?RequestOptions $options = null,
+        ?PipelineOptions $pipelineOptions = null,
         ?Context $context = null
     ): ResponseInterface
     {
         $options ??= new RequestOptions();
+        $pipelineOptions ??= new PipelineOptions();
         $context ??= new Context();
         $path = $this->buildPath($path, $pathParams);
         $query = $options->getQuery();
@@ -83,7 +87,7 @@ final class Transport
         );
 
         $response = $this->clientBuilder
-            ->getClient($this->buildPlugins())
+            ->getClient($this->buildPlugins($pipelineOptions))
             ->sendRequest($request);
 
         return $this->hookBuilder->applyAfterResponseHooks(
@@ -91,7 +95,7 @@ final class Transport
         );
     }
 
-    private function buildPlugins(): array
+    private function buildPlugins(PipelineOptions $pipelineOptions): array
     {
         $plugins = new PluginBuilder();
 
@@ -112,7 +116,7 @@ final class Transport
             );
         }
 
-        if ($cachePlugin = $this->buildCachePlugin()) {
+        if ($cachePlugin = $this->buildCachePlugin($pipelineOptions)) {
             $plugins->add(
                 plugin: $cachePlugin,
                 priority: self::CACHE_PLUGIN_PRIORITY
@@ -131,16 +135,23 @@ final class Transport
         return $plugins->getPlugins();
     }
 
-    private function buildCachePlugin(): ?Plugin
+    private function buildCachePlugin(PipelineOptions $pipelineOptions): ?Plugin
     {
         if ($this->cacheBuilder === null) {
+            if ($pipelineOptions->has(PipelineOption::CACHE)) {
+                throw new \RuntimeException('Endpoint cache overrides require API-level cache configuration.');
+            }
+
             return null;
         }
 
+        $cacheBuilder = clone $this->cacheBuilder;
+        $pipelineOptions->applyTo(PipelineOption::CACHE, $cacheBuilder);
+
         $cacheOptions = [
-            'default_ttl' => $this->cacheBuilder->getDefaultTtl(),
-            'methods' => $this->cacheBuilder->getMethods(),
-            'respect_response_cache_directives' => $this->cacheBuilder->getResponseCacheDirectives(),
+            'default_ttl' => $cacheBuilder->getDefaultTtl(),
+            'methods' => $cacheBuilder->getMethods(),
+            'respect_response_cache_directives' => $cacheBuilder->getResponseCacheDirectives(),
             'cache_listeners' => []
         ];
 
@@ -149,7 +160,7 @@ final class Transport
         }
 
         return new CachePlugin(
-            $this->cacheBuilder->getPool(),
+            $cacheBuilder->getPool(),
             $this->clientBuilder->getStreamFactory(),
             $cacheOptions
         );

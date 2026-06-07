@@ -115,8 +115,9 @@ Request-local overrides should live on the pending request/resource flow instead
 
 ```php
 return $this
-    ->get('/weather')
+    ->endpoint()
     ->cache(fn (CacheBuilder $cache) => $cache->defaultTtl(300))
+    ->get('/weather')
     ->entity(CurrentWeather::class);
 ```
 

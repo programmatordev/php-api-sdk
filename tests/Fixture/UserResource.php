@@ -3,6 +3,7 @@
 namespace ProgrammatorDev\Api\Test\Fixture;
 
 use ProgrammatorDev\Api\Resource;
+use ProgrammatorDev\Api\Response\Response;
 use Psr\Http\Message\StreamInterface;
 
 class UserResource extends Resource
@@ -40,6 +41,25 @@ class UserResource extends Resource
     public function createWithInvalidBody(mixed $body): void
     {
         $this->endpoint()->body($body)->post('/users');
+    }
+
+    public function createWithEndpointCache(array $data): Response
+    {
+        return $this
+            ->endpoint()
+            ->cache(fn($cache) => $cache->methods(['POST']))
+            ->json($data)
+            ->post('/users');
+    }
+
+    public function createWithChainedEndpointCache(array $data): Response
+    {
+        return $this
+            ->endpoint()
+            ->cache(fn($cache) => $cache->methods(['POST']))
+            ->cache(fn($cache) => $cache->methods(['GET']))
+            ->json($data)
+            ->post('/users');
     }
 
     public function all(): array
@@ -96,7 +116,7 @@ class UserResource extends Resource
     {
         return $this
             ->endpoint()
-            ->query('timezone', $this->config()->get('timezone'))
+            ->query('timezone', $this->api->config()->get('timezone'))
             ->get('/users/{id}', ['id' => $id])
             ->entity(User::class);
     }

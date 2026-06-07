@@ -8,7 +8,7 @@ Methods not listed here are legacy, internal, or still being reshaped for v3.
 
 Public low-level request helper.
 
-Most SDK methods should use resources and the protected resource verb helpers. `send()` is useful when an SDK author or advanced SDK user needs to execute a request directly while still using the configured base URL, defaults, auth, plugins, cache, hooks, decoding, and errors.
+Most SDK methods should use resources and endpoint request helpers. `send()` is useful when an SDK author or advanced SDK user needs to execute a request directly while still using the configured base URL, defaults, auth, plugins, cache, hooks, decoding, and errors.
 
 ```php
 $response = $api->send('GET', '/users/{id}', ['id' => 1]);

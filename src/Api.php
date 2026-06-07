@@ -14,6 +14,7 @@ use ProgrammatorDev\Api\Config\Config;
 use ProgrammatorDev\Api\Context\Context;
 use ProgrammatorDev\Api\Context\ErrorContext;
 use ProgrammatorDev\Api\Http\Transport;
+use ProgrammatorDev\Api\Request\PipelineOptions;
 use ProgrammatorDev\Api\Request\RequestOptions;
 use ProgrammatorDev\Api\Response\Response;
 use ProgrammatorDev\Api\Response\ResponseDecoder;
@@ -69,7 +70,8 @@ abstract class Api
         string $method,
         string $path,
         array $pathParams = [],
-        ?RequestOptions $options = null
+        ?RequestOptions $options = null,
+        ?PipelineOptions $pipelineOptions = null
     ): Response
     {
         $options ??= new RequestOptions();
@@ -80,6 +82,7 @@ abstract class Api
             path: $path,
             pathParams: $pathParams,
             options: $options,
+            pipelineOptions: $pipelineOptions,
             context: $context
         );
 
