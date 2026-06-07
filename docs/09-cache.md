@@ -39,16 +39,27 @@ $this->cache($pool)->responseCacheDirectives(['max-age']);
 
 Sets the response cache directives respected by the cache plugin.
 
-## Resource And Endpoint Overrides
+## Cache Layers
 
-SDK users can override cache behavior for one resource chain with `withCache()`:
+Cache has three layers:
+
+```text
+API cache config < endpoint cache defaults < resource withCache override
+```
+
+The API cache config is required because it provides the PSR-6 pool. Endpoint defaults and resource overrides only adjust an already configured cache builder.
 
 ```php
-$fixtures = $api
-    ->fixtures()
-    ->withCache(fn (CacheBuilder $cache) => $cache->defaultTtl(30))
-    ->live();
+$api->setup()->cache($pool);
 ```
+
+Use each layer for a different job:
+
+- API cache config: global cache pool and fallback defaults.
+- Endpoint cache defaults: SDK-author intent for a specific endpoint.
+- Resource `withCache()` override: SDK-user override for one resource chain.
+
+## Endpoint Defaults
 
 SDK authors can set endpoint-specific cache defaults on the endpoint builder:
 
@@ -63,17 +74,32 @@ public function live(): FixtureCollection
 }
 ```
 
-Cache overrides require API-level cache configuration, because the global cache configuration provides the PSR-6 pool:
+This is useful when the SDK author knows that one endpoint should behave differently from the global default. For example, realtime endpoints may default to a short TTL while stable lookup endpoints may default to a longer TTL.
+
+Endpoint defaults do not mutate the API cache builder and do not affect later requests.
+
+## Resource Overrides
+
+SDK users can override cache behavior for one resource chain with `withCache()`. The override wins over endpoint defaults, does not mutate the API cache builder, and does not affect later resource instances.
+
+```php
+$fixtures = $api
+    ->fixtures()
+    ->withCache(fn (CacheBuilder $cache) => $cache->defaultTtl(30))
+    ->live();
+```
+
+`withCache()` is intentionally on the resource chain instead of every endpoint method argument. That keeps endpoint signatures focused on API-specific parameters while still giving SDK users a clear override path.
+
+## Missing Global Cache
+
+Endpoint defaults and resource overrides require global cache configuration:
 
 ```php
 $api->setup()->cache($pool);
 ```
 
-Cache configuration is merged in this order:
-
-```text
-API cache config < endpoint cache defaults < resource withCache override
-```
+If an endpoint or resource override is used without global cache configuration, the request fails because there is no PSR-6 pool to clone and adjust.
 
 ## Internal Order
 

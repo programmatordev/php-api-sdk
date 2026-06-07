@@ -148,6 +148,8 @@ $users = $api
     ->all();
 ```
 
+This override is immutable and applies only to the chained resource instance. It requires API-level cache configuration because the global cache setup provides the PSR-6 pool.
+
 See [Cache](09-cache.md) for endpoint cache defaults, merge order, and the API-level cache requirement.
 
 ## Navigation
