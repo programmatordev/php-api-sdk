@@ -8,7 +8,7 @@ These examples show the current SDK authoring API.
 composer require programmatordev/php-api-sdk
 ```
 
-You also need compatible PSR-18 and PSR-17 implementations. The package uses PHP-HTTP discovery, so SDK packages can choose the implementations they want to require or suggest.
+The package uses PHP-HTTP discovery for PSR-18 clients and PSR-17 factories. When the `php-http/discovery` Composer plugin is enabled, missing implementations can be installed automatically. SDK packages may still require or suggest concrete implementations when they want tighter control over the default HTTP stack.
 
 ## Create An API Class
 

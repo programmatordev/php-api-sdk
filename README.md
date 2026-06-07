@@ -14,10 +14,10 @@ The practical guides below show how to build resources, map responses, and confi
 ## Requirements
 
 - PHP `>=8.1`
-- A PSR-18 HTTP client implementation
-- PSR-17 request and stream factory implementations
+- PSR-18 HTTP client support
+- PSR-17 request and stream factory support
 
-The package can discover compatible HTTP clients and factories through PHP-HTTP discovery when implementations are installed.
+The package uses PHP-HTTP discovery for PSR-18 clients and PSR-17 factories. When the `php-http/discovery` Composer plugin is enabled, missing implementations can be installed automatically from the supported virtual packages.
 
 ## Installation
 
@@ -25,7 +25,7 @@ The package can discover compatible HTTP clients and factories through PHP-HTTP 
 composer require programmatordev/php-api-sdk
 ```
 
-SDK packages should also require or suggest concrete PSR-18 and PSR-17 implementations suitable for their users.
+SDK packages may still require or suggest concrete PSR-18 and PSR-17 implementations when they want tighter control over the default HTTP stack.
 
 ## Guides
 

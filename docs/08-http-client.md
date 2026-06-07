@@ -2,7 +2,9 @@
 
 The SDK uses a PSR-18 HTTP client to send requests and PSR-17 factories to create requests and streams.
 
-If compatible implementations are installed, the package can discover them automatically through PHP-HTTP discovery. SDK authors can also provide concrete implementations explicitly.
+By default, the package uses PHP-HTTP discovery. When the `php-http/discovery` Composer plugin is enabled, missing PSR-18 and PSR-17 implementations can be installed automatically from the supported virtual packages required by this package.
+
+SDK authors can still provide concrete implementations explicitly when a concrete SDK should control its default HTTP stack.
 
 ```php
 use Http\Discovery\Psr17FactoryDiscovery;
@@ -16,10 +18,10 @@ $this
 
 ## SDK Author Defaults
 
-SDK authors can configure the client and factories inside the API constructor when the SDK should control its defaults.
+SDK authors can configure the client and factories inside the API constructor when discovery should not choose them automatically.
 
 ```php
-use Programmatordev\ApiSdk\Api;
+use ProgrammatorDev\Api\Api;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
