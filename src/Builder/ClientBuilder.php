@@ -16,8 +16,7 @@ class ClientBuilder
         private ?ClientInterface $client = null,
         private ?RequestFactoryInterface $requestFactory = null,
         private ?StreamFactoryInterface $streamFactory = null
-    )
-    {
+    ) {
         $this->client ??= Psr18ClientDiscovery::find();
         $this->requestFactory ??= Psr17FactoryDiscovery::findRequestFactory();
         $this->streamFactory ??= Psr17FactoryDiscovery::findStreamFactory();

@@ -30,6 +30,9 @@ class Endpoint
         );
     }
 
+    /**
+     * @throws \JsonException
+     */
     public function json(array $data): static
     {
         return $this
@@ -44,6 +47,9 @@ class Endpoint
             ->body(http_build_query($data));
     }
 
+    /**
+     * @throws \InvalidArgumentException
+     */
     public function body(mixed $body): static
     {
         if (is_array($body)) {
@@ -77,51 +83,81 @@ class Endpoint
         return $this->withOptions($this->options->withHeaders($headers));
     }
 
+    /**
+     * @throws \Throwable
+     */
     public function get(string $path, array $pathParams = [], array $query = []): Response
     {
         return $this->send(Method::GET, $path, $pathParams, $query);
     }
 
+    /**
+     * @throws \Throwable
+     */
     public function post(string $path, array $pathParams = [], array $query = []): Response
     {
         return $this->send(Method::POST, $path, $pathParams, $query);
     }
 
+    /**
+     * @throws \Throwable
+     */
     public function put(string $path, array $pathParams = [], array $query = []): Response
     {
         return $this->send(Method::PUT, $path, $pathParams, $query);
     }
 
+    /**
+     * @throws \Throwable
+     */
     public function patch(string $path, array $pathParams = [], array $query = []): Response
     {
         return $this->send(Method::PATCH, $path, $pathParams, $query);
     }
 
+    /**
+     * @throws \Throwable
+     */
     public function delete(string $path, array $pathParams = [], array $query = []): Response
     {
         return $this->send(Method::DELETE, $path, $pathParams, $query);
     }
 
+    /**
+     * @throws \Throwable
+     */
     public function head(string $path, array $pathParams = [], array $query = []): Response
     {
         return $this->send(Method::HEAD, $path, $pathParams, $query);
     }
 
+    /**
+     * @throws \Throwable
+     */
     public function options(string $path, array $pathParams = [], array $query = []): Response
     {
         return $this->send(Method::OPTIONS, $path, $pathParams, $query);
     }
 
+    /**
+     * @throws \Throwable
+     */
     public function connect(string $path, array $pathParams = [], array $query = []): Response
     {
         return $this->send(Method::CONNECT, $path, $pathParams, $query);
     }
 
+    /**
+     * @throws \Throwable
+     */
     public function trace(string $path, array $pathParams = [], array $query = []): Response
     {
         return $this->send(Method::TRACE, $path, $pathParams, $query);
     }
 
+    /**
+     * @throws \Throwable
+     */
     private function send(string $method, string $path, array $pathParams = [], array $query = []): Response
     {
         return $this->api->send(

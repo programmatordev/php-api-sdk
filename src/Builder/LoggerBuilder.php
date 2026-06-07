@@ -12,8 +12,7 @@ class LoggerBuilder
     public function __construct(
         private LoggerInterface $logger,
         ?Formatter $formatter = null
-    )
-    {
+    ) {
         $this->formatter = $formatter ?: new Formatter\SimpleFormatter();
     }
 
