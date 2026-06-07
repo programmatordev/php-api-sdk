@@ -22,9 +22,9 @@
         "php-http/message": "^1.16",
         "psr/cache": "^2.0|^3.0",
         "psr/http-client": "^1.0",
-        "psr/http-client-implementation": "*",
+        "psr/http-client-implementation": "^1.0",
         "psr/http-factory": "^1.1",
-        "psr/http-factory-implementation": "*",
+        "psr/http-factory-implementation": "^1.0",
         "psr/log": "^2.0|^3.0"
     },
     "require-dev": {
@@ -35,10 +35,6 @@
         "symfony/cache": "^6.4|^7.4|^8.0",
         "symfony/http-client": "^6.4|^7.4|^8.0",
         "symfony/var-dumper": "^6.4|^7.4|^8.0"
-    },
-    "provide": {
-        "psr/http-client-implementation": "1.0",
-        "psr/http-factory-implementation": "1.0"
     },
     "autoload": {
         "psr-4": {
