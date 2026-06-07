@@ -74,7 +74,7 @@ Non-goals:
 
 ### `RequestOptions`
 
-Immutable request state used by resources.
+Immutable request state used internally by `Endpoint`.
 
 Responsibilities:
 

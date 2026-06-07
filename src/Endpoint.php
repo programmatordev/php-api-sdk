@@ -128,7 +128,9 @@ class Endpoint
             method: $method,
             path: $path,
             pathParams: $pathParams,
-            options: $this->options->withQueries($query),
+            query: $this->options->withQueries($query)->getQuery(),
+            headers: $this->options->getHeaders(),
+            body: $this->options->getBody(),
             pipelineOptions: $this->pipelineOptions
         );
     }

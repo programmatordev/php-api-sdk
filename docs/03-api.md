@@ -4,7 +4,7 @@
 
 Methods not listed here are legacy, internal, or still being reshaped for v3.
 
-## `send(string $method, string $path, array $pathParams = [], ?RequestOptions $options = null): Response`
+## `send(string $method, string $path, array $pathParams = [], array $query = [], array $headers = [], string|StreamInterface|null $body = null): Response`
 
 Public low-level request helper.
 
@@ -12,6 +12,18 @@ Most SDK methods should use resources and endpoint request helpers. `send()` is 
 
 ```php
 $response = $api->send('GET', '/users/{id}', ['id' => 1]);
+```
+
+Common request inputs can be passed directly:
+
+```php
+$response = $api->send(
+    method: 'POST',
+    path: '/users',
+    query: ['active' => true],
+    headers: ['Content-Type' => 'application/json'],
+    body: '{"name":"John"}'
+);
 ```
 
 Path parameters are encoded and replaced in `{name}` placeholders.

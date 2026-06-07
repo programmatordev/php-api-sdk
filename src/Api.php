@@ -21,6 +21,7 @@ use ProgrammatorDev\Api\Response\ResponseDecoder;
 use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
 use Psr\Cache\CacheItemPoolInterface;
+use Psr\Http\Message\StreamInterface;
 use Psr\Log\LoggerInterface;
 
 abstract class Api
@@ -70,11 +71,17 @@ abstract class Api
         string $method,
         string $path,
         array $pathParams = [],
-        ?RequestOptions $options = null,
+        array $query = [],
+        array $headers = [],
+        string|StreamInterface|null $body = null,
         ?PipelineOptions $pipelineOptions = null
     ): Response
     {
-        $options ??= new RequestOptions();
+        $options = (new RequestOptions())
+            ->withQueries($query)
+            ->withHeaders($headers)
+            ->withBody($body);
+
         $context = new Context($this->config);
 
         $response = $this->transport()->send(

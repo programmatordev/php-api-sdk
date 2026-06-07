@@ -69,7 +69,12 @@ This keeps the main SDK autocomplete focused while preserving hackability.
 If a concrete SDK does not expose an endpoint yet, `send()` can still use the configured SDK pipeline:
 
 ```php
-$response = $api->send('GET', '/new-endpoint/{id}', ['id' => 1]);
+$response = $api->send(
+    method: 'GET',
+    path: '/new-endpoint/{id}',
+    pathParams: ['id' => 1],
+    query: ['include' => 'details']
+);
 ```
 
 That request still uses configured base URL, defaults, auth, plugins, cache, hooks, response decoding, and error handling.

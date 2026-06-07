@@ -42,6 +42,26 @@ class ApiTest extends AbstractTestCase
         $this->assertSame('https://api.example.com/users/1?locale=en', (string) $client->getLastRequest()->getUri());
     }
 
+    public function testApiCanSendPublicRequestWithQueryHeadersAndBody(): void
+    {
+        $client = $this->mockClient(new Response(body: '{"id":1,"name":"John"}'));
+
+        (new FakeApi($client))->send(
+            method: Method::POST,
+            path: '/users',
+            query: ['active' => true],
+            headers: ['Content-Type' => 'application/json'],
+            body: '{"name":"John"}'
+        );
+
+        $request = $client->getLastRequest();
+
+        $this->assertSame('POST', $request->getMethod());
+        $this->assertSame('https://api.example.com/users?locale=en&active=1', (string) $request->getUri());
+        $this->assertSame('application/json', $request->getHeaderLine('Content-Type'));
+        $this->assertSame('{"name":"John"}', (string) $request->getBody());
+    }
+
     public function testApiCanSendRequestWithDefaultQuery(): void
     {
         $client = $this->mockClient(new Response(body: '{"id":1,"name":"John"}'));
