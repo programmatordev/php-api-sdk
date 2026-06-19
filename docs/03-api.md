@@ -99,15 +99,7 @@ resource(string $class): Resource
 
 Protected helper for creating resource instances from an API class.
 
-```php
-final class ExampleApi extends Api
-{
-    public function users(): UserResource
-    {
-        return $this->resource(UserResource::class);
-    }
-}
-```
+See [Resource Authoring](04-resource-authoring.md) for the recommended API-to-resource pattern.
 
 ## Request Defaults
 

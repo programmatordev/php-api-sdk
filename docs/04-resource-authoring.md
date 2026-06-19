@@ -212,6 +212,39 @@ return $this
 
 `collection()` returns a plain array of entities.
 
+Use `envelope()` when the response carries metadata, pagination, or any API-specific envelope:
+
+```php
+return $this
+    ->endpoint()
+    ->get('/users/{id}', ['id' => $id])
+    ->envelope(UserResponse::class);
+```
+
+Envelope classes must implement `ResponseEnvelopeInterface`:
+
+```php
+use ProgrammatorDev\Api\Context\Context;
+use ProgrammatorDev\Api\Response\Response;
+use ProgrammatorDev\Api\Contract\ResponseEnvelopeInterface;
+
+final class UserResponse implements ResponseEnvelopeInterface
+{
+    public function __construct(
+        private readonly User $user,
+        private readonly int $statusCode,
+    ) {}
+
+    public static function fromResponse(Response $response, ?Context $context = null): static
+    {
+        return new self(
+            user: $response->entity(User::class, key: 'data'),
+            statusCode: $response->raw()->getStatusCode(),
+        );
+    }
+}
+```
+
 ## Context
 
 `Context` carries SDK options into response mapping without passing the full `Api` instance around.
@@ -297,38 +330,6 @@ final class UserResponse implements ResponseEnvelopeInterface
 ```
 
 Keep context usage focused on hydration decisions. Entities should still be data/value objects by default and should not perform hidden network calls.
-
-Use `envelope()` when the response carries metadata, pagination, or any API-specific envelope:
-
-```php
-return $this
-    ->get('/users/{id}', ['id' => $id])
-    ->envelope(UserResponse::class);
-```
-
-Envelope classes must implement `ResponseEnvelopeInterface`:
-
-```php
-use ProgrammatorDev\Api\Context\Context;
-use ProgrammatorDev\Api\Response\Response;
-use ProgrammatorDev\Api\Contract\ResponseEnvelopeInterface;
-
-final class UserResponse implements ResponseEnvelopeInterface
-{
-    public function __construct(
-        private readonly User $user,
-        private readonly int $statusCode,
-    ) {}
-
-    public static function fromResponse(Response $response, ?Context $context = null): static
-    {
-        return new self(
-            user: $response->entity(User::class, key: 'data'),
-            statusCode: $response->raw()->getStatusCode(),
-        );
-    }
-}
-```
 
 ## API-Specific Resource Chains
 
