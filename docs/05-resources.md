@@ -4,7 +4,13 @@
 
 `Resource` keeps the SDK-user-facing domain surface small. SDK resource classes call `endpoint()` to start an endpoint request builder.
 
-## `endpoint(): Endpoint`
+## Endpoint Builder
+
+### `endpoint()`
+
+```php
+endpoint(): Endpoint
+```
 
 Protected SDK-author helper.
 
@@ -21,7 +27,11 @@ return $this
 
 Endpoint body helpers are immutable and return a cloned endpoint builder.
 
-### `json(array $data): static`
+### `json()`
+
+```php
+json(array $data): static
+```
 
 Sets a JSON request body and `Content-Type: application/json`.
 
@@ -33,7 +43,11 @@ return $this
     ->entity(User::class);
 ```
 
-### `form(array $data): static`
+### `form()`
+
+```php
+form(array $data): static
+```
 
 Sets a form-encoded request body and `Content-Type: application/x-www-form-urlencoded`.
 
@@ -45,7 +59,11 @@ return $this
     ->entity(User::class);
 ```
 
-### `body(mixed $body): static`
+### `body()`
+
+```php
+body(mixed $body): static
+```
 
 Sets a raw string, stream, or null request body.
 
@@ -61,7 +79,11 @@ Passing an array throws. Use `json()` or `form()` for array data.
 
 ## Endpoint Query And Headers
 
-### `query(string $name, mixed $value): static`
+### `query()`
+
+```php
+query(string $name, mixed $value): static
+```
 
 Sets one endpoint-local query option.
 
@@ -73,7 +95,11 @@ return $this
     ->collection(User::class, key: 'data');
 ```
 
-### `queries(array $query): static`
+### `queries()`
+
+```php
+queries(array $query): static
+```
 
 Sets multiple endpoint-local query options.
 
@@ -85,7 +111,11 @@ return $this
     ->collection(User::class, key: 'data');
 ```
 
-### `header(string $name, mixed $value): static`
+### `header()`
+
+```php
+header(string $name, mixed $value): static
+```
 
 Sets one endpoint-local header.
 
@@ -98,7 +128,11 @@ return $this
     ->raw();
 ```
 
-### `headers(array $headers): static`
+### `headers()`
+
+```php
+headers(array $headers): static
+```
 
 Sets multiple endpoint-local headers.
 

@@ -6,7 +6,11 @@ Response mapping covers decoded data, raw PSR responses, entities, collections, 
 
 `Response` wraps decoded response data and the raw PSR response.
 
-### `data(): mixed`
+### `data()`
+
+```php
+data(): mixed
+```
 
 Returns response data.
 
@@ -22,7 +26,11 @@ When no response format is configured, this returns the raw response body string
 $data = $response->data();
 ```
 
-### `raw(): ResponseInterface`
+### `raw()`
+
+```php
+raw(): ResponseInterface
+```
 
 Returns the raw PSR response.
 
@@ -30,7 +38,11 @@ Returns the raw PSR response.
 $status = $response->raw()->getStatusCode();
 ```
 
-### `entity(string $class, ?string $key = null): EntityInterface`
+### `entity()`
+
+```php
+entity(string $class, ?string $key = null): EntityInterface
+```
 
 Maps decoded response data to an entity class.
 
@@ -43,7 +55,11 @@ return $this
 
 The class must implement `EntityInterface`.
 
-### `collection(string $class, ?string $key = null): array`
+### `collection()`
+
+```php
+collection(string $class, ?string $key = null): array
+```
 
 Maps list data to a plain array of entities.
 
@@ -54,7 +70,11 @@ return $this
     ->collection(User::class, key: 'data');
 ```
 
-### `envelope(string $class): ResponseEnvelopeInterface`
+### `envelope()`
+
+```php
+envelope(string $class): ResponseEnvelopeInterface
+```
 
 Maps the response to a custom envelope.
 
@@ -96,7 +116,11 @@ EntityInterface::fromArray(array $data, ?Context $context = null)
 ResponseEnvelopeInterface::fromResponse(Response $response, ?Context $context = null)
 ```
 
-### `config(): Config`
+### `config()`
+
+```php
+config(): Config
+```
 
 Returns the SDK config available while hydrating entities or response envelopes.
 

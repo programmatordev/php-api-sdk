@@ -4,7 +4,20 @@
 
 This page documents the public API facade methods available to SDK authors and advanced SDK users.
 
-## `send(string $method, string $path, array $pathParams = [], array $query = [], array $headers = [], string|StreamInterface|null $body = null): Response`
+## Request Execution
+
+### `send()`
+
+```php
+send(
+    string $method,
+    string $path,
+    array $pathParams = [],
+    array $query = [],
+    array $headers = [],
+    string|StreamInterface|null $body = null,
+): Response
+```
 
 Public low-level request helper.
 
@@ -34,7 +47,13 @@ Path parameters are encoded and replaced in `{name}` placeholders.
 - Authentication, plugins, cache, and hooks.
 - Response decoding and error mapping.
 
-## `config(array $values = [], array $defaults = []): Config`
+## SDK Setup
+
+### `config()`
+
+```php
+config(array $values = [], array $defaults = []): Config
+```
 
 Public.
 
@@ -56,7 +75,11 @@ $api->config(['timezone' => 'UTC']);
 $api->config()->get('timezone');
 ```
 
-## `setup(): ApiSetup`
+### `setup()`
+
+```php
+setup(): ApiSetup
+```
 
 Public access to SDK setup and extension points without adding every setup method to the concrete SDK surface.
 
@@ -68,7 +91,11 @@ $api->setup()->auth()->bearer($token);
 
 SDK authors can call the same setup methods directly from subclasses.
 
-## `resource(string $class): Resource`
+### `resource()`
+
+```php
+resource(string $class): Resource
+```
 
 Protected helper for creating resource instances from an API class.
 
@@ -82,7 +109,13 @@ final class ExampleApi extends Api
 }
 ```
 
-## `baseUrl(?string $baseUrl): static`
+## Request Defaults
+
+### `baseUrl()`
+
+```php
+baseUrl(?string $baseUrl): static
+```
 
 Protected fluent helper for configuring the API base URL.
 
@@ -92,7 +125,11 @@ $this->baseUrl('https://api.example.com');
 
 Full request URLs passed to resources override the configured base URL.
 
-## `defaultQuery(string $name, mixed $value): static`
+### `defaultQuery()`
+
+```php
+defaultQuery(string $name, mixed $value): static
+```
 
 Protected fluent helper for configuring one query parameter applied to every request.
 
@@ -100,7 +137,11 @@ Protected fluent helper for configuring one query parameter applied to every req
 $this->defaultQuery('api_key', $apiKey);
 ```
 
-## `defaultQueries(array $query): static`
+### `defaultQueries()`
+
+```php
+defaultQueries(array $query): static
+```
 
 Protected fluent helper for configuring query parameters applied to every request.
 
@@ -111,10 +152,14 @@ $this->defaultQueries(['api_key' => $apiKey, 'locale' => 'en']);
 Query merge order is:
 
 ```text
-API defaults < endpoint options < endpoint method query argument
+API defaults < endpoint options
 ```
 
-## `defaultHeader(string $name, mixed $value): static`
+### `defaultHeader()`
+
+```php
+defaultHeader(string $name, mixed $value): static
+```
 
 Protected fluent helper for configuring one header applied to every request.
 
@@ -122,7 +167,11 @@ Protected fluent helper for configuring one header applied to every request.
 $this->defaultHeader('Accept', 'application/json');
 ```
 
-## `defaultHeaders(array $headers): static`
+### `defaultHeaders()`
+
+```php
+defaultHeaders(array $headers): static
+```
 
 Protected fluent helper for configuring headers applied to every request.
 
@@ -132,50 +181,64 @@ $this->defaultHeaders(['Accept' => 'application/json']);
 
 Header names are not normalized by the package.
 
-## `auth(): AuthBuilder`
+## Pipeline Builders
+
+### `auth()`
+
+```php
+auth(): AuthBuilder
+```
 
 Protected access to authentication configuration.
 
 ```php
-$this->auth()
-    ->bearer($token)
-    ->query('appid', $apiKey);
+$this->auth()->bearer($token);
 ```
 
 Authentication is applied automatically to outgoing requests.
 
+Calling another auth helper replaces the previous authentication. Use `chain()` when multiple authentication rules are required.
+
 See [Authentication](07-authentication.md) for helper methods, HTTPlug authentication objects, and custom auth callbacks.
 
-## `hooks(): HookBuilder`
+### `hooks()`
+
+```php
+hooks(): HookBuilder
+```
 
 Protected access to request and response hooks. SDK users can access hooks through `setup()`.
 
 ```php
 $this->hooks()->beforeRequest($hook);
 $this->hooks()->afterResponse($hook);
-
-$api->setup()->hooks()->beforeRequest($hook);
 ```
 
 Hooks are SDK-author extension points. They run around the raw HTTP request and response, before response decoding and error handling.
 
 See [Hooks](12-hooks.md) for hook context objects, return values, and priority behavior.
 
-## `plugins(): PluginBuilder`
+### `plugins()`
+
+```php
+plugins(): PluginBuilder
+```
 
 Protected access to HTTPlug plugin configuration. SDK users can access plugins through `setup()`.
 
 ```php
 $this->plugins()->add($plugin, priority: 16);
-
-$api->setup()->plugins()->add($plugin, priority: 16);
 ```
 
 Higher priority plugins run earlier. Same-priority plugins are preserved in insertion order.
 
 See [Plugins](11-plugins.md) for internal plugin order and priority guidance.
 
-## `cache(CacheItemPoolInterface $pool): CacheBuilder`
+### `cache()`
+
+```php
+cache(CacheItemPoolInterface $pool): CacheBuilder
+```
 
 Protected access to PSR-6 HTTP response cache configuration. SDK users can access cache through `setup()`.
 
@@ -184,20 +247,20 @@ $this
     ->cache($pool)
     ->defaultTtl(3600)
     ->methods(['GET', 'HEAD']);
-
-$api->setup()->cache($pool)->defaultTtl(3600);
 ```
 
 See [Cache](09-cache.md) for cache options and plugin order.
 
-## `client(ClientInterface $client): ClientBuilder`
+### `client()`
+
+```php
+client(ClientInterface $client): ClientBuilder
+```
 
 Protected access to PSR-18 client configuration. SDK users can access client configuration through `setup()`.
 
 ```php
 $this->client($client);
-
-$api->setup()->client($client);
 ```
 
 SDK authors can configure PSR-17 factories on the returned builder:
@@ -211,7 +274,11 @@ $this
 
 See [HTTP Client](08-http-client.md) for client and factory configuration.
 
-## `logger(LoggerInterface $logger): LoggerBuilder`
+### `logger()`
+
+```php
+logger(LoggerInterface $logger): LoggerBuilder
+```
 
 Protected access to PSR-3 logger configuration. SDK users can access logging through `setup()`.
 
@@ -219,13 +286,17 @@ Protected access to PSR-3 logger configuration. SDK users can access logging thr
 $this
     ->logger($logger)
     ->formatter($formatter);
-
-$api->setup()->logger($logger);
 ```
 
 See [Logging](10-logging.md) for logger formatting and cache logging.
 
-## `responses(): ResponseBuilder`
+## Response Handling
+
+### `responses()`
+
+```php
+responses(): ResponseBuilder
+```
 
 Protected access to response decoding configuration.
 
@@ -244,7 +315,11 @@ Available response formats:
 
 When no format is configured, `raw()` is used.
 
-## `errors(): ErrorBuilder`
+### `errors()`
+
+```php
+errors(): ErrorBuilder
+```
 
 Protected access to error handling configuration.
 
@@ -288,11 +363,15 @@ $this->errors()->when(function (ErrorContext $context): ?Throwable {
 
 Status callbacks receive `ErrorContext` and must return a `Throwable`. Custom `when()` handlers receive `ErrorContext` and must return a `Throwable` when matched or `null` when not matched.
 
-## `Config`
+## Config Object
 
 `Config` stores SDK options.
 
-### `all(): array`
+### `all()`
+
+```php
+all(): array
+```
 
 Returns all option values.
 
@@ -300,7 +379,11 @@ Returns all option values.
 $options = $api->config()->all();
 ```
 
-### `only(string ...$keys): array`
+### `only()`
+
+```php
+only(string ...$keys): array
+```
 
 Returns selected option values. Missing keys are omitted.
 
@@ -308,7 +391,11 @@ Returns selected option values. Missing keys are omitted.
 $query = $api->config()->only('units', 'lang');
 ```
 
-### `has(string $key): bool`
+### `has()`
+
+```php
+has(string $key): bool
+```
 
 Checks whether an option exists. A key with a `null` value still exists.
 
@@ -316,7 +403,11 @@ Checks whether an option exists. A key with a `null` value still exists.
 $api->config()->has('timezone');
 ```
 
-### `get(string $key, mixed $default = null): mixed`
+### `get()`
+
+```php
+get(string $key, mixed $default = null): mixed
+```
 
 Returns an option value or the default when the key does not exist.
 
@@ -324,7 +415,11 @@ Returns an option value or the default when the key does not exist.
 $timezone = $api->config()->get('timezone', 'UTC');
 ```
 
-### `set(string $key, mixed $value): self`
+### `set()`
+
+```php
+set(string $key, mixed $value): self
+```
 
 Sets one option value.
 
@@ -332,7 +427,11 @@ Sets one option value.
 $api->config()->set('timezone', 'UTC');
 ```
 
-### `merge(array $values): self`
+### `merge()`
+
+```php
+merge(array $values): self
+```
 
 Sets multiple option values.
 
