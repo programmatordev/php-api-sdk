@@ -75,6 +75,8 @@ Entities used by response mapping must implement:
 public static function fromArray(array $data, ?Context $context = null): static;
 ```
 
+`fromArray()` is the mapping boundary for an entity. The package passes decoded response data to it; the SDK author decides how payload keys become constructor arguments, value objects, or derived values.
+
 ## `ResponseEnvelopeInterface`
 
 Response envelopes used by `Response::envelope()` must implement:

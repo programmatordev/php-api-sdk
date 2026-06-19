@@ -109,7 +109,8 @@ class UserResource extends Resource
     {
         return $this
             ->endpoint()
-            ->get('/users/{id}', ['id' => $id], ['locale' => $locale])
+            ->query('locale', $locale)
+            ->get('/users/{id}', ['id' => $id])
             ->entity(User::class);
     }
 

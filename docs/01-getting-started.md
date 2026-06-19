@@ -48,6 +48,8 @@ $user = $api->users()->find(1);
 
 Entities are typed response objects. Classes used with `Response::entity()` and `Response::collection()` must implement `EntityInterface`.
 
+`fromArray()` is the SDK author's mapping boundary: it defines how decoded API data becomes the entity.
+
 ```php
 use ProgrammatorDev\Api\Context\Context;
 use ProgrammatorDev\Api\Contract\EntityInterface;
@@ -114,10 +116,13 @@ Path parameters are passed as the second argument to the HTTP helper:
 $this->endpoint()->get('/users/{id}', ['id' => $id]);
 ```
 
-Endpoint-specific query parameters can be passed as the third argument:
+Endpoint-specific query parameters are configured on the endpoint builder:
 
 ```php
-$this->endpoint()->get('/users/{id}', ['id' => $id], ['locale' => 'pt']);
+$this
+    ->endpoint()
+    ->query('locale', 'pt')
+    ->get('/users/{id}', ['id' => $id]);
 ```
 
 SDK authors decide how SDK users customize requests. Often a method argument is enough:

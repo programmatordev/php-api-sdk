@@ -134,8 +134,9 @@ All helpers accept:
 ```php
 string $path
 array $pathParams = []
-array $query = []
 ```
+
+Use `query()`, `queries()`, `header()`, and `headers()` to configure request-local query parameters and headers before calling the HTTP helper.
 
 ## Resource Cache Overrides
 

@@ -59,12 +59,13 @@ $endpoint->trace('/users');
 
 Each helper executes the request immediately and returns a `Response` wrapper.
 
-Endpoint-specific query parameters can be passed as the third argument:
+Endpoint-specific query parameters are configured on the endpoint builder:
 
 ```php
 return $this
     ->endpoint()
-    ->get('/users/{id}', ['id' => $id], ['locale' => 'pt'])
+    ->query('locale', 'pt')
+    ->get('/users/{id}', ['id' => $id])
     ->entity(User::class);
 ```
 
@@ -188,6 +189,8 @@ final class User implements EntityInterface
     }
 }
 ```
+
+Treat `fromArray()` as the entity's mapping boundary. It keeps resource methods focused on requests and lets each entity own how decoded API payloads become typed PHP values.
 
 Use the optional `key` argument when the object is nested inside an envelope:
 
