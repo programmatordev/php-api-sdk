@@ -23,7 +23,9 @@ final class ExampleApi extends Api
         );
 
         $this->hooks()->afterResponse(
-            fn (ResponseContext $context) => $context->response()
+            fn (ResponseContext $context) => $context
+                ->response()
+                ->withoutHeader('X-Debug-Trace')
         );
     }
 }
@@ -47,7 +49,7 @@ Return a `RequestInterface` to replace the request. Return `null` to leave it un
 
 ```php
 $this->hooks()->afterResponse(function (ResponseContext $context) {
-    return $context->response();
+    return $context->response()->withoutHeader('X-Debug-Trace');
 });
 ```
 
