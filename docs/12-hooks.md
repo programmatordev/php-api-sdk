@@ -84,7 +84,7 @@ The shared `Context` gives hooks access to SDK config without injecting the full
 
 ## Order
 
-The current v3 request flow is:
+The current request flow is:
 
 ```text
 create request
@@ -100,4 +100,3 @@ return Response
 ## Navigation
 
 - Previous: [Plugins](11-plugins.md)
-- Next: [API Reference](13-api-reference.md)

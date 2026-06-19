@@ -41,11 +41,10 @@ SDK packages may still require or suggest concrete PSR-18 and PSR-17 implementat
 - [Logging](10-logging.md): configure PSR-3 logging and HTTP/cache log output.
 - [Plugins](11-plugins.md): configure HTTPlug middleware and priority ordering.
 - [Hooks](12-hooks.md): run SDK-author callbacks around requests and responses.
-- [API Reference](13-api-reference.md): authoring methods and contracts.
 
 ## Upgrading
 
-Version 3.0 is a full architecture refresh. See [Upgrade to 3.0](../UPGRADE-3.0.md) for the high-level changes.
+See [Upgrade to 3.0](../UPGRADE-3.0.md) for the high-level changes.
 
 ## Navigation
 

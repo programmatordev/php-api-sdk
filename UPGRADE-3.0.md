@@ -76,14 +76,13 @@ HTTP errors do not throw by default. Configure error handling explicitly:
 
 ```php
 $this->errors()->status(404, NotFoundException::class);
-$this->errors()->when(fn (ErrorContext $context) => null);
 ```
 
 See [API](docs/03-api.md) and [Responses](docs/06-responses.md) for details.
 
 ## Infrastructure Uses Builders
 
-PSR-18 clients, PSR-17 factories, PSR-6 cache, PSR-3 logging, HTTPlug authentication, plugins, and hooks are still supported. In v3, they are configured through grouped builders instead of scattered low-level methods.
+PSR-18 clients, PSR-17 factories, PSR-6 cache, PSR-3 logging, HTTPlug authentication, plugins, and hooks are still supported. They are configured through grouped builders instead of scattered low-level methods.
 
 ```php
 $this->auth()->bearer($token);
@@ -96,17 +95,13 @@ $this->client($client)->requestFactory($requestFactory);
 
 `plugins()` remains the right place for transport-level behavior. `hooks()` remains available for request and response lifecycle customization, but response decoding and error handling now have dedicated builders.
 
-Authentication is replaced by each `auth()` call unless you explicitly use `chain()`:
+Most SDKs only need one authentication helper:
 
 ```php
-use Http\Message\Authentication\Bearer;
-use Http\Message\Authentication\QueryParam;
-
-$this->auth()->chain(
-    new Bearer($token),
-    new QueryParam(['api_key' => $apiKey]),
-);
+$this->auth()->bearer($token);
 ```
+
+Use `chain()` only when an API requires multiple authentication rules on the same request.
 
 See [Authentication](docs/07-authentication.md), [HTTP Client](docs/08-http-client.md), [Cache](docs/09-cache.md), [Logging](docs/10-logging.md), [Plugins](docs/11-plugins.md), and [Hooks](docs/12-hooks.md) for details.
 
@@ -116,7 +111,7 @@ SDK authors can still configure request defaults:
 
 ```php
 $this->defaultHeaders(['Accept' => 'application/json']);
-$this->defaultQueries($this->config()->only(['units', 'locale']));
+$this->defaultQueries($this->config()->only('units', 'locale'));
 ```
 
 SDK authors can configure endpoint-specific cache defaults inside the endpoint chain:
@@ -169,7 +164,7 @@ See [API](docs/03-api.md) and [Design Approach: Escape Hatch](docs/02-design-app
 `send()` is public as an advanced escape hatch. SDK users can call endpoints that are not modeled by the concrete SDK while still using the SDK's configured base URL, authentication, cache, plugins, hooks, decoding, and error handling.
 
 ```php
-$response = $api->send('GET', '/unmodeled-endpoint', queries: [
+$response = $api->send('GET', '/unmodeled-endpoint', query: [
     'page' => 1,
 ]);
 ```
@@ -199,4 +194,4 @@ See [Resource Authoring: API-Specific Resource Chains](docs/04-resource-authorin
 
 ## Test Utilities Are Support Code
 
-The v3 test helpers are intended to support this package and SDK author tests. Concrete SDKs should prefer focused tests around their own resources, entities, envelopes, fake clients, and API-specific fluent helpers.
+The test helpers are intended to support this package and SDK author tests. Concrete SDKs should prefer focused tests around their own resources, entities, envelopes, fake clients, and API-specific fluent helpers.
