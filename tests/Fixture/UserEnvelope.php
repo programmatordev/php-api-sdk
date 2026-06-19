@@ -4,9 +4,9 @@ namespace ProgrammatorDev\Api\Test\Fixture;
 
 use ProgrammatorDev\Api\Context\Context;
 use ProgrammatorDev\Api\Response\Response;
-use ProgrammatorDev\Api\Contract\ResponseEnvelopeInterface;
+use ProgrammatorDev\Api\Contract\EnvelopeInterface;
 
-class UserEnvelope implements ResponseEnvelopeInterface
+class UserEnvelope implements EnvelopeInterface
 {
     public function __construct(
         private readonly User $user,

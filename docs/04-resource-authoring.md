@@ -218,17 +218,17 @@ Use `envelope()` when the response carries metadata, pagination, or any API-spec
 return $this
     ->endpoint()
     ->get('/users/{id}', ['id' => $id])
-    ->envelope(UserResponse::class);
+    ->envelope(UserEnvelope::class);
 ```
 
-Envelope classes must implement `ResponseEnvelopeInterface`:
+Envelope classes must implement `EnvelopeInterface`:
 
 ```php
 use ProgrammatorDev\Api\Context\Context;
 use ProgrammatorDev\Api\Response\Response;
-use ProgrammatorDev\Api\Contract\ResponseEnvelopeInterface;
+use ProgrammatorDev\Api\Contract\EnvelopeInterface;
 
-final class UserResponse implements ResponseEnvelopeInterface
+final class UserEnvelope implements EnvelopeInterface
 {
     public function __construct(
         private readonly User $user,
@@ -252,7 +252,7 @@ final class UserResponse implements ResponseEnvelopeInterface
 The flow is:
 
 ```text
-SDK constructor options -> Api config -> Context -> EntityInterface or ResponseEnvelopeInterface
+SDK constructor options -> Api config -> Context -> EntityInterface or EnvelopeInterface
 ```
 
 Start by accepting SDK options and storing them in config:
@@ -278,7 +278,7 @@ final class ExampleApi extends Api
 When a response is mapped, the API creates a context with that config. The same context is passed to:
 
 - `EntityInterface::fromArray(array $data, ?Context $context = null)`
-- `ResponseEnvelopeInterface::fromResponse(Response $response, ?Context $context = null)`
+- `EnvelopeInterface::fromResponse(Response $response, ?Context $context = null)`
 
 Entities can use config values during hydration:
 
@@ -305,14 +305,14 @@ final class User implements EntityInterface
 }
 ```
 
-Response envelopes receive the same context:
+Envelopes receive the same context:
 
 ```php
 use ProgrammatorDev\Api\Context\Context;
 use ProgrammatorDev\Api\Response\Response;
-use ProgrammatorDev\Api\Contract\ResponseEnvelopeInterface;
+use ProgrammatorDev\Api\Contract\EnvelopeInterface;
 
-final class UserResponse implements ResponseEnvelopeInterface
+final class UserEnvelope implements EnvelopeInterface
 {
     public function __construct(
         private readonly User $user,
@@ -335,10 +335,10 @@ Keep context usage focused on hydration decisions. Entities should still be data
 
 Keep API-specific vocabulary out of the base package. Add it in SDK resources with small fluent methods that use the generic endpoint helpers underneath.
 
-For example, an SDK can expose a status filter without making the generic package know what a status filter is:
+For example, an SDK can expose a reusable status filter without making the generic package know what a status filter is:
 
 ```php
-final class UserResource extends Resource
+trait HasStatusFilter
 {
     private ?string $status = null;
 
@@ -349,6 +349,15 @@ final class UserResource extends Resource
 
         return $clone;
     }
+}
+```
+
+Resources that support that API-specific filter can opt in to the trait:
+
+```php
+final class UserResource extends Resource
+{
+    use HasStatusFilter;
 
     public function all(): array
     {

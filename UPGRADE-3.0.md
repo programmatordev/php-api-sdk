@@ -41,12 +41,12 @@ Use response mapping helpers:
 ```php
 $response->entity(User::class);
 $response->collection(User::class, key: 'data');
-$response->envelope(UserResponse::class);
+$response->envelope(UserEnvelope::class);
 ```
 
-Response envelopes must implement `ResponseEnvelopeInterface`.
+Envelopes must implement `EnvelopeInterface`.
 
-See [Responses: EntityInterface](docs/06-responses.md#entityinterface) and [Responses: ResponseEnvelopeInterface](docs/06-responses.md#responseenvelopeinterface) for details.
+See [Responses: EntityInterface](docs/06-responses.md#entityinterface) and [Responses: EnvelopeInterface](docs/06-responses.md#envelopeinterface) for details.
 
 ## Config Replaces Ad Hoc Options
 
@@ -58,7 +58,7 @@ $this->config($options, defaults: [
 ]);
 ```
 
-The same config is available to entities, response envelopes, and hooks through context objects.
+The same config is available to entities, envelopes, and hooks through context objects.
 
 See [API](docs/03-api.md) and [Responses: Context](docs/06-responses.md#context) for details.
 
@@ -199,4 +199,4 @@ See [Resource Authoring: API-Specific Resource Chains](docs/04-resource-authorin
 
 ## Test Utilities Are Support Code
 
-The v3 test helpers are intended to support this package and SDK author tests. Concrete SDKs should prefer focused tests around their own resources, entities, response envelopes, fake clients, and API-specific fluent helpers.
+The v3 test helpers are intended to support this package and SDK author tests. Concrete SDKs should prefer focused tests around their own resources, entities, envelopes, fake clients, and API-specific fluent helpers.

@@ -137,7 +137,7 @@ class ResponseTest extends AbstractTestCase
         $response->collection(\stdClass::class);
     }
 
-    public function testEnvelopeRejectsClassThatDoesNotImplementResponseEnvelope(): void
+    public function testEnvelopeRejectsClassThatDoesNotImplementEnvelope(): void
     {
         $response = new Response(['data' => ['id' => 1]], new PsrResponse());
 

@@ -4,7 +4,7 @@ namespace ProgrammatorDev\Api\Response;
 
 use ProgrammatorDev\Api\Context\Context;
 use ProgrammatorDev\Api\Contract\EntityInterface;
-use ProgrammatorDev\Api\Contract\ResponseEnvelopeInterface;
+use ProgrammatorDev\Api\Contract\EnvelopeInterface;
 use Psr\Http\Message\ResponseInterface;
 
 class Response
@@ -74,13 +74,13 @@ class Response
     }
 
     /**
-     * @template T of ResponseEnvelopeInterface
+     * @template T of EnvelopeInterface
      * @param class-string<T> $class
      * @return T
      */
-    public function envelope(string $class): ResponseEnvelopeInterface
+    public function envelope(string $class): EnvelopeInterface
     {
-        $this->assertResponseEnvelopeClass($class);
+        $this->assertEnvelopeClass($class);
 
         return $class::fromResponse($this, $this->context);
     }
@@ -118,13 +118,13 @@ class Response
     /**
      * @param class-string $class
      */
-    private function assertResponseEnvelopeClass(string $class): void
+    private function assertEnvelopeClass(string $class): void
     {
-        if (!is_subclass_of($class, ResponseEnvelopeInterface::class)) {
+        if (!is_subclass_of($class, EnvelopeInterface::class)) {
             throw new \InvalidArgumentException(sprintf(
-                'Response envelope class "%s" must implement %s.',
+                'Envelope class "%s" must implement %s.',
                 $class,
-                ResponseEnvelopeInterface::class
+                EnvelopeInterface::class
             ));
         }
     }

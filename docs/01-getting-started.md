@@ -143,16 +143,16 @@ final class UserResource extends Resource
 $activeUsers = $api->users()->all(active: true);
 ```
 
-## Map Enveloped Responses
+## Map Envelopes
 
-If an API returns metadata, pagination, or any custom envelope, create a response envelope class.
+If an API returns metadata, pagination, or any custom envelope, create an envelope class.
 
 ```php
 use ProgrammatorDev\Api\Context\Context;
 use ProgrammatorDev\Api\Response\Response;
-use ProgrammatorDev\Api\Contract\ResponseEnvelopeInterface;
+use ProgrammatorDev\Api\Contract\EnvelopeInterface;
 
-final class UserResponse implements ResponseEnvelopeInterface
+final class UserEnvelope implements EnvelopeInterface
 {
     public function __construct(
         /** @var User[] */
@@ -177,13 +177,13 @@ final class UserResponse implements ResponseEnvelopeInterface
 Then return it from the resource:
 
 ```php
-public function all(int $page = 1): UserResponse
+public function all(int $page = 1): UserEnvelope
 {
     return $this
         ->endpoint()
         ->query('page', $page)
         ->get('/users')
-        ->envelope(UserResponse::class);
+        ->envelope(UserEnvelope::class);
 }
 ```
 

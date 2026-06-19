@@ -1,6 +1,6 @@
 # Responses
 
-Response mapping covers decoded data, raw PSR responses, entities, collections, custom response envelopes, and hydration context.
+Response mapping covers decoded data, raw PSR responses, entities, collections, envelopes, and hydration context.
 
 ## `Response`
 
@@ -73,7 +73,7 @@ return $this
 ### `envelope()`
 
 ```php
-envelope(string $class): ResponseEnvelopeInterface
+envelope(string $class): EnvelopeInterface
 ```
 
 Maps the response to a custom envelope.
@@ -82,10 +82,10 @@ Maps the response to a custom envelope.
 return $this
     ->endpoint()
     ->get('/users/{id}', ['id' => $id])
-    ->envelope(UserResponse::class);
+    ->envelope(UserEnvelope::class);
 ```
 
-The class must implement `ResponseEnvelopeInterface`.
+The class must implement `EnvelopeInterface`.
 
 ## `EntityInterface`
 
@@ -97,9 +97,9 @@ public static function fromArray(array $data, ?Context $context = null): static;
 
 `fromArray()` is the mapping boundary for an entity. The package passes decoded response data to it; the SDK author decides how payload keys become constructor arguments, value objects, or derived values.
 
-## `ResponseEnvelopeInterface`
+## `EnvelopeInterface`
 
-Response envelopes used by `Response::envelope()` must implement:
+Envelopes used by `Response::envelope()` must implement:
 
 ```php
 public static function fromResponse(Response $response, ?Context $context = null): static;
@@ -113,7 +113,7 @@ SDK users do not fetch context from `Response`. The package passes context into 
 
 ```php
 EntityInterface::fromArray(array $data, ?Context $context = null)
-ResponseEnvelopeInterface::fromResponse(Response $response, ?Context $context = null)
+EnvelopeInterface::fromResponse(Response $response, ?Context $context = null)
 ```
 
 ### `config()`
@@ -122,7 +122,7 @@ ResponseEnvelopeInterface::fromResponse(Response $response, ?Context $context = 
 config(): Config
 ```
 
-Returns the SDK config available while hydrating entities or response envelopes.
+Returns the SDK config available while hydrating entities or envelopes.
 
 ```php
 $timezone = $context?->config()->get('timezone');
