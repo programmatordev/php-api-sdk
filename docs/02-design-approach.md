@@ -18,9 +18,9 @@ final class ExampleApi extends Api
     {
         $this
             ->baseUrl('https://api.example.com')
-            ->defaultHeader('Accept', 'application/json')
-            ->responses()
-            ->json();
+            ->defaultHeader('Accept', 'application/json');
+
+        $this->responses()->json();
 
         $this->auth()->query('api_key', $apiKey);
     }
@@ -40,6 +40,7 @@ final class UserResource extends Resource
     public function find(int $id): User
     {
         return $this
+            ->endpoint()
             ->get('/users/{id}', ['id' => $id])
             ->entity(User::class, key: 'data');
     }

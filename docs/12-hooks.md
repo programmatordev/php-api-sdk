@@ -13,10 +13,8 @@ final class ExampleApi extends Api
 {
     public function __construct(string $apiKey)
     {
-        $this
-            ->baseUrl('https://api.example.com')
-            ->responses()
-            ->json();
+        $this->baseUrl('https://api.example.com');
+        $this->responses()->json();
 
         $this->hooks()->beforeRequest(
             fn (RequestContext $context) => $context

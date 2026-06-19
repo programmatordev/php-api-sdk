@@ -36,12 +36,14 @@ final class ExampleApi extends Api
     ) {
         $this
             ->baseUrl('https://api.example.com')
-            ->defaultQueries(['api_key' => $apiKey])
+            ->defaultQueries(['api_key' => $apiKey]);
+
+        $this
             ->client($client)
             ->requestFactory($requestFactory)
-            ->streamFactory($streamFactory)
-            ->responses()
-            ->json();
+            ->streamFactory($streamFactory);
+
+        $this->responses()->json();
     }
 }
 ```

@@ -155,15 +155,20 @@ use ProgrammatorDev\Api\Contract\ResponseEnvelopeInterface;
 final class UserResponse implements ResponseEnvelopeInterface
 {
     public function __construct(
-        public readonly User $user,
-        public readonly int $statusCode,
+        /** @var User[] */
+        public readonly array $users,
+        public readonly int $page,
+        public readonly int $totalPages,
     ) {}
 
     public static function fromResponse(Response $response, ?Context $context = null): static
     {
+        $data = $response->data();
+
         return new self(
-            user: $response->entity(User::class, key: 'data'),
-            statusCode: $response->raw()->getStatusCode(),
+            users: $response->collection(User::class, key: 'data'),
+            page: $data['pagination']['page'],
+            totalPages: $data['pagination']['total_pages'],
         );
     }
 }
@@ -172,11 +177,12 @@ final class UserResponse implements ResponseEnvelopeInterface
 Then return it from the resource:
 
 ```php
-public function findWithMeta(int $id): UserResponse
+public function all(int $page = 1): UserResponse
 {
     return $this
         ->endpoint()
-        ->get('/users/{id}', ['id' => $id])
+        ->query('page', $page)
+        ->get('/users')
         ->envelope(UserResponse::class);
 }
 ```
