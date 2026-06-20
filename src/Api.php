@@ -201,9 +201,11 @@ abstract class Api
         return $this->config;
     }
 
-    private function transport(): Transport
+    private function runtime(): Runtime
     {
-        return new Transport(
+        // Build transport at send time so resources created before later
+        // setup() changes still use the latest API configuration.
+        $transport = fn(): Transport => new Transport(
             clientBuilder: $this->clientBuilder,
             authBuilder: $this->authBuilder,
             pluginBuilder: $this->pluginBuilder,
@@ -214,21 +216,13 @@ abstract class Api
             defaultQueries: $this->defaultQueries,
             defaultHeaders: $this->defaultHeaders
         );
-    }
 
-    private function responseDecoder(): ResponseDecoder
-    {
-        return new ResponseDecoder($this->responseBuilder);
-    }
+        $responseDecoder = new ResponseDecoder($this->responseBuilder);
 
-    private function runtime(): Runtime
-    {
         return new Runtime(
             config: $this->config,
-            // Build transport at send time so resources created before later
-            // setup() changes still use the latest API configuration.
-            transport: fn(): Transport => $this->transport(),
-            responseDecoder: $this->responseDecoder(),
+            transport: $transport,
+            responseDecoder: $responseDecoder,
             errorBuilder: $this->errorBuilder
         );
     }
