@@ -63,6 +63,8 @@ class AuthBuilder
 
     public function use(Authentication $authentication): self
     {
+        // Authentication is intentionally replaced, not appended. Use chain()
+        // when multiple authentication strategies must run on the same request.
         $this->authentication = $authentication;
 
         return $this;

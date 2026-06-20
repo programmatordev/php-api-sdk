@@ -46,6 +46,8 @@ class HookBuilder
         $request = $context->request();
 
         foreach ($this->sort($this->beforeRequestHooks) as $hook) {
+            // Each hook receives the request produced by the previous hook so
+            // small request mutations can compose without sharing mutable state.
             $replacement = $hook(new RequestContext($request, $context->apiContext()));
 
             if ($replacement instanceof RequestInterface) {
@@ -70,6 +72,8 @@ class HookBuilder
         $response = $context->response();
 
         foreach ($this->sort($this->afterResponseHooks) as $hook) {
+            // Later hooks see the response returned by earlier hooks, mirroring
+            // the before-request pipeline while keeping PSR responses immutable.
             $replacement = $hook(new ResponseContext($context->request(), $response, $context->apiContext()));
 
             if ($replacement instanceof ResponseInterface) {
@@ -98,6 +102,8 @@ class HookBuilder
 
         krsort($hooks);
 
+        // Higher priority runs first; hooks with the same priority keep their
+        // registration order because the per-priority lists are never re-sorted.
         return array_values(array_merge(...array_values($hooks)));
     }
 }

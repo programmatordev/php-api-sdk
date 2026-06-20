@@ -48,6 +48,8 @@ class PluginBuilder
         $plugins = $this->plugins;
         krsort($plugins);
 
+        // Higher priority plugins are placed earlier in the HTTPlug chain; equal
+        // priority preserves registration order inside each bucket.
         return array_values(array_merge(...array_values($plugins)));
     }
 }

@@ -66,6 +66,8 @@ class RequestOptions
 
     private function filterNullValues(array $values): array
     {
+        // Null means "omit this request-local query value"; false, 0, and empty
+        // strings are still meaningful values and must be preserved.
         return array_filter($values, static fn(mixed $value): bool => $value !== null);
     }
 }
