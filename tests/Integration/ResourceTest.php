@@ -196,7 +196,7 @@ class ResourceTest extends AbstractTestCase
         $this->assertSame('https://api.example.com/users/1?locale=en&timezone=UTC', (string) $this->client->getLastRequest()->getUri());
     }
 
-    public function testResourceUsesLatestApiSetupWhenRequestIsSent(): void
+    public function testResourceCreatedBeforeSetupChangeUsesLatestRequestDefaults(): void
     {
         $this->client->addResponse(new Response(body: '{"id":1,"name":"John"}'));
 

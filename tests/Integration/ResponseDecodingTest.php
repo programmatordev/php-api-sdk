@@ -94,4 +94,23 @@ class ResponseDecodingTest extends AbstractTestCase
             'body' => 'accepted',
         ], $response->data());
     }
+
+    public function testResourceCreatedBeforeSetupChangeUsesLatestResponseDecoder(): void
+    {
+        $client = $this->mockClient(new Response(status: 202, body: 'accepted'));
+        $api = new PlainApi($client);
+        $resource = $api->raw();
+
+        $api->decodeWith(fn (ResponseInterface $response): array => [
+            'status' => $response->getStatusCode(),
+            'body' => (string) $response->getBody(),
+        ]);
+
+        $response = $resource->fetch();
+
+        $this->assertSame([
+            'status' => 202,
+            'body' => 'accepted',
+        ], $response->data());
+    }
 }
