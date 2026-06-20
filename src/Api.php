@@ -88,9 +88,11 @@ abstract class Api
         );
     }
 
-    public function setup(): ApiSetup
+    public function setup(): Setup
     {
-        return new ApiSetup(
+        return new Setup(
+            // Keep setup helpers protected on Api while exposing them through
+            // one explicit SDK-user setup surface.
             fn(string $method, array $arguments): mixed => $this->{$method}(...$arguments)
         );
     }

@@ -15,10 +15,10 @@ use Psr\Cache\CacheItemPoolInterface;
 use Psr\Http\Client\ClientInterface;
 use Psr\Log\LoggerInterface;
 
-class ApiSetup
+class Setup
 {
     /**
-     * @param \Closure(string, array): mixed $call
+     * @param \Closure(string, array): mixed $call Calls protected Api setup helpers.
      */
     public function __construct(
         private readonly \Closure $call

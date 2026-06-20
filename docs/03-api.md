@@ -78,7 +78,7 @@ $api->config()->get('timezone');
 ### `setup()`
 
 ```php
-setup(): ApiSetup
+setup(): Setup
 ```
 
 Public access to SDK setup and extension points without adding every setup method to the concrete SDK surface.
