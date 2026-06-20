@@ -9,7 +9,7 @@ class CacheBuilder
 {
     public function __construct(
         private CacheItemPoolInterface $pool,
-        private ?int $defaultTtl = 60,
+        private ?int $defaultTtl = 3600,
         private array $methods = [Method::GET, Method::HEAD],
         private array $responseCacheDirectives = ['max-age']
     ) {}

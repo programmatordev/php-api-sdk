@@ -19,6 +19,8 @@ use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 $api->setup()->cache(new FilesystemAdapter())->defaultTtl(3600);
 ```
 
+When no TTL is configured, cached responses use a default TTL of 3600 seconds.
+
 ## Options
 
 ```php

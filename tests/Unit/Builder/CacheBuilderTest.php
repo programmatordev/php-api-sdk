@@ -15,7 +15,7 @@ class CacheBuilderTest extends AbstractTestCase
         $cacheBuilder = new CacheBuilder($pool);
 
         $this->assertInstanceOf(CacheItemPoolInterface::class, $cacheBuilder->getPool());
-        $this->assertSame(60, $cacheBuilder->getDefaultTtl());
+        $this->assertSame(3600, $cacheBuilder->getDefaultTtl());
         $this->assertSame(['GET', 'HEAD'], $cacheBuilder->getMethods());
         $this->assertSame(['max-age'], $cacheBuilder->getResponseCacheDirectives());
     }
