@@ -51,7 +51,7 @@ abstract class Api
     public function __construct()
     {
         $this->config = new Config();
-        $this->clientBuilder ??= new ClientBuilder();
+        $this->clientBuilder = new ClientBuilder();
         $this->authBuilder = new AuthBuilder();
         $this->pluginBuilder = new PluginBuilder();
         $this->responseBuilder = new ResponseBuilder();
