@@ -11,7 +11,7 @@ abstract class Resource
     private PipelineOptions $pipelineOptions;
 
     public function __construct(
-        protected readonly Api $api
+        protected readonly Runtime $runtime
     ) {
         $this->pipelineOptions = new PipelineOptions();
     }
@@ -28,7 +28,7 @@ abstract class Resource
 
     protected function endpoint(): Endpoint
     {
-        return new Endpoint($this->api, $this->pipelineOptions);
+        return new Endpoint($this->runtime, $this->pipelineOptions);
     }
 
     private function withPipelineOptions(PipelineOptions $pipelineOptions): static

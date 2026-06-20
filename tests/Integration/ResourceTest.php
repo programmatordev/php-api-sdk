@@ -196,6 +196,19 @@ class ResourceTest extends AbstractTestCase
         $this->assertSame('https://api.example.com/users/1?locale=en&timezone=UTC', (string) $this->client->getLastRequest()->getUri());
     }
 
+    public function testResourceUsesLatestApiSetupWhenRequestIsSent(): void
+    {
+        $this->client->addResponse(new Response(body: '{"id":1,"name":"John"}'));
+
+        $users = $this->api->users();
+
+        $this->api->setup()->defaultQuery('units', 'metric');
+
+        $users->find(1);
+
+        $this->assertSame('https://api.example.com/users/1?locale=en&units=metric', (string) $this->client->getLastRequest()->getUri());
+    }
+
     public function testNullQueryValuesAreOmitted(): void
     {
         $this->client->addResponse(new Response(body: '{"id":1,"name":"John"}'));

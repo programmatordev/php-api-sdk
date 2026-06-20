@@ -128,7 +128,7 @@ class UserResource extends Resource
     {
         return $this
             ->endpoint()
-            ->query('timezone', $this->api->config()->get('timezone'))
+            ->query('timezone', $this->runtime->config()->get('timezone'))
             ->get('/users/{id}', ['id' => $id])
             ->entity(User::class);
     }

@@ -39,6 +39,8 @@ final class ExampleApi extends Api
 
 `Api::resource()` creates a fresh resource instance. Resource-chain infrastructure overrides, such as `withCache()`, are immutable, so fluent customizations do not leak into later calls.
 
+Resources receive the SDK `Runtime` internally. The runtime carries config and executes requests through the configured SDK pipeline, so resources do not need the full `Api` facade.
+
 ## Endpoint Requests
 
 Use `endpoint()` inside resource methods to create the request builder:
@@ -272,7 +274,7 @@ final class ExampleApi extends Api
 }
 ```
 
-When a response is mapped, the API creates a context with that config. The same context is passed to:
+When a response is mapped, the runtime creates a context with that config. The same context is passed to:
 
 - `EntityInterface::fromArray(array $data, ?Context $context = null)`
 - `EnvelopeInterface::fromResponse(Response $response, ?Context $context = null)`

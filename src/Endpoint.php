@@ -14,7 +14,7 @@ class Endpoint
     private RequestOptions $options;
 
     public function __construct(
-        private readonly Api $api,
+        private readonly Runtime $runtime,
         private PipelineOptions $pipelineOptions
     ) {
         $this->options = new RequestOptions();
@@ -160,13 +160,11 @@ class Endpoint
      */
     private function send(string $method, string $path, array $pathParams = []): Response
     {
-        return $this->api->send(
+        return $this->runtime->send(
             method: $method,
             path: $path,
             pathParams: $pathParams,
-            query: $this->options->getQuery(),
-            headers: $this->options->getHeaders(),
-            body: $this->options->getBody(),
+            requestOptions: $this->options,
             pipelineOptions: $this->pipelineOptions
         );
     }

@@ -11,8 +11,6 @@ use ProgrammatorDev\Api\Builder\LoggerBuilder;
 use ProgrammatorDev\Api\Builder\PluginBuilder;
 use ProgrammatorDev\Api\Builder\ResponseBuilder;
 use ProgrammatorDev\Api\Config\Config;
-use ProgrammatorDev\Api\Context\Context;
-use ProgrammatorDev\Api\Context\ErrorContext;
 use ProgrammatorDev\Api\Http\Transport;
 use ProgrammatorDev\Api\Request\PipelineOptions;
 use ProgrammatorDev\Api\Request\RequestOptions;
@@ -73,8 +71,7 @@ abstract class Api
         array $pathParams = [],
         array $query = [],
         array $headers = [],
-        string|StreamInterface|null $body = null,
-        ?PipelineOptions $pipelineOptions = null
+        string|StreamInterface|null $body = null
     ): Response
     {
         $options = (new RequestOptions())
@@ -82,26 +79,13 @@ abstract class Api
             ->withHeaders($headers)
             ->withBody($body);
 
-        $context = new Context($this->config);
-
-        $response = $this->transport()->send(
+        return $this->runtime()->send(
             method: $method,
             path: $path,
             pathParams: $pathParams,
-            options: $options,
-            pipelineOptions: $pipelineOptions,
-            context: $context
+            requestOptions: $options,
+            pipelineOptions: new PipelineOptions()
         );
-
-        $apiResponse = new Response(
-            data: $this->responseDecoder()->decode($response),
-            rawResponse: $response,
-            context: $context
-        );
-
-        $this->errorBuilder->throwIfMatched(new ErrorContext($apiResponse, $context));
-
-        return $apiResponse;
     }
 
     public function setup(): ApiSetup
@@ -118,7 +102,7 @@ abstract class Api
      */
     protected function resource(string $class): Resource
     {
-        return new $class($this);
+        return new $class($this->runtime());
     }
 
     protected function baseUrl(?string $baseUrl): static
@@ -233,5 +217,17 @@ abstract class Api
     private function responseDecoder(): ResponseDecoder
     {
         return new ResponseDecoder($this->responseBuilder);
+    }
+
+    private function runtime(): Runtime
+    {
+        return new Runtime(
+            config: $this->config,
+            // Build transport at send time so resources created before later
+            // setup() changes still use the latest API configuration.
+            transport: fn(): Transport => $this->transport(),
+            responseDecoder: $this->responseDecoder(),
+            errorBuilder: $this->errorBuilder
+        );
     }
 }
