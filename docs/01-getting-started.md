@@ -1,6 +1,6 @@
 # Getting Started
 
-These examples show the current SDK authoring API.
+This guide builds a small SDK with one entity, one resource, and one API facade.
 
 ## Install
 
@@ -9,40 +9,6 @@ composer require programmatordev/php-api-sdk
 ```
 
 The package uses PHP-HTTP discovery for PSR-18 clients and PSR-17 factories. When the `php-http/discovery` Composer plugin is enabled, missing implementations can be installed automatically. SDK packages may still require or suggest concrete implementations when they want tighter control over the default HTTP stack.
-
-## Create An API Class
-
-The API class is the SDK facade. It configures shared options and exposes purpose-built resources.
-
-```php
-use ProgrammatorDev\Api\Api;
-
-final class ExampleApi extends Api
-{
-    public function __construct(string $apiKey)
-    {
-        parent::__construct();
-
-        $this
-            ->baseUrl('https://api.example.com')
-            ->defaultQueries(['locale' => 'en'])
-            ->defaultHeaders(['Accept' => 'application/json']);
-
-        $this->auth()->query('api_key', $apiKey);
-    }
-
-    public function users(): UserResource
-    {
-        return $this->resource(UserResource::class);
-    }
-}
-```
-
-The final SDK user works with `users()`, not raw request execution:
-
-```php
-$user = $api->users()->find(1);
-```
 
 ## Create An Entity
 
@@ -73,7 +39,7 @@ final class User implements EntityInterface
 
 ## Create A Resource
 
-Resources group endpoint methods. Use `endpoint()` to start an endpoint request builder, then map the response.
+Resources group endpoint methods. Use `endpoint()` to start a request, execute it, and map the response.
 
 ```php
 use ProgrammatorDev\Api\Resource;
@@ -110,37 +76,39 @@ final class UserResource extends Resource
 }
 ```
 
-Path parameters are passed as the second argument to the HTTP helper:
+See [Resource Authoring](04-resource-authoring.md) for query parameters, headers, request bodies, cache overrides, and API-specific fluent chains.
+
+## Create An API Class
+
+The API class is the SDK facade. It configures shared options and exposes purpose-built resources.
 
 ```php
-$this->endpoint()->get('/users/{id}', ['id' => $id]);
-```
+use ProgrammatorDev\Api\Api;
 
-Endpoint-specific query parameters are configured on the endpoint builder:
-
-```php
-$this
-    ->endpoint()
-    ->query('locale', 'pt')
-    ->get('/users/{id}', ['id' => $id]);
-```
-
-SDK authors decide how SDK users customize requests. Often a method argument is enough:
-
-```php
-final class UserResource extends Resource
+final class ExampleApi extends Api
 {
-    public function all(bool $active = true): array
+    public function __construct(string $apiKey)
     {
-        return $this
-            ->endpoint()
-            ->query('active', $active)
-            ->get('/users')
-            ->collection(User::class, key: 'data');
+        parent::__construct();
+
+        $this->baseUrl('https://api.example.com');
+        $this->auth()->query('api_key', $apiKey);
+    }
+
+    public function users(): UserResource
+    {
+        return $this->resource(UserResource::class);
     }
 }
+```
 
-$activeUsers = $api->users()->all(active: true);
+SDK users work with resources and endpoint methods, not raw request execution:
+
+```php
+$api = new ExampleApi('secret');
+
+$user = $api->users()->find(1);
+$users = $api->users()->all();
 ```
 
 ## Map Envelopes
