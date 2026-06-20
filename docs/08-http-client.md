@@ -21,27 +21,21 @@ $this
 SDK authors can configure the client and factories inside the API constructor when discovery should not choose them automatically.
 
 ```php
+use Nyholm\Psr7\Factory\Psr17Factory;
 use ProgrammatorDev\Api\Api;
-use Psr\Http\Client\ClientInterface;
-use Psr\Http\Message\RequestFactoryInterface;
-use Psr\Http\Message\StreamFactoryInterface;
+use Symfony\Component\HttpClient\Psr18Client;
 
 final class ExampleApi extends Api
 {
-    public function __construct(
-        ClientInterface $client,
-        RequestFactoryInterface $requestFactory,
-        StreamFactoryInterface $streamFactory,
-        string $apiKey,
-    ) {
-        $this
-            ->baseUrl('https://api.example.com')
-            ->defaultQueries(['api_key' => $apiKey]);
+    public function __construct()
+    {
+        $client = new Psr18Client();
+        $psr17Factory = new Psr17Factory();
 
         $this
             ->client($client)
-            ->requestFactory($requestFactory)
-            ->streamFactory($streamFactory);
+            ->requestFactory($psr17Factory)
+            ->streamFactory($psr17Factory);
 
         $this->responses()->json();
     }

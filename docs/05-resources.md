@@ -172,6 +172,20 @@ array $pathParams = []
 
 Use `query()`, `queries()`, `header()`, and `headers()` to configure request-local query parameters and headers before calling the HTTP helper.
 
+## Endpoint Cache Defaults
+
+SDK authors can configure endpoint-specific cache defaults on the endpoint builder:
+
+```php
+return $this
+    ->endpoint()
+    ->cache(fn (CacheBuilder $cache) => $cache->defaultTtl(60))
+    ->get('/users')
+    ->collection(User::class, key: 'data');
+```
+
+Endpoint cache defaults are immutable and apply only to that request. They require API-level cache configuration because the global cache setup provides the PSR-6 pool.
+
 ## Resource Cache Overrides
 
 `withCache()` lets SDK users override cache behavior for one resource chain while keeping query, headers, body, and verbs inside `Endpoint`.

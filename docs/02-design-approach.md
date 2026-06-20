@@ -16,12 +16,8 @@ final class ExampleApi extends Api
 {
     public function __construct(string $apiKey)
     {
-        $this
-            ->baseUrl('https://api.example.com')
-            ->defaultHeader('Accept', 'application/json');
-
+        $this->baseUrl('https://api.example.com');
         $this->responses()->json();
-
         $this->auth()->query('api_key', $apiKey);
     }
 

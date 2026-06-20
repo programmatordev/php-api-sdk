@@ -264,10 +264,7 @@ final class ExampleApi extends Api
     {
         parent::__construct();
 
-        $this
-            ->baseUrl('https://api.example.com')
-            ->defaultQueries(['api_key' => $apiKey]);
-
+        $this->baseUrl('https://api.example.com');
         $this->config($options, defaults: [
             'timezone' => 'UTC',
         ]);
