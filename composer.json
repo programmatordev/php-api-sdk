@@ -1,8 +1,9 @@
 {
     "name": "programmatordev/php-api-sdk",
-    "description": "A library for creating SDKs in PHP with PSR-18, PSR-17, PSR-6 and PSR-3 support",
+    "description": "A fluent PHP library for creating API SDKs with PSR-18, PSR-17, PSR-6 and PSR-3 support",
     "type": "library",
-    "keywords": ["php-sdk", "php-api", "php8", "psr-18", "psr-17", "psr-6", "psr-3"],
+    "keywords": ["api", "api-client", "api-sdk", "http-client", "php-api", "php-sdk", "psr-3", "psr-6", "psr-17", "psr-18", "sdk"],
+    "homepage": "https://github.com/programmatordev/php-api-sdk",
     "license": "MIT",
     "authors": [
         {
@@ -11,6 +12,10 @@
             "homepage": "https://programmator.dev"
         }
     ],
+    "support": {
+        "issues": "https://github.com/programmatordev/php-api-sdk/issues",
+        "source": "https://github.com/programmatordev/php-api-sdk"
+    },
     "require": {
         "php": ">=8.1",
         "ext-simplexml": "*",
