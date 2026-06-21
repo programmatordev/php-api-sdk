@@ -1,8 +1,8 @@
 <?php
 
-namespace ProgrammatorDev\Api;
+namespace ProgrammatorDev\Api\Http;
 
-class Method
+final class Method
 {
     public const GET = 'GET';
     public const HEAD = 'HEAD';

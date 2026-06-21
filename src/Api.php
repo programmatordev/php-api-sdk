@@ -2,32 +2,35 @@
 
 namespace ProgrammatorDev\Api;
 
-use Http\Client\Common\Plugin\AuthenticationPlugin;
-use Http\Client\Common\Plugin\CachePlugin;
-use Http\Client\Common\Plugin\ContentLengthPlugin;
-use Http\Client\Common\Plugin\ContentTypePlugin;
-use Http\Client\Common\Plugin\LoggerPlugin;
-use Http\Message\Authentication;
+use ProgrammatorDev\Api\Builder\AuthBuilder;
 use ProgrammatorDev\Api\Builder\CacheBuilder;
 use ProgrammatorDev\Api\Builder\ClientBuilder;
-use ProgrammatorDev\Api\Builder\Listener\CacheLoggerListener;
+use ProgrammatorDev\Api\Builder\ErrorBuilder;
+use ProgrammatorDev\Api\Builder\HookBuilder;
 use ProgrammatorDev\Api\Builder\LoggerBuilder;
-use ProgrammatorDev\Api\Event\PostRequestEvent;
-use ProgrammatorDev\Api\Event\PreRequestEvent;
-use ProgrammatorDev\Api\Event\ResponseContentsEvent;
-use ProgrammatorDev\Api\Helper\StringHelper;
-use Psr\Http\Client\ClientExceptionInterface as ClientException;
-use Psr\Http\Message\RequestInterface;
+use ProgrammatorDev\Api\Builder\PluginBuilder;
+use ProgrammatorDev\Api\Builder\ResponseBuilder;
+use ProgrammatorDev\Api\Config\Config;
+use ProgrammatorDev\Api\Http\Transport;
+use ProgrammatorDev\Api\Request\PipelineOptions;
+use ProgrammatorDev\Api\Request\RequestOptions;
+use ProgrammatorDev\Api\Response\Response;
+use ProgrammatorDev\Api\Response\ResponseDecoder;
+use Psr\Http\Client\ClientExceptionInterface;
+use Psr\Http\Client\ClientInterface;
+use Psr\Cache\CacheItemPoolInterface;
 use Psr\Http\Message\StreamInterface;
-use Symfony\Component\EventDispatcher\EventDispatcher;
+use Psr\Log\LoggerInterface;
 
-class Api
+abstract class Api
 {
     private ?string $baseUrl = null;
 
-    private array $queryDefaults = [];
+    private array $defaultQueries = [];
 
-    private array $headerDefaults = [];
+    private array $defaultHeaders = [];
+
+    private Config $config;
 
     private ClientBuilder $clientBuilder;
 
@@ -35,278 +38,192 @@ class Api
 
     private ?LoggerBuilder $loggerBuilder = null;
 
-    private ?Authentication $authentication = null;
+    private AuthBuilder $authBuilder;
 
-    private EventDispatcher $eventDispatcher;
+    private PluginBuilder $pluginBuilder;
+
+    private ResponseBuilder $responseBuilder;
+
+    private ErrorBuilder $errorBuilder;
+
+    private HookBuilder $hookBuilder;
 
     public function __construct()
     {
-        $this->clientBuilder ??= new ClientBuilder();
-        $this->eventDispatcher = new EventDispatcher();
+        $this->config = new Config();
+        $this->clientBuilder = new ClientBuilder();
+        $this->authBuilder = new AuthBuilder();
+        $this->pluginBuilder = new PluginBuilder();
+        $this->responseBuilder = new ResponseBuilder();
+        $this->errorBuilder = new ErrorBuilder();
+        $this->hookBuilder = new HookBuilder();
     }
 
     /**
-     * @throws ClientException
+     * @throws ClientExceptionInterface
+     * @throws \JsonException
+     * @throws \RuntimeException
+     * @throws \Throwable
      */
-    public function request(
+    public function send(
         string $method,
         string $path,
+        array $pathParams = [],
         array $query = [],
         array $headers = [],
-        string|StreamInterface $body = null
-    ): mixed
+        string|StreamInterface|null $body = null
+    ): Response
     {
-        $this->configurePlugins();
+        $options = (new RequestOptions())
+            ->withQueries($query)
+            ->withHeaders($headers)
+            ->withBody($body);
 
-        if (!empty($this->queryDefaults)) {
-            $query = array_merge($this->queryDefaults, $query);
-        }
-
-        if (!empty($this->headerDefaults)) {
-            $headers = array_merge($this->headerDefaults, $headers);
-        }
-
-        $url = $this->buildUrl($path, $query);
-        $request = $this->createRequest($method, $url, $headers, $body);
-
-        // pre request listener
-        $request = $this->eventDispatcher->dispatch(new PreRequestEvent($request))->getRequest();
-
-        // request
-        $response = $this->clientBuilder->getClient()->sendRequest($request);
-
-        // post request listener
-        $response = $this->eventDispatcher->dispatch(new PostRequestEvent($request, $response))->getResponse();
-
-        // always rewind the body contents in case it was used in the PostRequestEvent
-        // otherwise it would return an empty string
-        $response->getBody()->rewind();
-        $contents = $response->getBody()->getContents();
-
-        // response contents listener
-        return $this->eventDispatcher->dispatch(new ResponseContentsEvent($contents))->getContents();
-    }
-
-    private function configurePlugins(): void
-    {
-        // https://docs.php-http.org/en/latest/plugins/content-type.html
-        $this->clientBuilder->addPlugin(
-            plugin: new ContentTypePlugin(),
-            priority: 40
+        return $this->runtime()->send(
+            method: $method,
+            path: $path,
+            pathParams: $pathParams,
+            requestOptions: $options,
+            pipelineOptions: new PipelineOptions()
         );
-
-        // https://docs.php-http.org/en/latest/plugins/content-length.html
-        $this->clientBuilder->addPlugin(
-            plugin: new ContentLengthPlugin(),
-            priority: 32
-        );
-
-        // https://docs.php-http.org/en/latest/message/authentication.html
-        if ($this->authentication) {
-            $this->clientBuilder->addPlugin(
-                plugin: new AuthenticationPlugin($this->authentication),
-                priority: 24
-            );
-        }
-
-        // https://docs.php-http.org/en/latest/plugins/cache.html
-        if ($this->cacheBuilder) {
-            $cacheOptions = [
-                'default_ttl' => $this->cacheBuilder->getTtl(),
-                'methods' => $this->cacheBuilder->getMethods(),
-                'respect_response_cache_directives' => $this->cacheBuilder->getResponseCacheDirectives(),
-                'cache_listeners' => []
-            ];
-
-            if ($this->loggerBuilder) {
-                $cacheOptions['cache_listeners'][] = new CacheLoggerListener($this->loggerBuilder);
-            }
-
-            $this->clientBuilder->addPlugin(
-                plugin: new CachePlugin(
-                    $this->cacheBuilder->getPool(),
-                    $this->clientBuilder->getStreamFactory(),
-                    $cacheOptions
-                ),
-                priority: 16
-            );
-        }
-
-        // https://docs.php-http.org/en/latest/plugins/logger.html
-        if ($this->loggerBuilder) {
-            $this->clientBuilder->addPlugin(
-                plugin: new LoggerPlugin(
-                    $this->loggerBuilder->getLogger(),
-                    $this->loggerBuilder->getFormatter()
-                ),
-                priority: 8
-            );
-        }
     }
 
-    public function getBaseUrl(): ?string
+    public function setup(): Setup
     {
-        return $this->baseUrl;
+        return new Setup(
+            // Keep setup helpers protected on Api while exposing them through
+            // one explicit SDK-user setup surface.
+            fn(string $method, array $arguments): mixed => $this->{$method}(...$arguments)
+        );
     }
 
-    public function setBaseUrl(?string $baseUrl): self
+    /**
+     * @template T of Resource
+     * @param class-string<T> $class
+     * @return T
+     */
+    protected function resource(string $class): Resource
+    {
+        return new $class($this->runtime());
+    }
+
+    protected function baseUrl(?string $baseUrl): static
     {
         $this->baseUrl = $baseUrl;
 
         return $this;
     }
 
-    public function getQueryDefault(string $name): mixed
+    protected function defaultQuery(string $name, mixed $value): static
     {
-        return $this->queryDefaults[$name] ?? null;
-    }
-
-    public function addQueryDefault(string $name, mixed $value): self
-    {
-        $this->queryDefaults[$name] = $value;
+        $this->defaultQueries[$name] = $value;
 
         return $this;
     }
 
-    public function removeQueryDefault(string $name): self
+    protected function defaultQueries(array $query): static
     {
-        unset($this->queryDefaults[$name]);
+        $this->defaultQueries = array_merge($this->defaultQueries, $query);
 
         return $this;
     }
 
-    public function getHeaderDefault(string $name): mixed
+    protected function defaultHeader(string $name, mixed $value): static
     {
-        return $this->headerDefaults[$name] ?? null;
-    }
-
-    public function addHeaderDefault(string $name, mixed $value): self
-    {
-        $this->headerDefaults[$name] = $value;
+        $this->defaultHeaders[$name] = $value;
 
         return $this;
     }
 
-    public function removeHeaderDefault(string $name): self
+    protected function defaultHeaders(array $headers): static
     {
-        unset($this->headerDefaults[$name]);
+        $this->defaultHeaders = array_merge($this->defaultHeaders, $headers);
 
         return $this;
     }
 
-    public function getClientBuilder(): ?ClientBuilder
+    protected function responses(): ResponseBuilder
     {
-        return $this->clientBuilder;
+        return $this->responseBuilder;
     }
 
-    public function setClientBuilder(ClientBuilder $clientBuilder): self
+    protected function errors(): ErrorBuilder
     {
-        $this->clientBuilder = $clientBuilder;
-
-        return $this;
+        return $this->errorBuilder;
     }
 
-    public function getCacheBuilder(): ?CacheBuilder
+    protected function auth(): AuthBuilder
     {
+        return $this->authBuilder;
+    }
+
+    protected function hooks(): HookBuilder
+    {
+        return $this->hookBuilder;
+    }
+
+    protected function plugins(): PluginBuilder
+    {
+        return $this->pluginBuilder;
+    }
+
+    protected function cache(CacheItemPoolInterface $pool): CacheBuilder
+    {
+        $this->cacheBuilder = new CacheBuilder($pool);
+
         return $this->cacheBuilder;
     }
 
-    public function setCacheBuilder(?CacheBuilder $cacheBuilder): self
+    protected function client(ClientInterface $client): ClientBuilder
     {
-        $this->cacheBuilder = $cacheBuilder;
+        $this->clientBuilder->client($client);
 
-        return $this;
+        return $this->clientBuilder;
     }
 
-    public function getLoggerBuilder(): ?LoggerBuilder
+    protected function logger(LoggerInterface $logger): LoggerBuilder
     {
+        $this->loggerBuilder = new LoggerBuilder($logger);
+
         return $this->loggerBuilder;
     }
 
-    public function setLoggerBuilder(?LoggerBuilder $loggerBuilder): self
+    public function config(array $values = [], array $defaults = []): Config
     {
-        $this->loggerBuilder = $loggerBuilder;
-
-        return $this;
-    }
-
-    public function getAuthentication(): ?Authentication
-    {
-        return $this->authentication;
-    }
-
-    public function setAuthentication(?Authentication $authentication): self
-    {
-        $this->authentication = $authentication;
-
-        return $this;
-    }
-
-    public function addPreRequestListener(callable $listener, int $priority = 0): self
-    {
-        $this->eventDispatcher->addListener(PreRequestEvent::class, $listener, $priority);
-
-        return $this;
-    }
-
-    public function addPostRequestListener(callable $listener, int $priority = 0): self
-    {
-        $this->eventDispatcher->addListener(PostRequestEvent::class, $listener, $priority);
-
-        return $this;
-    }
-
-    public function addResponseContentsListener(callable $listener, int $priority = 0): self
-    {
-        $this->eventDispatcher->addListener(ResponseContentsEvent::class, $listener, $priority);
-
-        return $this;
-    }
-
-    public function buildPath(string $path, array $parameters): string
-    {
-        foreach ($parameters as $parameter => $value) {
-            $path = str_replace(
-                sprintf('{%s}', $parameter),
-                $value,
-                $path
-            );
+        if ($defaults !== []) {
+            $this->config->merge($defaults);
         }
 
-        return $path;
+        if ($values !== []) {
+            $this->config->merge($values);
+        }
+
+        return $this->config;
     }
 
-    private function buildUrl(string $path, array $query = []): string
+    private function runtime(): Runtime
     {
-        $appendQuery = http_build_query($query);
+        // Build transport at send time so resources created before later
+        // setup() changes still use the latest API configuration.
+        $transport = fn(): Transport => new Transport(
+            clientBuilder: $this->clientBuilder,
+            authBuilder: $this->authBuilder,
+            pluginBuilder: $this->pluginBuilder,
+            hookBuilder: $this->hookBuilder,
+            cacheBuilder: $this->cacheBuilder,
+            loggerBuilder: $this->loggerBuilder,
+            baseUrl: $this->baseUrl,
+            defaultQueries: $this->defaultQueries,
+            defaultHeaders: $this->defaultHeaders
+        );
 
-        if (StringHelper::isUrl($path)) {
-            return append_query_string($path, $appendQuery, APPEND_QUERY_STRING_REPLACE_DUPLICATE);
-        }
+        $responseDecoder = new ResponseDecoder($this->responseBuilder);
 
-        $url = StringHelper::reduceDuplicateSlashes($this->baseUrl . $path);
-        return append_query_string($url, $appendQuery, APPEND_QUERY_STRING_REPLACE_DUPLICATE);
-    }
-
-    private function createRequest(
-        string $method,
-        string $url,
-        array $headers = [],
-        string|StreamInterface $body = null
-    ): RequestInterface
-    {
-        $request = $this->clientBuilder->getRequestFactory()->createRequest($method, $url);
-
-        foreach ($headers as $key => $value) {
-            $request = $request->withHeader($key, $value);
-        }
-
-        if ($body !== null && $body !== '') {
-            $request = $request->withBody(
-                is_string($body) ? $this->clientBuilder->getStreamFactory()->createStream($body) : $body
-            );
-        }
-
-        return $request;
+        return new Runtime(
+            config: $this->config,
+            transport: $transport,
+            responseDecoder: $responseDecoder,
+            errorBuilder: $this->errorBuilder
+        );
     }
 }

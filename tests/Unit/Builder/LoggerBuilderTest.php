@@ -4,42 +4,42 @@ namespace ProgrammatorDev\Api\Test\Unit\Builder;
 
 use Http\Message\Formatter;
 use ProgrammatorDev\Api\Builder\LoggerBuilder;
-use ProgrammatorDev\Api\Test\AbstractTestCase;
+use ProgrammatorDev\Api\Test\Support\AbstractTestCase;
 use Psr\Log\LoggerInterface;
 
 class LoggerBuilderTest extends AbstractTestCase
 {
-    public function testDefaults()
+    public function testLoggerBuilderUsesDefaults(): void
     {
         $logger = $this->createMock(LoggerInterface::class);
 
         $loggerBuilder = new LoggerBuilder($logger);
 
-        $this->assertInstanceOf(LoggerInterface::class, $loggerBuilder->getLogger());
+        $this->assertSame($logger, $loggerBuilder->getLogger());
         $this->assertInstanceOf(Formatter\SimpleFormatter::class, $loggerBuilder->getFormatter());
     }
 
-    public function testDependencyInjection()
+    public function testLoggerBuilderAcceptsConstructorValues(): void
     {
         $logger = $this->createMock(LoggerInterface::class);
         $formatter = $this->createMock(Formatter::class);
 
         $loggerBuilder = new LoggerBuilder($logger, $formatter);
 
-        $this->assertInstanceOf(LoggerInterface::class, $loggerBuilder->getLogger());
-        $this->assertInstanceOf(Formatter::class, $loggerBuilder->getFormatter());
+        $this->assertSame($logger, $loggerBuilder->getLogger());
+        $this->assertSame($formatter, $loggerBuilder->getFormatter());
     }
 
-    public function testSetters()
+    public function testLoggerBuilderCanBeConfiguredFluently(): void
     {
         $logger = $this->createMock(LoggerInterface::class);
         $formatter = $this->createMock(Formatter::class);
 
-        $loggerBuilder = new LoggerBuilder($logger);
-        $loggerBuilder->setLogger($logger);
-        $loggerBuilder->setFormatter($formatter);
+        $loggerBuilder = (new LoggerBuilder($logger))
+            ->logger($logger)
+            ->formatter($formatter);
 
-        $this->assertInstanceOf(LoggerInterface::class, $loggerBuilder->getLogger());
-        $this->assertInstanceOf(Formatter::class, $loggerBuilder->getFormatter());
+        $this->assertSame($logger, $loggerBuilder->getLogger());
+        $this->assertSame($formatter, $loggerBuilder->getFormatter());
     }
 }

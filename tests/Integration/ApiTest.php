@@ -2,240 +2,200 @@
 
 namespace ProgrammatorDev\Api\Test\Integration;
 
-use Http\Message\Authentication;
-use Http\Mock\Client;
 use Nyholm\Psr7\Response;
-use PHPUnit\Framework\Attributes\DataProvider;
 use ProgrammatorDev\Api\Api;
-use ProgrammatorDev\Api\Builder\CacheBuilder;
-use ProgrammatorDev\Api\Builder\ClientBuilder;
-use ProgrammatorDev\Api\Builder\LoggerBuilder;
-use ProgrammatorDev\Api\Event\PreRequestEvent;
-use ProgrammatorDev\Api\Event\ResponseContentsEvent;
-use ProgrammatorDev\Api\Test\AbstractTestCase;
-use ProgrammatorDev\Api\Test\MockResponse;
-use Psr\Cache\CacheItemPoolInterface;
+use ProgrammatorDev\Api\Context\RequestContext;
+use ProgrammatorDev\Api\Context\ResponseContext;
+use ProgrammatorDev\Api\Http\Method;
+use ProgrammatorDev\Api\Test\Fixture\FakeApi;
+use ProgrammatorDev\Api\Test\Fixture\HeaderPlugin;
+use ProgrammatorDev\Api\Test\Support\AbstractTestCase;
 use Psr\Http\Message\RequestInterface;
-use Psr\Log\LoggerInterface;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
 
 class ApiTest extends AbstractTestCase
 {
-    private const BASE_URL = 'https://base.com/url';
-
-    private Api $api;
-
-    private Client $mockClient;
-
-    protected function setUp(): void
+    public function testConfigCanBeSetAndReadBySdkApi(): void
     {
-        parent::setUp();
+        $api = new class extends Api {};
 
-        // create anonymous class
-        $this->api = new class extends Api {};
+        $api
+            ->config(['timezone' => 'UTC'], defaults: ['timezone' => 'Europe/Lisbon'])
+            ->merge(['units' => 'metric']);
 
-        // set mock client
-        $this->mockClient = new Client();
-        $this->api->setClientBuilder(new ClientBuilder($this->mockClient));
+        $this->assertSame('UTC', $api->config()->get('timezone'));
+        $this->assertSame('metric', $api->config()->get('units'));
+        $this->assertSame('en', $api->config()->get('locale', 'en'));
+        $this->assertSame([
+            'timezone' => 'UTC',
+            'units' => 'metric',
+        ], $api->config()->all());
     }
 
-    public function testRequest()
+    public function testApiCanSendPublicRequest(): void
     {
-        $this->mockClient->addResponse(new Response(body: MockResponse::SUCCESS));
+        $client = $this->mockClient(new Response(body: '{"id":1,"name":"John"}'));
 
-        $response = $this->api->request(
-            method: 'GET',
-            path: '/path'
+        $response = (new FakeApi($client))->send(Method::GET, '/users/{id}', ['id' => 1]);
+
+        $this->assertSame(['id' => 1, 'name' => 'John'], $response->data());
+        $this->assertSame('https://api.example.com/users/1?locale=en', (string) $client->getLastRequest()->getUri());
+    }
+
+    public function testApiCanSendPublicRequestWithQueryHeadersAndBody(): void
+    {
+        $client = $this->mockClient(new Response(body: '{"id":1,"name":"John"}'));
+
+        (new FakeApi($client))->send(
+            method: Method::POST,
+            path: '/users',
+            query: ['active' => true],
+            headers: ['Content-Type' => 'application/json'],
+            body: '{"name":"John"}'
         );
 
-        $this->assertSame(MockResponse::SUCCESS, $response);
+        $request = $client->getLastRequest();
+
+        $this->assertSame('POST', $request->getMethod());
+        $this->assertSame('https://api.example.com/users?locale=en&active=1', (string) $request->getUri());
+        $this->assertSame('application/json', $request->getHeaderLine('Content-Type'));
+        $this->assertSame('{"name":"John"}', (string) $request->getBody());
     }
 
-    public function testMultipleRequests()
+    public function testApiCanSendRequestWithDefaultQuery(): void
     {
-        $this->mockClient->addResponse(new Response(body: MockResponse::SUCCESS));
-        $this->mockClient->addResponse(new Response(body: MockResponse::SUCCESS));
+        $client = $this->mockClient(new Response(body: '{"id":1,"name":"John"}'));
 
-        $this->api->request(method: 'GET', path: '/path-1');
-        $this->api->request(method: 'GET', path: '/path-2');
+        (new FakeApi($client))
+            ->withDefaultQuery('units', 'metric')
+            ->send(Method::GET, '/users/{id}', ['id' => 1]);
 
-        $this->assertTrue(true);
+        $this->assertSame('https://api.example.com/users/1?locale=en&units=metric', (string) $client->getLastRequest()->getUri());
     }
 
-    public function testBaseUrl()
+    public function testApiCanUseConfigValuesAsDefaultQueries(): void
     {
-        $this->assertNull($this->api->getBaseUrl());
+        $client = $this->mockClient(new Response(body: '{"id":1,"name":"John"}'));
 
-        $this->api->setBaseUrl(self::BASE_URL);
+        $api = new class extends Api {};
+        $setup = $api->setup();
 
-        $this->assertSame(self::BASE_URL, $this->api->getBaseUrl());
+        $setup->client($client);
+        $setup
+            ->baseUrl('https://api.example.com')
+            ->defaultQueries($api->config([
+                'locale' => 'pt',
+                'version' => 'v2',
+                'internal' => true,
+            ])->only('locale', 'version'));
+        $setup->responses()->json();
+
+        $api->send(Method::GET, '/users/{id}', ['id' => 1]);
+
+        $this->assertSame('https://api.example.com/users/1?locale=pt&version=v2', (string) $client->getLastRequest()->getUri());
     }
 
-    public function testQueryDefaults()
+    public function testApiCanSendRequestWithDefaultHeader(): void
     {
-        $this->api->addQueryDefault('test', true);
-        $this->assertTrue($this->api->getQueryDefault('test'));
+        $client = $this->mockClient(new Response(body: '{"id":1,"name":"John"}'));
 
-        $this->api->removeQueryDefault('test');
-        $this->assertNull($this->api->getQueryDefault('test'));
+        (new FakeApi($client))
+            ->withDefaultHeader('Accept', 'application/json')
+            ->send(Method::GET, '/users/{id}', ['id' => 1]);
+
+        $this->assertSame('application/json', $client->getLastRequest()->getHeaderLine('Accept'));
     }
 
-    public function testHeaderDefaults()
+    public function testApiSetupCanConfigureRequestBehavior(): void
     {
-        $this->api->addHeaderDefault('X-Test', true);
-        $this->assertTrue($this->api->getHeaderDefault('X-Test'));
+        $client = $this->mockClient(new Response(body: '{"id":1,"name":"John"}'));
 
-        $this->api->removeHeaderDefault('X-Test');
-        $this->assertNull($this->api->getHeaderDefault('X-Test'));
+        $api = new class extends Api {};
+        $setup = $api->setup();
+
+        $setup->client($client);
+        $setup
+            ->baseUrl('https://api.example.com')
+            ->defaultQuery('locale', 'en')
+            ->defaultHeader('Accept', 'application/json');
+
+        $setup->responses()->json();
+
+        $response = $api->send(Method::GET, '/users/{id}', ['id' => 1]);
+
+        $this->assertSame(['id' => 1, 'name' => 'John'], $response->data());
+        $this->assertSame('https://api.example.com/users/1?locale=en', (string) $client->getLastRequest()->getUri());
+        $this->assertSame('application/json', $client->getLastRequest()->getHeaderLine('Accept'));
     }
 
-    public function testCache()
+    public function testApiSendUsesConfiguredPipeline(): void
     {
-        $this->assertNull($this->api->getCacheBuilder());
+        $client = $this->mockClient(new Response(body: '{"ok":false}'));
 
-        $cachePool = $this->createMock(CacheItemPoolInterface::class);
+        $api = new class extends Api {};
+        $setup = $api->setup();
 
-        $this->api->setCacheBuilder(new CacheBuilder($cachePool));
+        $setup->client($client);
+        $setup->baseUrl('https://api.example.com');
 
-        $cachePool->expects($this->once())->method('save');
-
-        $this->api->request(
-            method: 'GET',
-            path: '/path'
+        $setup->auth()->header('X-Auth', 'secret');
+        $setup->plugins()->add(new HeaderPlugin('X-Plugin', 'plugin'));
+        $setup->hooks()->beforeRequest(
+            fn (RequestContext $context): RequestInterface => $context->request()->withHeader('X-Before-Hook', 'before')
         );
-    }
-
-    public function testLogger()
-    {
-        $this->assertNull($this->api->getLoggerBuilder());
-
-        $logger = $this->createMock(LoggerInterface::class);
-
-        $this->api->setLoggerBuilder(new LoggerBuilder($logger));
-
-        // count equals 2 because of the request and response log
-        $logger->expects($this->exactly(2))->method('info');
-
-        $this->api->request(
-            method: 'GET',
-            path: '/path'
+        $setup->hooks()->afterResponse(
+            fn (ResponseContext $context): Response => new Response(body: '{"ok":true}')
         );
+        $setup->responses()->json();
+
+        $response = $api->send(Method::GET, '/status');
+
+        $this->assertSame(['ok' => true], $response->data());
+        $this->assertSame('secret', $client->getLastRequest()->getHeaderLine('X-Auth'));
+        $this->assertSame('plugin', $client->getLastRequest()->getHeaderLine('X-Plugin'));
+        $this->assertSame('before', $client->getLastRequest()->getHeaderLine('X-Before-Hook'));
     }
 
-    public function testCacheWithLogger()
+    public function testApiSendUsesConfiguredErrors(): void
     {
-        $this->assertNull($this->api->getCacheBuilder());
-        $this->assertNull($this->api->getLoggerBuilder());
+        $client = $this->mockClient(new Response(status: 404, body: '{"message":"Missing"}'));
 
-        $cachePool = $this->createMock(CacheItemPoolInterface::class);
-        $logger = $this->createMock(LoggerInterface::class);
+        $api = new class extends Api {};
+        $setup = $api->setup();
 
-        $this->api->setCacheBuilder(new CacheBuilder($cachePool));
-        $this->api->setLoggerBuilder(new LoggerBuilder($logger));
+        $setup->client($client);
+        $setup->baseUrl('https://api.example.com');
 
-        // count equals 3 because of the request, response and cache log
-        $logger->expects($this->exactly(3))->method('info');
+        $setup->responses()->json();
+        $setup->errors()->status(404, fn (): \Throwable => new \RuntimeException('Missing'));
 
-        // error suppression to hide expected warning of null cache item in CacheLoggerListener
-        // https://docs.phpunit.de/en/10.5/error-handling.html#ignoring-issue-suppression
-        // TODO maybe allow user to add cache listeners to CacheBuilder and create a mock?
-        @$this->api->request(
-            method: 'GET',
-            path: '/path'
-        );
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Missing');
+
+        $api->send(Method::GET, '/missing');
     }
 
-    public function testAuthentication()
+    public function testApiSendUsesConfiguredCache(): void
     {
-        $this->assertNull($this->api->getAuthentication());
+        $client = $this->mockClient(new Response(
+            headers: ['Cache-Control' => 'max-age=60'],
+            body: '{"id":1}'
+        ));
 
-        $authentication = $this->createConfiguredMock(Authentication::class, [
-            'authenticate' => $this->createMock(RequestInterface::class)
-        ]);
+        $api = new class extends Api {};
+        $setup = $api->setup();
 
-        $this->api->setAuthentication($authentication);
+        $setup->client($client);
+        $setup->baseUrl('https://api.example.com');
 
-        $authentication->expects($this->once())->method('authenticate');
+        $setup->cache(new ArrayAdapter())->defaultTtl(60);
+        $setup->responses()->json();
 
-        $this->api->request(
-            method: 'GET',
-            path: '/path'
-        );
-    }
+        $first = $api->send(Method::GET, '/users/{id}', ['id' => 1]);
+        $second = $api->send(Method::GET, '/users/{id}', ['id' => 1]);
 
-    public function testPreRequestListener()
-    {
-        $this->api->addPreRequestListener(fn() => throw new \Exception('TestMessage'));
-
-        $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('TestMessage');
-
-        $this->api->request(
-            method: 'GET',
-            path: '/path'
-        );
-    }
-
-    public function testPostRequestListener()
-    {
-        $this->api->addPostRequestListener(fn() => throw new \Exception('TestMessage'));
-
-        $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('TestMessage');
-
-        $this->api->request(
-            method: 'GET',
-            path: '/path'
-        );
-    }
-
-    public function testResponseContentsListener()
-    {
-        $this->mockClient->addResponse(new Response(body: MockResponse::SUCCESS));
-
-        $this->api->addResponseContentsListener(function(ResponseContentsEvent $event) {
-            $contents = json_decode($event->getContents(), true);
-            $event->setContents($contents);
-        });
-
-        $response = $this->api->request(
-            method: 'GET',
-            path: '/path'
-        );
-
-        $this->assertIsArray($response);
-    }
-
-    #[DataProvider('provideBuildUrlData')]
-    public function testBuildUrl(?string $baseUrl, string $path, array $query, string $expectedUrl)
-    {
-        $this->api->addPreRequestListener(function(PreRequestEvent $event) use ($expectedUrl) {
-            $url = (string) $event->getRequest()->getUri();
-
-            $this->assertSame($expectedUrl, $url);
-        });
-
-        $this->api->setBaseUrl($baseUrl);
-        $this->api->request(method: 'GET', path: $path, query: $query);
-    }
-
-    public static function provideBuildUrlData(): \Generator
-    {
-        yield 'no base url' => [null, '/path', [], '/path'];
-        yield 'base url' => [self::BASE_URL, '/path', [], 'https://base.com/url/path'];
-        yield 'path full url' => [self::BASE_URL, 'https://fullurl.com/path', [], 'https://fullurl.com/path'];
-        yield 'duplicated slashes' => [self::BASE_URL, '////path', [], 'https://base.com/url/path'];
-        yield 'query' => [self::BASE_URL, '/path', ['foo' => 'bar'], 'https://base.com/url/path?foo=bar'];
-        yield 'path query' => [self::BASE_URL, '/path?test=true', ['foo' => 'bar'], 'https://base.com/url/path?test=true&foo=bar'];
-        yield 'query replace' => [self::BASE_URL, '/path?test=true', ['test' => 'false'], 'https://base.com/url/path?test=false'];
-    }
-
-    public function testBuildPath()
-    {
-        $path = $this->api->buildPath('/path/{parameter1}/multiple/{parameter2}', [
-            'parameter1' => 'with',
-            'parameter2' => 'parameters'
-        ]);
-
-        $this->assertSame('/path/with/multiple/parameters', $path);
+        $this->assertSame(['id' => 1], $first->data());
+        $this->assertSame(['id' => 1], $second->data());
+        $this->assertCount(1, $client->getRequests());
     }
 }

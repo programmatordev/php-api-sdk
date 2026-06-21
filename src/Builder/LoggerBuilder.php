@@ -12,8 +12,7 @@ class LoggerBuilder
     public function __construct(
         private LoggerInterface $logger,
         ?Formatter $formatter = null
-    )
-    {
+    ) {
         $this->formatter = $formatter ?: new Formatter\SimpleFormatter();
     }
 
@@ -22,7 +21,7 @@ class LoggerBuilder
         return $this->logger;
     }
 
-    public function setLogger(LoggerInterface $logger): self
+    public function logger(LoggerInterface $logger): self
     {
         $this->logger = $logger;
 
@@ -34,7 +33,7 @@ class LoggerBuilder
         return $this->formatter;
     }
 
-    public function setFormatter(Formatter $formatter): self
+    public function formatter(Formatter $formatter): self
     {
         $this->formatter = $formatter;
 

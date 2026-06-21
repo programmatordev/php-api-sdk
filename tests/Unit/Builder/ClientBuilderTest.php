@@ -2,17 +2,15 @@
 
 namespace ProgrammatorDev\Api\Test\Unit\Builder;
 
-use Http\Client\Common\Plugin;
 use ProgrammatorDev\Api\Builder\ClientBuilder;
-use ProgrammatorDev\Api\Exception\PluginException;
-use ProgrammatorDev\Api\Test\AbstractTestCase;
+use ProgrammatorDev\Api\Test\Support\AbstractTestCase;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 
 class ClientBuilderTest extends AbstractTestCase
 {
-    public function testDefaults()
+    public function testClientBuilderUsesDiscoveredDefaults(): void
     {
         $clientBuilder = new ClientBuilder();
 
@@ -21,7 +19,7 @@ class ClientBuilderTest extends AbstractTestCase
         $this->assertInstanceOf(StreamFactoryInterface::class, $clientBuilder->getStreamFactory());
     }
 
-    public function testDependencyInjection()
+    public function testClientBuilderAcceptsConstructorValues(): void
     {
         $client = $this->createMock(ClientInterface::class);
         $requestFactory = $this->createMock(RequestFactoryInterface::class);
@@ -30,56 +28,23 @@ class ClientBuilderTest extends AbstractTestCase
         $clientBuilder = new ClientBuilder($client, $requestFactory, $streamFactory);
 
         $this->assertInstanceOf(ClientInterface::class, $clientBuilder->getClient());
-        $this->assertInstanceOf(RequestFactoryInterface::class, $clientBuilder->getRequestFactory());
-        $this->assertInstanceOf(StreamFactoryInterface::class, $clientBuilder->getStreamFactory());
+        $this->assertSame($requestFactory, $clientBuilder->getRequestFactory());
+        $this->assertSame($streamFactory, $clientBuilder->getStreamFactory());
     }
 
-    public function testSetters()
+    public function testClientBuilderCanBeConfiguredFluently(): void
     {
         $client = $this->createMock(ClientInterface::class);
         $requestFactory = $this->createMock(RequestFactoryInterface::class);
         $streamFactory = $this->createMock(StreamFactoryInterface::class);
 
-        $clientBuilder = new ClientBuilder();
-        $clientBuilder->setClient($client);
-        $clientBuilder->setRequestFactory($requestFactory);
-        $clientBuilder->setStreamFactory($streamFactory);
+        $clientBuilder = (new ClientBuilder())
+            ->client($client)
+            ->requestFactory($requestFactory)
+            ->streamFactory($streamFactory);
 
         $this->assertInstanceOf(ClientInterface::class, $clientBuilder->getClient());
-        $this->assertInstanceOf(RequestFactoryInterface::class, $clientBuilder->getRequestFactory());
-        $this->assertInstanceOf(StreamFactoryInterface::class, $clientBuilder->getStreamFactory());
-    }
-
-    public function testAddPlugin()
-    {
-        $plugin = $this->createMock(Plugin::class);
-        $clientBuilder = new ClientBuilder();
-
-        $clientBuilder->addPlugin($plugin, 1);
-        $clientBuilder->addPlugin($plugin, 3);
-        $clientBuilder->addPlugin($plugin, 2);
-
-        $this->assertCount(3, $clientBuilder->getPlugins());
-        // plugins array keys are used as priority [priority => plugin]
-        // so check if the order of keys (priority) is sorted
-        $this->assertSame(
-            [
-                0 => 3,
-                1 => 2,
-                2 => 1
-            ],
-            array_keys($clientBuilder->getPlugins())
-        );
-    }
-
-    public function testAddPluginWithSamePriority()
-    {
-        $plugin = $this->createMock(Plugin::class);
-        $clientBuilder = new ClientBuilder();
-
-        $clientBuilder->addPlugin($plugin, 1);
-        $clientBuilder->addPlugin($plugin, 1);
-
-        $this->assertCount(1, $clientBuilder->getPlugins());
+        $this->assertSame($requestFactory, $clientBuilder->getRequestFactory());
+        $this->assertSame($streamFactory, $clientBuilder->getStreamFactory());
     }
 }

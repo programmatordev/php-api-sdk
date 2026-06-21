@@ -3,35 +3,32 @@
 namespace ProgrammatorDev\Api\Builder;
 
 use Http\Client\Common\HttpMethodsClient;
-use Http\Client\Common\Plugin;
 use Http\Client\Common\PluginClientFactory;
 use Http\Discovery\Psr17FactoryDiscovery;
 use Http\Discovery\Psr18ClientDiscovery;
-use ProgrammatorDev\Api\Exception\PluginException;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 
 class ClientBuilder
 {
-    /** @var Plugin[] */
-    private array $plugins = [];
-
     public function __construct(
         private ?ClientInterface $client = null,
         private ?RequestFactoryInterface $requestFactory = null,
         private ?StreamFactoryInterface $streamFactory = null
-    )
-    {
+    ) {
         $this->client ??= Psr18ClientDiscovery::find();
         $this->requestFactory ??= Psr17FactoryDiscovery::findRequestFactory();
         $this->streamFactory ??= Psr17FactoryDiscovery::findStreamFactory();
     }
 
-    public function getClient(): HttpMethodsClient
+    /**
+     * @param list<\Http\Client\Common\Plugin> $plugins
+     */
+    public function getClient(array $plugins = []): HttpMethodsClient
     {
         $pluginClientFactory = new PluginClientFactory();
-        $client = $pluginClientFactory->createClient($this->client, $this->plugins);
+        $client = $pluginClientFactory->createClient($this->client, $plugins);
 
         return new HttpMethodsClient(
             $client,
@@ -40,10 +37,10 @@ class ClientBuilder
         );
     }
 
-    public function setClient(ClientInterface $client): self
+    public function client(ClientInterface $client): self
     {
         $this->client = $client;
-        
+
         return $this;
     }
 
@@ -52,7 +49,7 @@ class ClientBuilder
         return $this->requestFactory;
     }
 
-    public function setRequestFactory(RequestFactoryInterface $requestFactory): self
+    public function requestFactory(RequestFactoryInterface $requestFactory): self
     {
         $this->requestFactory = $requestFactory;
 
@@ -64,24 +61,10 @@ class ClientBuilder
         return $this->streamFactory;
     }
 
-    public function setStreamFactory(StreamFactoryInterface $streamFactory): self
+    public function streamFactory(StreamFactoryInterface $streamFactory): self
     {
         $this->streamFactory = $streamFactory;
 
         return $this;
-    }
-
-    public function addPlugin(Plugin $plugin, int $priority): self
-    {
-        $this->plugins[$priority] = $plugin;
-        // sort plugins by priority (key) in descending order
-        krsort($this->plugins);
-
-        return $this;
-    }
-
-    public function getPlugins(): array
-    {
-        return $this->plugins;
     }
 }

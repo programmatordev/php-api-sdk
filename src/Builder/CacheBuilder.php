@@ -2,14 +2,14 @@
 
 namespace ProgrammatorDev\Api\Builder;
 
-use ProgrammatorDev\Api\Method;
+use ProgrammatorDev\Api\Http\Method;
 use Psr\Cache\CacheItemPoolInterface;
 
 class CacheBuilder
 {
     public function __construct(
         private CacheItemPoolInterface $pool,
-        private ?int $ttl = 60,
+        private ?int $defaultTtl = 3600,
         private array $methods = [Method::GET, Method::HEAD],
         private array $responseCacheDirectives = ['max-age']
     ) {}
@@ -19,21 +19,21 @@ class CacheBuilder
         return $this->pool;
     }
 
-    public function setPool(CacheItemPoolInterface $pool): self
+    public function pool(CacheItemPoolInterface $pool): self
     {
         $this->pool = $pool;
 
         return $this;
     }
 
-    public function getTtl(): ?int
+    public function getDefaultTtl(): ?int
     {
-        return $this->ttl;
+        return $this->defaultTtl;
     }
 
-    public function setTtl(?int $ttl): self
+    public function defaultTtl(?int $defaultTtl): self
     {
-        $this->ttl = $ttl;
+        $this->defaultTtl = $defaultTtl;
 
         return $this;
     }
@@ -43,7 +43,7 @@ class CacheBuilder
         return $this->methods;
     }
 
-    public function setMethods(array $methods): self
+    public function methods(array $methods): self
     {
         $this->methods = $methods;
 
@@ -55,7 +55,7 @@ class CacheBuilder
         return $this->responseCacheDirectives;
     }
 
-    public function setResponseCacheDirectives(array $responseCacheDirectives): self
+    public function responseCacheDirectives(array $responseCacheDirectives): self
     {
         $this->responseCacheDirectives = $responseCacheDirectives;
 
