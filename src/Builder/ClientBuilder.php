@@ -23,12 +23,12 @@ class ClientBuilder
     }
 
     /**
-     * @param list<\Http\Client\Common\Plugin>|null $plugins
+     * @param list<\Http\Client\Common\Plugin> $plugins
      */
-    public function getClient(?array $plugins = null): HttpMethodsClient
+    public function getClient(array $plugins = []): HttpMethodsClient
     {
         $pluginClientFactory = new PluginClientFactory();
-        $client = $pluginClientFactory->createClient($this->client, $plugins ?? []);
+        $client = $pluginClientFactory->createClient($this->client, $plugins);
 
         return new HttpMethodsClient(
             $client,
