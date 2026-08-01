@@ -332,8 +332,25 @@ Keep context usage focused on hydration decisions. Entities should still be data
 
 > **Available since version 3.1.0.**
 
-Resource-local configuration lets SDK users override selected API configuration
-values for one immutable resource chain:
+Resource-local configuration lets SDK authors build typed, immutable helpers
+for options that affect both a request and its response context:
+
+```php
+public function withLocale(string $locale): static
+{
+    return $this->withConfig([
+        'locale' => $locale,
+    ]);
+}
+```
+
+SDK users then get an API-specific fluent method:
+
+```php
+$user = $api->users()->withLocale('pt')->find(1);
+```
+
+`withConfig()` remains available as the generic escape hatch:
 
 ```php
 $user = $api
@@ -342,8 +359,18 @@ $user = $api
     ->find(1);
 ```
 
-The original resource and API-wide configuration remain unchanged. Repeated
-calls merge their values, and later values win for the same key:
+The original resource and API-wide configuration remain unchanged. The
+override belongs to the cloned resource, so reusing that resource applies it to
+every request made through the clone:
+
+```php
+$portugueseUsers = $api->users()->withLocale('pt');
+
+$first = $portugueseUsers->find(1);
+$second = $portugueseUsers->find(2);
+```
+
+Repeated calls merge their values, and later values win for the same key:
 
 ```php
 $users = $api
@@ -359,17 +386,6 @@ changes made after the resource was created:
 ```text
 Latest API-wide configuration
 -> resource withConfig() overrides
-```
-
-SDK authors can build API-specific helpers on top of `withConfig()`:
-
-```php
-public function withLocale(string $locale): static
-{
-    return $this->withConfig([
-        'locale' => $locale,
-    ]);
-}
 ```
 
 Inside a resource, the scoped runtime exposes the effective configuration:
@@ -391,11 +407,12 @@ public function find(int $id): User
 Configuration is not automatically converted into query parameters or headers.
 The resource author decides how each option maps to an endpoint.
 
-Treat scoped runtime configuration as a read surface. Apply changes through
-`withConfig()` instead of mutating the returned `Config` object. The effective
-configuration is propagated through request and response hooks, error handling,
-response mapping, entities, collections, and envelopes. This keeps request
-construction and response interpretation consistent.
+Inside resource methods, read scoped values with
+`$this->runtime->config()->get()`. Do not call `set()` or `merge()` on that
+scoped `Config`; apply changes by returning a clone through `withConfig()`.
+The effective configuration is propagated through request and response hooks,
+error handling, response mapping, entities, collections, and envelopes. This
+keeps request construction and response interpretation consistent.
 
 ## API-Specific Resource Chains
 

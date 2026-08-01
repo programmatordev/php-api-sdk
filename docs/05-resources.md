@@ -30,7 +30,8 @@ It does not mutate the API-wide configuration or automatically add query
 parameters or headers.
 
 Repeated calls preserve unrelated values. When the same key is supplied more
-than once, the later value wins.
+than once, the later value wins. Reusing the configured resource applies its
+overrides to every request made through that cloned resource.
 
 See [Resource Authoring: Resource-Local Configuration](04-resource-authoring.md#resource-local-configuration)
 for SDK-author helpers, request mapping, scope, and precedence.

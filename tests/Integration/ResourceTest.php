@@ -261,16 +261,19 @@ class ResourceTest extends AbstractTestCase
         $this->assertSame('Europe/Lisbon', $envelope->getUser()->getTimezone());
     }
 
-    public function testResourceCreatedBeforeSetupChangeUsesLatestRequestDefaults(): void
+    public function testScopedResourceCreatedBeforeSetupChangeUsesLatestRequestDefaults(): void
     {
         $this->client->addResponse(new Response(body: '{"id":1,"name":"John"}'));
 
-        $users = $this->api->users();
+        $users = $this->api
+            ->users()
+            ->withConfig(['timezone' => 'Europe/Lisbon']);
 
         $this->api->setup()->defaultQuery('units', 'metric');
 
-        $users->find(1);
+        $user = $users->find(1);
 
+        $this->assertSame('Europe/Lisbon', $user->getTimezone());
         $this->assertSame('https://api.example.com/users/1?locale=en&units=metric', (string) $this->client->getLastRequest()->getUri());
     }
 
