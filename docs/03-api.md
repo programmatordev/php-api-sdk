@@ -177,6 +177,12 @@ $this->defaultHeaders(['Accept' => 'application/json']);
 
 Header names are not normalized by the package.
 
+> **Backed-enum normalization is available since version 3.1.0.**
+
+String- and integer-backed enums can be used as default query or header values.
+Their scalar values are used when the request is built. Normalization also
+applies recursively to nested query values and header value lists.
+
 ## Pipeline Builders
 
 ### `auth()`
