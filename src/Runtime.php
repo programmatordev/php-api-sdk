@@ -24,12 +24,28 @@ final class Runtime
         private readonly Config $config,
         private readonly \Closure $transport,
         private readonly ResponseDecoder $responseDecoder,
-        private readonly ErrorBuilder $errorBuilder
+        private readonly ErrorBuilder $errorBuilder,
+        private readonly array $configOverrides = []
     ) {}
 
     public function config(): Config
     {
+        if ($this->configOverrides !== []) {
+            return (clone $this->config)->merge($this->configOverrides);
+        }
+
         return $this->config;
+    }
+
+    public function withConfig(array $values): self
+    {
+        return new self(
+            config: $this->config,
+            transport: $this->transport,
+            responseDecoder: $this->responseDecoder,
+            errorBuilder: $this->errorBuilder,
+            configOverrides: array_merge($this->configOverrides, $values)
+        );
     }
 
     /**
@@ -45,7 +61,7 @@ final class Runtime
         RequestOptions $requestOptions,
         PipelineOptions $pipelineOptions
     ): Response {
-        $context = new Context($this->config);
+        $context = new Context($this->config());
 
         $rawResponse = ($this->transport)()->send(
             method: $method,
