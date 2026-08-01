@@ -10,6 +10,10 @@ abstract class Resource
 {
     private PipelineOptions $pipelineOptions;
 
+    /**
+     * Runtime is replaceable so withConfig() can scope a cloned resource
+     * without mutating the original resource or API configuration.
+     */
     public function __construct(
         protected Runtime $runtime
     ) {
@@ -26,6 +30,9 @@ abstract class Resource
         );
     }
 
+    /**
+     * @param array<string, mixed> $values
+     */
     public function withConfig(array $values): static
     {
         $clone = clone $this;
