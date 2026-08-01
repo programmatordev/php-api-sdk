@@ -75,6 +75,13 @@ final class Transport
             $headers = array_merge($this->defaultHeaders, $headers);
         }
 
+        // Normalize after merging so API defaults and endpoint values
+        // follow the same rules before request serialization.
+        $query = $this->normalizeBackedEnums($query);
+        // PSR-7 requires header values to be strings,
+        // including values from integer-backed enums.
+        $headers = $this->normalizeBackedEnums($headers, stringify: true);
+
         $request = $this->createRequest(
             method: $method,
             url: $this->buildUrl($path, $query),
@@ -99,8 +106,8 @@ final class Transport
     {
         $plugins = new PluginBuilder();
 
-        // Internal plugins are registered before user plugins so custom plugins can
-        // still run before, between, or after them by choosing a priority.
+        // Internal plugins are registered before user plugins
+        // so custom plugins can still run before, between, or after them by choosing a priority.
         $plugins->add(
             plugin: new ContentTypePlugin(),
             priority: self::CONTENT_TYPE_PLUGIN_PRIORITY
@@ -147,8 +154,8 @@ final class Transport
             return null;
         }
 
-        // Request-local pipeline options adjust a clone so endpoint defaults and
-        // resource overrides do not leak into the API-level cache configuration.
+        // Request-local pipeline options adjust a clone so endpoint defaults and resource overrides
+        // do not leak into the API-level cache configuration.
         $cacheBuilder = clone $this->cacheBuilder;
         $pipelineOptions->applyTo(PipelineOption::CACHE, $cacheBuilder);
 
@@ -193,6 +200,26 @@ final class Transport
         }
 
         return $path;
+    }
+
+    /**
+     * @param bool $stringify Convert backed values to strings for PSR-7 headers.
+     */
+    private function normalizeBackedEnums(mixed $value, bool $stringify = false): mixed
+    {
+        if ($value instanceof \BackedEnum) {
+            return $stringify ? (string) $value->value : $value->value;
+        }
+
+        if (!is_array($value)) {
+            return $value;
+        }
+
+        // Query structures can be nested and header values can be lists.
+        return array_map(
+            fn(mixed $item): mixed => $this->normalizeBackedEnums($item, $stringify),
+            $value
+        );
     }
 
     private function buildUrl(string $path, array $query = []): string

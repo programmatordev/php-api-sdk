@@ -7,6 +7,7 @@ use Nyholm\Psr7\Response;
 use Nyholm\Psr7\Stream;
 use ProgrammatorDev\Api\Test\Support\AbstractTestCase;
 use ProgrammatorDev\Api\Test\Fixture\FakeApi;
+use ProgrammatorDev\Api\Test\Fixture\StrictHeaderRequestFactory;
 use ProgrammatorDev\Api\Test\Fixture\User;
 use ProgrammatorDev\Api\Test\Fixture\UserEnvelope;
 
@@ -113,6 +114,65 @@ class ResourceTest extends AbstractTestCase
         $this->assertSame('acme', $request->getHeaderLine('X-Tenant'));
     }
 
+    public function testEndpointNormalizesBackedEnumsInQueryAndHeaders(): void
+    {
+        $this->client->addResponse(new Response(body: '{"id":1,"name":"John"}'));
+        $this->api->setup()->client($this->client)->requestFactory(new StrictHeaderRequestFactory());
+
+        $this->api->users()->findWithRequestOptions(
+            id: 1,
+            query: [
+                'status' => StringRequestValue::ACTIVE,
+                'filter' => [
+                    'page' => IntegerRequestValue::SECOND,
+                    'statuses' => [StringRequestValue::ACTIVE],
+                ],
+                'nullable' => null,
+                'enabled' => false,
+                'offset' => 0,
+                'search' => '',
+            ],
+            headers: [
+                'X-Status' => StringRequestValue::ACTIVE,
+                'X-Values' => [StringRequestValue::ACTIVE, IntegerRequestValue::SECOND],
+            ]
+        );
+
+        $request = $this->client->getLastRequest();
+        $query = $this->queryFromRequest($request);
+
+        $this->assertSame('active', $query['status']);
+        $this->assertSame('2', $query['filter']['page']);
+        $this->assertSame(['active'], $query['filter']['statuses']);
+        $this->assertArrayNotHasKey('nullable', $query);
+        $this->assertSame('0', $query['enabled']);
+        $this->assertSame('0', $query['offset']);
+        $this->assertSame('', $query['search']);
+        $this->assertSame('active', $request->getHeaderLine('X-Status'));
+        $this->assertSame(['active', '2'], $request->getHeader('X-Values'));
+    }
+
+    public function testRequestDefaultsNormalizeBackedEnums(): void
+    {
+        $this->client->addResponse(new Response(body: '{"id":1,"name":"John"}'));
+
+        $this->api
+            ->withDefaultQuery('status', StringRequestValue::ACTIVE)
+            ->withDefaultQuery('pagination', ['page' => IntegerRequestValue::SECOND])
+            ->withDefaultHeader('X-Status', StringRequestValue::ACTIVE)
+            ->withDefaultHeader('X-Values', [StringRequestValue::ACTIVE, IntegerRequestValue::SECOND])
+            ->users()
+            ->find(1);
+
+        $request = $this->client->getLastRequest();
+        $query = $this->queryFromRequest($request);
+
+        $this->assertSame('active', $query['status']);
+        $this->assertSame('2', $query['pagination']['page']);
+        $this->assertSame('active', $request->getHeaderLine('X-Status'));
+        $this->assertSame(['active', '2'], $request->getHeader('X-Values'));
+    }
+
     public function testResourceBodyRejectsArrayData(): void
     {
         $this->expectException(\InvalidArgumentException::class);
@@ -196,16 +256,84 @@ class ResourceTest extends AbstractTestCase
         $this->assertSame('https://api.example.com/users/1?locale=en&timezone=UTC', (string) $this->client->getLastRequest()->getUri());
     }
 
-    public function testResourceCreatedBeforeSetupChangeUsesLatestRequestDefaults(): void
+    public function testResourceConfigOverridesAreImmutableAndRequestLocal(): void
+    {
+        $this->client->addResponse(new Response(body: '{"id":1,"name":"John"}'));
+        $this->client->addResponse(new Response(body: '{"id":2,"name":"Jane"}'));
+
+        $users = $this->api->users();
+        $configured = $users->withConfig(['timezone' => 'Europe/Lisbon']);
+
+        $configuredUser = $configured->findWithConfiguredTimezone(1);
+        $defaultUser = $users->findWithConfiguredTimezone(2);
+        $requests = $this->client->getRequests();
+
+        $this->assertNotSame($users, $configured);
+        $this->assertSame('Europe/Lisbon', $configuredUser->getTimezone());
+        $this->assertSame('UTC', $defaultUser->getTimezone());
+        $this->assertSame('UTC', $this->api->config()->get('timezone'));
+        $this->assertSame('Europe/Lisbon', $this->queryFromRequest($requests[0])['timezone']);
+        $this->assertSame('UTC', $this->queryFromRequest($requests[1])['timezone']);
+    }
+
+    public function testLaterResourceConfigOverridesWin(): void
     {
         $this->client->addResponse(new Response(body: '{"id":1,"name":"John"}'));
 
-        $users = $this->api->users();
+        $user = $this->api
+            ->users()
+            ->withConfig(['timezone' => 'America/New_York'])
+            ->withConfig(['timezone' => 'Europe/Lisbon'])
+            ->findWithConfiguredTimezone(1);
+
+        $this->assertSame('Europe/Lisbon', $user->getTimezone());
+    }
+
+    public function testResourceConfigUsesLateApiChangesForNonOverriddenValues(): void
+    {
+        $this->client->addResponse(new Response(body: '{"id":1,"name":"John"}'));
+
+        $users = $this->api
+            ->users()
+            ->withConfig(['tenant' => 'acme']);
+
+        $this->api->config(['timezone' => 'Europe/Lisbon']);
+
+        $user = $users->findWithConfiguredTimezone(1);
+
+        $this->assertSame('Europe/Lisbon', $user->getTimezone());
+    }
+
+    public function testResourceConfigReachesCollectionsAndEnvelopes(): void
+    {
+        $this->client->addResponse(new Response(body: '{"data":[{"id":1,"name":"John"}]}'));
+        $this->client->addResponse(new Response(body: '{"data":{"id":2,"name":"Jane"}}'));
+
+        $users = $this->api
+            ->users()
+            ->withConfig(['timezone' => 'Europe/Lisbon']);
+
+        $collection = $users->all();
+        $envelope = $users->findEnvelope(2);
+
+        $this->assertSame('Europe/Lisbon', $collection[0]->getTimezone());
+        $this->assertSame('Europe/Lisbon', $envelope->getTimezone());
+        $this->assertSame('Europe/Lisbon', $envelope->getUser()->getTimezone());
+    }
+
+    public function testScopedResourceCreatedBeforeSetupChangeUsesLatestRequestDefaults(): void
+    {
+        $this->client->addResponse(new Response(body: '{"id":1,"name":"John"}'));
+
+        $users = $this->api
+            ->users()
+            ->withConfig(['timezone' => 'Europe/Lisbon']);
 
         $this->api->setup()->defaultQuery('units', 'metric');
 
-        $users->find(1);
+        $user = $users->find(1);
 
+        $this->assertSame('Europe/Lisbon', $user->getTimezone());
         $this->assertSame('https://api.example.com/users/1?locale=en&units=metric', (string) $this->client->getLastRequest()->getUri());
     }
 
@@ -271,4 +399,21 @@ class ResourceTest extends AbstractTestCase
             'trace' => ['TRACE'],
         ];
     }
+
+    private function queryFromRequest(\Psr\Http\Message\RequestInterface $request): array
+    {
+        parse_str($request->getUri()->getQuery(), $query);
+
+        return $query;
+    }
+}
+
+enum StringRequestValue: string
+{
+    case ACTIVE = 'active';
+}
+
+enum IntegerRequestValue: int
+{
+    case SECOND = 2;
 }

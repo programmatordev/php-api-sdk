@@ -98,4 +98,54 @@ class CacheTest extends AbstractTestCase
             ->withCache(fn($cache) => $cache->defaultTtl(60))
             ->find(1);
     }
+
+    public function testCachedResponsesUseCurrentResourceConfig(): void
+    {
+        $client = $this->mockClient(new Response(
+            headers: ['Cache-Control' => 'max-age=60'],
+            body: '{"id":1,"name":"John"}'
+        ));
+        $api = new FakeApi($client);
+        $api->setup()->cache(new ArrayAdapter())->defaultTtl(60);
+
+        $utc = $api
+            ->users()
+            ->withConfig(['timezone' => 'UTC'])
+            ->find(1);
+
+        $lisbon = $api
+            ->users()
+            ->withConfig(['timezone' => 'Europe/Lisbon'])
+            ->find(1);
+
+        $this->assertSame('UTC', $utc->getTimezone());
+        $this->assertSame('Europe/Lisbon', $lisbon->getTimezone());
+        $this->assertCount(1, $client->getRequests());
+    }
+
+    public function testResourceConfigAndCacheOverridesComposeInEitherOrder(): void
+    {
+        $client = $this->mockClient(
+            new Response(body: '{"id":1,"name":"John"}'),
+            new Response(body: '{"id":2,"name":"Jane"}')
+        );
+        $api = new FakeApi($client);
+        $api->setup()->cache(new ArrayAdapter())->methods(['GET']);
+
+        $first = $api
+            ->users()
+            ->withConfig(['timezone' => 'Europe/Lisbon'])
+            ->withCache(fn($cache) => $cache->methods([]))
+            ->find(1);
+
+        $second = $api
+            ->users()
+            ->withCache(fn($cache) => $cache->methods([]))
+            ->withConfig(['timezone' => 'Europe/Lisbon'])
+            ->find(2);
+
+        $this->assertSame('Europe/Lisbon', $first->getTimezone());
+        $this->assertSame('Europe/Lisbon', $second->getTimezone());
+        $this->assertCount(2, $client->getRequests());
+    }
 }

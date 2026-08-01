@@ -80,6 +80,48 @@ class HookTest extends AbstractTestCase
         $this->assertSame('acme', $client->getLastRequest()->getHeaderLine('X-Tenant'));
     }
 
+    public function testHooksReceiveResourceConfigOverrides(): void
+    {
+        $client = $this->mockClient(new Response(body: '{"ok":true}'));
+        $seen = [];
+
+        $api = new JsonApi($client);
+        $api->beforeRequest(
+            function (RequestContext $context) use (&$seen) {
+                $config = $context->apiContext()->config();
+                $seen['before'] = [
+                    'tenant' => $config->get('tenant'),
+                    'region' => $config->get('region'),
+                ];
+
+                return $context->request()->withHeader('X-Tenant', $seen['before']['tenant']);
+            }
+        );
+        $api->afterResponse(
+            function (ResponseContext $context) use (&$seen): void {
+                $config = $context->apiContext()->config();
+                $seen['after'] = [
+                    'tenant' => $config->get('tenant'),
+                    'region' => $config->get('region'),
+                ];
+            }
+        );
+
+        $api
+            ->raw()
+            ->withConfig(['tenant' => 'acme'])
+            ->withConfig(['region' => 'eu'])
+            ->fetch();
+
+        $this->assertSame('acme', $client->getLastRequest()->getHeaderLine('X-Tenant'));
+        $this->assertSame([
+            'before' => ['tenant' => 'acme', 'region' => 'eu'],
+            'after' => ['tenant' => 'acme', 'region' => 'eu'],
+        ], $seen);
+        $this->assertFalse($api->config()->has('tenant'));
+        $this->assertFalse($api->config()->has('region'));
+    }
+
     public function testBeforeRequestHookRejectsInvalidReturnValue(): void
     {
         $this->expectException(UnexpectedValueException::class);

@@ -4,6 +4,38 @@
 
 `Resource` keeps the SDK-user-facing domain surface small. SDK resource classes call `endpoint()` to start an endpoint request builder.
 
+## Resource Configuration Overrides
+
+> **Available since version 3.1.0.**
+
+### `withConfig()`
+
+```php
+withConfig(array $values): static
+```
+
+Returns a cloned resource with configuration values that override API-wide
+configuration for that resource chain.
+
+```php
+$users = $api
+    ->users()
+    ->withConfig(['timezone' => 'Europe/Lisbon'])
+    ->all();
+```
+
+The override is available through the resource's scoped runtime and the request
+context used by hooks, errors, responses, entities, collections, and envelopes.
+It does not mutate the API-wide configuration or automatically add query
+parameters or headers.
+
+Repeated calls preserve unrelated values. When the same key is supplied more
+than once, the later value wins. Reusing the configured resource applies its
+overrides to every request made through that cloned resource.
+
+See [Resource Authoring: Resource-Local Configuration](04-resource-authoring.md#resource-local-configuration)
+for SDK-author helpers, request mapping, scope, and precedence.
+
 ## Endpoint Builder
 
 ### `endpoint()`
@@ -144,6 +176,33 @@ return $this
     ->post('/uploads')
     ->raw();
 ```
+
+### Backed Enum Values
+
+> **Available since version 3.1.0.**
+
+`query()`, `queries()`, `header()`, and `headers()` accept string- and
+integer-backed enums. The request uses each enum's scalar value, including in
+nested query arrays and header value lists:
+
+```php
+return $this
+    ->endpoint()
+    ->queries([
+        'status' => Status::ACTIVE,
+        'filter' => ['visibility' => Visibility::PUBLIC],
+    ])
+    ->headers([
+        'X-Status' => Status::ACTIVE,
+        'X-Allowed-Statuses' => [Status::ACTIVE, Status::PENDING],
+    ])
+    ->get('/users');
+```
+
+The same normalization applies to values configured through API-level
+`defaultQuery()`, `defaultQueries()`, `defaultHeader()`, and `defaultHeaders()`.
+Header values are converted to strings as required by PSR-7. Unit enums are not
+supported as request values; pass an explicit scalar value instead.
 
 ## Endpoint HTTP Methods
 

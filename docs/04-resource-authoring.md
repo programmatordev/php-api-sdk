@@ -95,6 +95,45 @@ return $this
     ->collection(User::class, key: 'data');
 ```
 
+### Backed Enum Values
+
+> **Available since version 3.1.0.**
+
+String- and integer-backed enums can be passed directly as query parameters or
+header values:
+
+```php
+enum Status: string
+{
+    case ACTIVE = 'active';
+    case PENDING = 'pending';
+}
+
+enum Visibility: int
+{
+    case PUBLIC = 1;
+}
+
+return $this
+    ->endpoint()
+    ->queries([
+        'status' => Status::ACTIVE,
+        'filter' => ['visibility' => Visibility::PUBLIC],
+    ])
+    ->headers([
+        'X-Status' => Status::ACTIVE,
+        'X-Allowed-Statuses' => [Status::ACTIVE, Status::PENDING],
+    ])
+    ->get('/users')
+    ->collection(User::class, key: 'data');
+```
+
+The backed values are normalized recursively after API defaults and endpoint
+options are merged. This applies to endpoint values, API-level defaults,
+nested query arrays, and header value lists. Header values are converted to
+strings as required by PSR-7. Unit enums are not supported as request values;
+pass an explicit scalar value instead.
+
 SDK-user customization should be explicit in the resource method API. If a method argument is enough, prefer that over hidden resource state:
 
 ```php
@@ -328,6 +367,92 @@ final class UserEnvelope implements EnvelopeInterface
 
 Keep context usage focused on hydration decisions. Entities should still be data/value objects by default and should not perform hidden network calls.
 
+## Resource-Local Configuration
+
+> **Available since version 3.1.0.**
+
+Resource-local configuration lets SDK authors build typed, immutable helpers
+for options that affect both a request and its response context:
+
+```php
+public function withLocale(string $locale): static
+{
+    return $this->withConfig([
+        'locale' => $locale,
+    ]);
+}
+```
+
+SDK users then get an API-specific fluent method:
+
+```php
+$user = $api->users()->withLocale('pt')->find(1);
+```
+
+`withConfig()` remains available as the generic escape hatch:
+
+```php
+$user = $api
+    ->users()
+    ->withConfig(['locale' => 'pt'])
+    ->find(1);
+```
+
+The original resource and API-wide configuration remain unchanged. The
+override belongs to the cloned resource, so reusing that resource applies it to
+every request made through the clone:
+
+```php
+$portugueseUsers = $api->users()->withLocale('pt');
+
+$first = $portugueseUsers->find(1);
+$second = $portugueseUsers->find(2);
+```
+
+Repeated calls merge their values, and later values win for the same key:
+
+```php
+$users = $api
+    ->users()
+    ->withConfig(['locale' => 'en', 'timezone' => 'UTC'])
+    ->withConfig(['locale' => 'pt']);
+```
+
+The effective configuration contains `locale=pt` and `timezone=UTC`.
+Non-overridden values come from the latest API-wide configuration, including
+changes made after the resource was created:
+
+```text
+Latest API-wide configuration
+-> resource withConfig() overrides
+```
+
+Inside a resource, the scoped runtime exposes the effective configuration:
+
+```php
+public function find(int $id): User
+{
+    return $this
+        ->endpoint()
+        ->query(
+            'locale',
+            $this->runtime->config()->get('locale'),
+        )
+        ->get('/users/{id}', ['id' => $id])
+        ->entity(User::class);
+}
+```
+
+Configuration is not automatically converted into query parameters or headers.
+The resource author decides how each option maps to an endpoint.
+
+Inside resource methods, read scoped values with
+`$this->runtime->config()->get()`. Do not call `set()` or `merge()` on that
+scoped `Config`; apply changes by returning a clone through `withConfig()`.
+The effective configuration is propagated through request and response hooks,
+error handling, response mapping, entities, collections, and envelopes. This
+keeps request construction and response interpretation consistent.
+
 ## API-Specific Resource Chains
 
 Keep API-specific vocabulary out of the base package. Add it in SDK resources with small fluent methods that use the generic endpoint helpers underneath.
@@ -376,7 +501,11 @@ $users = $api
     ->all();
 ```
 
-Use the same pattern for API-specific concepts such as includes, filters, selects, pagination options, or locale settings. Clone the resource in `with*` methods so a configured chain does not leak into later calls.
+Use the same pattern for API-specific concepts such as includes, filters,
+selects, pagination options, or locale settings. Use `withConfig()` when the
+value also affects request context or response interpretation. Clone the
+resource directly for other API-specific request state so a configured chain
+does not leak into later calls.
 
 ## Navigation
 

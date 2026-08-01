@@ -6,6 +6,7 @@ use ProgrammatorDev\Api\Builder\ErrorBuilder;
 use ProgrammatorDev\Api\Config\Config;
 use ProgrammatorDev\Api\Context\Context;
 use ProgrammatorDev\Api\Context\ErrorContext;
+use ProgrammatorDev\Api\Http\Transport;
 use ProgrammatorDev\Api\Request\PipelineOptions;
 use ProgrammatorDev\Api\Request\RequestOptions;
 use ProgrammatorDev\Api\Response\Response;
@@ -15,21 +16,43 @@ use Psr\Http\Client\ClientExceptionInterface;
 final class Runtime
 {
     /**
-     * Transport is provided lazily so resources keep using the latest mutable API
-     * setup instead of the setup snapshot from when the resource was created.
+     * Transport is provided lazily so resources keep using the latest mutable API setup
+     * instead of the setup snapshot from when the resource was created.
      *
-     * @param \Closure(): \ProgrammatorDev\Api\Http\Transport $transport
+     * @param \Closure(): Transport $transport
+     * @param array<string, mixed> $configOverrides
      */
     public function __construct(
         private readonly Config $config,
         private readonly \Closure $transport,
         private readonly ResponseDecoder $responseDecoder,
-        private readonly ErrorBuilder $errorBuilder
+        private readonly ErrorBuilder $errorBuilder,
+        private readonly array $configOverrides = []
     ) {}
 
     public function config(): Config
     {
+        if ($this->configOverrides !== []) {
+            // Merge lazily so scoped resources see later API config changes
+            // while keeping their overrides isolated from the shared configuration.
+            return (clone $this->config)->merge($this->configOverrides);
+        }
+
         return $this->config;
+    }
+
+    /**
+     * @param array<string, mixed> $values
+     */
+    public function withConfig(array $values): self
+    {
+        return new self(
+            config: $this->config,
+            transport: $this->transport,
+            responseDecoder: $this->responseDecoder,
+            errorBuilder: $this->errorBuilder,
+            configOverrides: array_merge($this->configOverrides, $values)
+        );
     }
 
     /**
@@ -45,7 +68,7 @@ final class Runtime
         RequestOptions $requestOptions,
         PipelineOptions $pipelineOptions
     ): Response {
-        $context = new Context($this->config);
+        $context = new Context($this->config());
 
         $rawResponse = ($this->transport)()->send(
             method: $method,

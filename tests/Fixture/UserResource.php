@@ -124,6 +124,20 @@ class UserResource extends Resource
             ->entity(User::class);
     }
 
+    public function findWithRequestOptions(
+        int|string $id,
+        array $query = [],
+        array $headers = []
+    ): User
+    {
+        return $this
+            ->endpoint()
+            ->queries($query)
+            ->headers($headers)
+            ->get('/users/{id}', ['id' => $id])
+            ->entity(User::class);
+    }
+
     public function findWithConfiguredTimezone(int|string $id): User
     {
         return $this
