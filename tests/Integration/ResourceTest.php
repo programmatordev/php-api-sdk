@@ -113,6 +113,56 @@ class ResourceTest extends AbstractTestCase
         $this->assertSame('acme', $request->getHeaderLine('X-Tenant'));
     }
 
+    public function testEndpointNormalizesBackedEnumsInQueryAndHeaders(): void
+    {
+        $this->client->addResponse(new Response(body: '{"id":1,"name":"John"}'));
+
+        $this->api->users()->findWithRequestOptions(
+            id: 1,
+            query: [
+                'status' => StringRequestValue::ACTIVE,
+                'filter' => [
+                    'page' => IntegerRequestValue::SECOND,
+                    'statuses' => [StringRequestValue::ACTIVE],
+                ],
+            ],
+            headers: [
+                'X-Status' => StringRequestValue::ACTIVE,
+                'X-Values' => [StringRequestValue::ACTIVE, IntegerRequestValue::SECOND],
+            ]
+        );
+
+        $request = $this->client->getLastRequest();
+        $query = $this->queryFromRequest($request);
+
+        $this->assertSame('active', $query['status']);
+        $this->assertSame('2', $query['filter']['page']);
+        $this->assertSame(['active'], $query['filter']['statuses']);
+        $this->assertSame('active', $request->getHeaderLine('X-Status'));
+        $this->assertSame(['active', '2'], $request->getHeader('X-Values'));
+    }
+
+    public function testRequestDefaultsNormalizeBackedEnums(): void
+    {
+        $this->client->addResponse(new Response(body: '{"id":1,"name":"John"}'));
+
+        $this->api
+            ->withDefaultQuery('status', StringRequestValue::ACTIVE)
+            ->withDefaultQuery('pagination', ['page' => IntegerRequestValue::SECOND])
+            ->withDefaultHeader('X-Status', StringRequestValue::ACTIVE)
+            ->withDefaultHeader('X-Values', [StringRequestValue::ACTIVE, IntegerRequestValue::SECOND])
+            ->users()
+            ->find(1);
+
+        $request = $this->client->getLastRequest();
+        $query = $this->queryFromRequest($request);
+
+        $this->assertSame('active', $query['status']);
+        $this->assertSame('2', $query['pagination']['page']);
+        $this->assertSame('active', $request->getHeaderLine('X-Status'));
+        $this->assertSame(['active', '2'], $request->getHeader('X-Values'));
+    }
+
     public function testResourceBodyRejectsArrayData(): void
     {
         $this->expectException(\InvalidArgumentException::class);
@@ -346,4 +396,14 @@ class ResourceTest extends AbstractTestCase
 
         return $query;
     }
+}
+
+enum StringRequestValue: string
+{
+    case ACTIVE = 'active';
+}
+
+enum IntegerRequestValue: int
+{
+    case SECOND = 2;
 }
