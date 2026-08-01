@@ -75,6 +75,10 @@ $api->config(['timezone' => 'UTC']);
 $api->config()->get('timezone');
 ```
 
+API configuration applies globally. SDK users can override selected values for
+one immutable resource chain with `Resource::withConfig()` without changing the
+API-wide config. See [Resource-Local Configuration](04-resource-authoring.md#resource-local-configuration).
+
 ### `setup()`
 
 ```php

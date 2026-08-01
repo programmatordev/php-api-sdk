@@ -128,6 +128,11 @@ Returns the SDK config available while hydrating entities or envelopes.
 $timezone = $context?->config()->get('timezone');
 ```
 
+When a request is executed through a resource configured with `withConfig()`,
+this returns the effective API configuration plus its resource-local overrides.
+The same effective configuration is available to hooks and error handlers for
+that request. See [Resource-Local Configuration](04-resource-authoring.md#resource-local-configuration).
+
 ## `ErrorContext`
 
 `ErrorContext` is passed to configured error handlers.

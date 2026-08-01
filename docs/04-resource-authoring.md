@@ -328,6 +328,75 @@ final class UserEnvelope implements EnvelopeInterface
 
 Keep context usage focused on hydration decisions. Entities should still be data/value objects by default and should not perform hidden network calls.
 
+## Resource-Local Configuration
+
+> **Available since version 3.1.0.**
+
+Resource-local configuration lets SDK users override selected API configuration
+values for one immutable resource chain:
+
+```php
+$user = $api
+    ->users()
+    ->withConfig(['locale' => 'pt'])
+    ->find(1);
+```
+
+The original resource and API-wide configuration remain unchanged. Repeated
+calls merge their values, and later values win for the same key:
+
+```php
+$users = $api
+    ->users()
+    ->withConfig(['locale' => 'en', 'timezone' => 'UTC'])
+    ->withConfig(['locale' => 'pt']);
+```
+
+The effective configuration contains `locale=pt` and `timezone=UTC`.
+Non-overridden values come from the latest API-wide configuration, including
+changes made after the resource was created:
+
+```text
+Latest API-wide configuration
+-> resource withConfig() overrides
+```
+
+SDK authors can build API-specific helpers on top of `withConfig()`:
+
+```php
+public function withLocale(string $locale): static
+{
+    return $this->withConfig([
+        'locale' => $locale,
+    ]);
+}
+```
+
+Inside a resource, the scoped runtime exposes the effective configuration:
+
+```php
+public function find(int $id): User
+{
+    return $this
+        ->endpoint()
+        ->query(
+            'locale',
+            $this->runtime->config()->get('locale'),
+        )
+        ->get('/users/{id}', ['id' => $id])
+        ->entity(User::class);
+}
+```
+
+Configuration is not automatically converted into query parameters or headers.
+The resource author decides how each option maps to an endpoint.
+
+Treat scoped runtime configuration as a read surface. Apply changes through
+`withConfig()` instead of mutating the returned `Config` object. The effective
+configuration is propagated through request and response hooks, error handling,
+response mapping, entities, collections, and envelopes. This keeps request
+construction and response interpretation consistent.
+
 ## API-Specific Resource Chains
 
 Keep API-specific vocabulary out of the base package. Add it in SDK resources with small fluent methods that use the generic endpoint helpers underneath.
@@ -376,7 +445,11 @@ $users = $api
     ->all();
 ```
 
-Use the same pattern for API-specific concepts such as includes, filters, selects, pagination options, or locale settings. Clone the resource in `with*` methods so a configured chain does not leak into later calls.
+Use the same pattern for API-specific concepts such as includes, filters,
+selects, pagination options, or locale settings. Use `withConfig()` when the
+value also affects request context or response interpretation. Clone the
+resource directly for other API-specific request state so a configured chain
+does not leak into later calls.
 
 ## Navigation
 
