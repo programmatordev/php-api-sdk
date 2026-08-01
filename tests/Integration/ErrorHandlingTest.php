@@ -3,6 +3,7 @@
 namespace ProgrammatorDev\Api\Test\Integration;
 
 use Nyholm\Psr7\Response;
+use ProgrammatorDev\Api\Context\ErrorContext;
 use ProgrammatorDev\Api\Test\Fixture\InvalidApiKeyException;
 use ProgrammatorDev\Api\Test\Fixture\JsonApi;
 use ProgrammatorDev\Api\Test\Fixture\NotFoundException;
@@ -81,5 +82,22 @@ class ErrorHandlingTest extends AbstractTestCase
 
         $this->assertSame(401, $response->raw()->getStatusCode());
         $this->assertSame(['code' => 'rate_limited', 'message' => 'Too many requests'], $response->data());
+    }
+
+    public function testErrorHandlersReceiveResourceConfigOverrides(): void
+    {
+        $client = $this->mockClient(new Response(status: 422, body: '{"message":"Invalid"}'));
+        $api = new JsonApi($client);
+        $api->setup()->errors()->status(
+            422,
+            fn (ErrorContext $context): \Throwable => new \RuntimeException(
+                $context->apiContext()->config()->get('error_message')
+            )
+        );
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Scoped error');
+
+        $api->raw()->withConfig(['error_message' => 'Scoped error'])->fetch();
     }
 }

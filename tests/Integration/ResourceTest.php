@@ -196,16 +196,84 @@ class ResourceTest extends AbstractTestCase
         $this->assertSame('https://api.example.com/users/1?locale=en&timezone=UTC', (string) $this->client->getLastRequest()->getUri());
     }
 
-    public function testResourceCreatedBeforeSetupChangeUsesLatestRequestDefaults(): void
+    public function testResourceConfigOverridesAreImmutableAndRequestLocal(): void
+    {
+        $this->client->addResponse(new Response(body: '{"id":1,"name":"John"}'));
+        $this->client->addResponse(new Response(body: '{"id":2,"name":"Jane"}'));
+
+        $users = $this->api->users();
+        $configured = $users->withConfig(['timezone' => 'Europe/Lisbon']);
+
+        $configuredUser = $configured->findWithConfiguredTimezone(1);
+        $defaultUser = $users->findWithConfiguredTimezone(2);
+        $requests = $this->client->getRequests();
+
+        $this->assertNotSame($users, $configured);
+        $this->assertSame('Europe/Lisbon', $configuredUser->getTimezone());
+        $this->assertSame('UTC', $defaultUser->getTimezone());
+        $this->assertSame('UTC', $this->api->config()->get('timezone'));
+        $this->assertSame('Europe/Lisbon', $this->queryFromRequest($requests[0])['timezone']);
+        $this->assertSame('UTC', $this->queryFromRequest($requests[1])['timezone']);
+    }
+
+    public function testLaterResourceConfigOverridesWin(): void
     {
         $this->client->addResponse(new Response(body: '{"id":1,"name":"John"}'));
 
-        $users = $this->api->users();
+        $user = $this->api
+            ->users()
+            ->withConfig(['timezone' => 'America/New_York'])
+            ->withConfig(['timezone' => 'Europe/Lisbon'])
+            ->findWithConfiguredTimezone(1);
+
+        $this->assertSame('Europe/Lisbon', $user->getTimezone());
+    }
+
+    public function testResourceConfigUsesLateApiChangesForNonOverriddenValues(): void
+    {
+        $this->client->addResponse(new Response(body: '{"id":1,"name":"John"}'));
+
+        $users = $this->api
+            ->users()
+            ->withConfig(['tenant' => 'acme']);
+
+        $this->api->config(['timezone' => 'Europe/Lisbon']);
+
+        $user = $users->findWithConfiguredTimezone(1);
+
+        $this->assertSame('Europe/Lisbon', $user->getTimezone());
+    }
+
+    public function testResourceConfigReachesCollectionsAndEnvelopes(): void
+    {
+        $this->client->addResponse(new Response(body: '{"data":[{"id":1,"name":"John"}]}'));
+        $this->client->addResponse(new Response(body: '{"data":{"id":2,"name":"Jane"}}'));
+
+        $users = $this->api
+            ->users()
+            ->withConfig(['timezone' => 'Europe/Lisbon']);
+
+        $collection = $users->all();
+        $envelope = $users->findEnvelope(2);
+
+        $this->assertSame('Europe/Lisbon', $collection[0]->getTimezone());
+        $this->assertSame('Europe/Lisbon', $envelope->getTimezone());
+        $this->assertSame('Europe/Lisbon', $envelope->getUser()->getTimezone());
+    }
+
+    public function testScopedResourceCreatedBeforeSetupChangeUsesLatestRequestDefaults(): void
+    {
+        $this->client->addResponse(new Response(body: '{"id":1,"name":"John"}'));
+
+        $users = $this->api
+            ->users()
+            ->withConfig(['timezone' => 'Europe/Lisbon']);
 
         $this->api->setup()->defaultQuery('units', 'metric');
 
-        $users->find(1);
+        $user = $users->find(1);
 
+        $this->assertSame('Europe/Lisbon', $user->getTimezone());
         $this->assertSame('https://api.example.com/users/1?locale=en&units=metric', (string) $this->client->getLastRequest()->getUri());
     }
 
@@ -270,5 +338,12 @@ class ResourceTest extends AbstractTestCase
             'connect' => ['CONNECT'],
             'trace' => ['TRACE'],
         ];
+    }
+
+    private function queryFromRequest(\Psr\Http\Message\RequestInterface $request): array
+    {
+        parse_str($request->getUri()->getQuery(), $query);
+
+        return $query;
     }
 }
