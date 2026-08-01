@@ -78,7 +78,9 @@ final class Transport
         // Normalize after merging so API defaults and endpoint values
         // follow the same rules before request serialization.
         $query = $this->normalizeBackedEnums($query);
-        $headers = $this->normalizeBackedEnums($headers);
+        // PSR-7 requires header values to be strings,
+        // including values from integer-backed enums.
+        $headers = $this->normalizeBackedEnums($headers, stringify: true);
 
         $request = $this->createRequest(
             method: $method,
@@ -200,10 +202,13 @@ final class Transport
         return $path;
     }
 
-    private function normalizeBackedEnums(mixed $value): mixed
+    /**
+     * @param bool $stringify Convert backed values to strings for PSR-7 headers.
+     */
+    private function normalizeBackedEnums(mixed $value, bool $stringify = false): mixed
     {
         if ($value instanceof \BackedEnum) {
-            return $value->value;
+            return $stringify ? (string) $value->value : $value->value;
         }
 
         if (!is_array($value)) {
@@ -212,7 +217,7 @@ final class Transport
 
         // Query structures can be nested and header values can be lists.
         return array_map(
-            fn(mixed $item): mixed => $this->normalizeBackedEnums($item),
+            fn(mixed $item): mixed => $this->normalizeBackedEnums($item, $stringify),
             $value
         );
     }

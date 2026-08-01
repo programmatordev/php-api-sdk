@@ -62,6 +62,23 @@ class ApiTest extends AbstractTestCase
         $this->assertSame('{"name":"John"}', (string) $request->getBody());
     }
 
+    public function testApiCanSendPublicRequestWithBackedEnums(): void
+    {
+        $client = $this->mockClient(new Response(body: '{"id":1,"name":"John"}'));
+
+        (new FakeApi($client))->send(
+            method: Method::GET,
+            path: '/users',
+            query: ['status' => ApiRequestValue::ACTIVE],
+            headers: ['X-Status' => ApiRequestValue::ACTIVE]
+        );
+
+        $request = $client->getLastRequest();
+
+        $this->assertSame('active', $this->queryFromLastRequest($client)['status']);
+        $this->assertSame('active', $request->getHeaderLine('X-Status'));
+    }
+
     public function testApiCanSendRequestWithDefaultQuery(): void
     {
         $client = $this->mockClient(new Response(body: '{"id":1,"name":"John"}'));
@@ -198,4 +215,9 @@ class ApiTest extends AbstractTestCase
         $this->assertSame(['id' => 1], $second->data());
         $this->assertCount(1, $client->getRequests());
     }
+}
+
+enum ApiRequestValue: string
+{
+    case ACTIVE = 'active';
 }

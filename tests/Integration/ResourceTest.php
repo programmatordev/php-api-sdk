@@ -7,6 +7,7 @@ use Nyholm\Psr7\Response;
 use Nyholm\Psr7\Stream;
 use ProgrammatorDev\Api\Test\Support\AbstractTestCase;
 use ProgrammatorDev\Api\Test\Fixture\FakeApi;
+use ProgrammatorDev\Api\Test\Fixture\StrictHeaderRequestFactory;
 use ProgrammatorDev\Api\Test\Fixture\User;
 use ProgrammatorDev\Api\Test\Fixture\UserEnvelope;
 
@@ -116,6 +117,7 @@ class ResourceTest extends AbstractTestCase
     public function testEndpointNormalizesBackedEnumsInQueryAndHeaders(): void
     {
         $this->client->addResponse(new Response(body: '{"id":1,"name":"John"}'));
+        $this->api->setup()->client($this->client)->requestFactory(new StrictHeaderRequestFactory());
 
         $this->api->users()->findWithRequestOptions(
             id: 1,
@@ -125,6 +127,10 @@ class ResourceTest extends AbstractTestCase
                     'page' => IntegerRequestValue::SECOND,
                     'statuses' => [StringRequestValue::ACTIVE],
                 ],
+                'nullable' => null,
+                'enabled' => false,
+                'offset' => 0,
+                'search' => '',
             ],
             headers: [
                 'X-Status' => StringRequestValue::ACTIVE,
@@ -138,6 +144,10 @@ class ResourceTest extends AbstractTestCase
         $this->assertSame('active', $query['status']);
         $this->assertSame('2', $query['filter']['page']);
         $this->assertSame(['active'], $query['filter']['statuses']);
+        $this->assertArrayNotHasKey('nullable', $query);
+        $this->assertSame('0', $query['enabled']);
+        $this->assertSame('0', $query['offset']);
+        $this->assertSame('', $query['search']);
         $this->assertSame('active', $request->getHeaderLine('X-Status'));
         $this->assertSame(['active', '2'], $request->getHeader('X-Values'));
     }

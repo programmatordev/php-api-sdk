@@ -130,8 +130,9 @@ return $this
 
 The backed values are normalized recursively after API defaults and endpoint
 options are merged. This applies to endpoint values, API-level defaults,
-nested query arrays, and header value lists. Unit enums are not supported as
-request values; pass an explicit scalar value instead.
+nested query arrays, and header value lists. Header values are converted to
+strings as required by PSR-7. Unit enums are not supported as request values;
+pass an explicit scalar value instead.
 
 SDK-user customization should be explicit in the resource method API. If a method argument is enough, prefer that over hidden resource state:
 

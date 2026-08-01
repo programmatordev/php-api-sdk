@@ -201,8 +201,8 @@ return $this
 
 The same normalization applies to values configured through API-level
 `defaultQuery()`, `defaultQueries()`, `defaultHeader()`, and `defaultHeaders()`.
-Unit enums are not supported as request values; pass an explicit scalar value
-instead.
+Header values are converted to strings as required by PSR-7. Unit enums are not
+supported as request values; pass an explicit scalar value instead.
 
 ## Endpoint HTTP Methods
 
