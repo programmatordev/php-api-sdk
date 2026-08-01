@@ -177,6 +177,33 @@ return $this
     ->raw();
 ```
 
+### Backed Enum Values
+
+> **Available since version 3.1.0.**
+
+`query()`, `queries()`, `header()`, and `headers()` accept string- and
+integer-backed enums. The request uses each enum's scalar value, including in
+nested query arrays and header value lists:
+
+```php
+return $this
+    ->endpoint()
+    ->queries([
+        'status' => Status::ACTIVE,
+        'filter' => ['visibility' => Visibility::PUBLIC],
+    ])
+    ->headers([
+        'X-Status' => Status::ACTIVE,
+        'X-Allowed-Statuses' => [Status::ACTIVE, Status::PENDING],
+    ])
+    ->get('/users');
+```
+
+The same normalization applies to values configured through API-level
+`defaultQuery()`, `defaultQueries()`, `defaultHeader()`, and `defaultHeaders()`.
+Header values are converted to strings as required by PSR-7. Unit enums are not
+supported as request values; pass an explicit scalar value instead.
+
 ## Endpoint HTTP Methods
 
 Endpoint HTTP helpers execute the request immediately and return `Response`:

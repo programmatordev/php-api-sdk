@@ -7,6 +7,7 @@ use Nyholm\Psr7\Response;
 use Nyholm\Psr7\Stream;
 use ProgrammatorDev\Api\Test\Support\AbstractTestCase;
 use ProgrammatorDev\Api\Test\Fixture\FakeApi;
+use ProgrammatorDev\Api\Test\Fixture\StrictHeaderRequestFactory;
 use ProgrammatorDev\Api\Test\Fixture\User;
 use ProgrammatorDev\Api\Test\Fixture\UserEnvelope;
 
@@ -111,6 +112,65 @@ class ResourceTest extends AbstractTestCase
 
         $this->assertSame('https://api.example.com/users/1?locale=en&active=1', (string) $request->getUri());
         $this->assertSame('acme', $request->getHeaderLine('X-Tenant'));
+    }
+
+    public function testEndpointNormalizesBackedEnumsInQueryAndHeaders(): void
+    {
+        $this->client->addResponse(new Response(body: '{"id":1,"name":"John"}'));
+        $this->api->setup()->client($this->client)->requestFactory(new StrictHeaderRequestFactory());
+
+        $this->api->users()->findWithRequestOptions(
+            id: 1,
+            query: [
+                'status' => StringRequestValue::ACTIVE,
+                'filter' => [
+                    'page' => IntegerRequestValue::SECOND,
+                    'statuses' => [StringRequestValue::ACTIVE],
+                ],
+                'nullable' => null,
+                'enabled' => false,
+                'offset' => 0,
+                'search' => '',
+            ],
+            headers: [
+                'X-Status' => StringRequestValue::ACTIVE,
+                'X-Values' => [StringRequestValue::ACTIVE, IntegerRequestValue::SECOND],
+            ]
+        );
+
+        $request = $this->client->getLastRequest();
+        $query = $this->queryFromRequest($request);
+
+        $this->assertSame('active', $query['status']);
+        $this->assertSame('2', $query['filter']['page']);
+        $this->assertSame(['active'], $query['filter']['statuses']);
+        $this->assertArrayNotHasKey('nullable', $query);
+        $this->assertSame('0', $query['enabled']);
+        $this->assertSame('0', $query['offset']);
+        $this->assertSame('', $query['search']);
+        $this->assertSame('active', $request->getHeaderLine('X-Status'));
+        $this->assertSame(['active', '2'], $request->getHeader('X-Values'));
+    }
+
+    public function testRequestDefaultsNormalizeBackedEnums(): void
+    {
+        $this->client->addResponse(new Response(body: '{"id":1,"name":"John"}'));
+
+        $this->api
+            ->withDefaultQuery('status', StringRequestValue::ACTIVE)
+            ->withDefaultQuery('pagination', ['page' => IntegerRequestValue::SECOND])
+            ->withDefaultHeader('X-Status', StringRequestValue::ACTIVE)
+            ->withDefaultHeader('X-Values', [StringRequestValue::ACTIVE, IntegerRequestValue::SECOND])
+            ->users()
+            ->find(1);
+
+        $request = $this->client->getLastRequest();
+        $query = $this->queryFromRequest($request);
+
+        $this->assertSame('active', $query['status']);
+        $this->assertSame('2', $query['pagination']['page']);
+        $this->assertSame('active', $request->getHeaderLine('X-Status'));
+        $this->assertSame(['active', '2'], $request->getHeader('X-Values'));
     }
 
     public function testResourceBodyRejectsArrayData(): void
@@ -346,4 +406,14 @@ class ResourceTest extends AbstractTestCase
 
         return $query;
     }
+}
+
+enum StringRequestValue: string
+{
+    case ACTIVE = 'active';
+}
+
+enum IntegerRequestValue: int
+{
+    case SECOND = 2;
 }

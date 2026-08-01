@@ -39,6 +39,12 @@ $response = $api->send(
 );
 ```
 
+> **Backed-enum normalization is available since version 3.1.0.**
+
+The `query` and `headers` arrays accept string- and integer-backed enums. Query
+parameters use their backed values, while header values are converted to strings
+as required by PSR-7.
+
 Path parameters are encoded and replaced in `{name}` placeholders.
 
 `send()` still runs through the configured SDK pipeline:
@@ -176,6 +182,13 @@ $this->defaultHeaders(['Accept' => 'application/json']);
 ```
 
 Header names are not normalized by the package.
+
+> **Backed-enum normalization is available since version 3.1.0.**
+
+String- and integer-backed enums can be used as default query or header values.
+Their scalar values are used when the request is built. Normalization also
+applies recursively to nested query values and header value lists. Header values
+are converted to strings as required by PSR-7.
 
 ## Pipeline Builders
 
