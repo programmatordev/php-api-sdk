@@ -15,6 +15,7 @@ class UserPage implements EnvelopeInterface
     public function __construct(
         private readonly array $users,
         private readonly ?string $nextUrl,
+        private readonly ?string $previousUrl,
         private readonly ResolverInterface $resolver
     ) {}
 
@@ -29,6 +30,7 @@ class UserPage implements EnvelopeInterface
         return new static(
             users: $response->collection(User::class, key: 'data'),
             nextUrl: $data['next'] ?? null,
+            previousUrl: $data['previous'] ?? null,
             resolver: $context->resolver()
         );
     }
@@ -48,5 +50,14 @@ class UserPage implements EnvelopeInterface
         }
 
         return $this->resolver->envelope($this->nextUrl, self::class);
+    }
+
+    public function previous(): ?self
+    {
+        if ($this->previousUrl === null) {
+            return null;
+        }
+
+        return $this->resolver->envelope($this->previousUrl, self::class);
     }
 }

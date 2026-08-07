@@ -169,6 +169,31 @@ class ResolverTest extends AbstractTestCase
         $this->assertCount(2, $this->client->getRequests());
     }
 
+    public function testReturningToInitialPageRunsItThroughThePipelineAgain(): void
+    {
+        $this->client->addResponse(new Response(
+            body: '{"data":[{"id":1,"name":"John"}],"next":"/users?page=2","previous":null}'
+        ));
+        $this->client->addResponse(new Response(
+            body: '{"data":[{"id":2,"name":"Jane"}],"next":null,"previous":"/users?page=1"}'
+        ));
+        $this->client->addResponse(new Response(
+            body: '{"data":[{"id":1,"name":"John again"}],"next":"/users?page=2","previous":null}'
+        ));
+        $this->api->withDefaultQuery('page', 1);
+
+        $page1 = $this->api->users()->page();
+        $page2 = $page1->next();
+        $page1Again = $page2?->previous();
+
+        $this->assertSame('John again', $page1Again?->users()[0]->getName());
+        $this->assertSame(
+            'https://api.example.com/users?page=1&locale=en',
+            (string) $this->client->getLastRequest()->getUri()
+        );
+        $this->assertCount(3, $this->client->getRequests());
+    }
+
     public function testResolverPreservesRepeatedUrlQueryValues(): void
     {
         $this->client->addResponse(new Response(body: '{"data":[],"next":"/users?tag=a&tag=b"}'));
