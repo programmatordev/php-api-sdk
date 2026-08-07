@@ -25,14 +25,24 @@ final class Resolver implements ResolverInterface
      */
     public function get(string $pathOrUrl): Response
     {
-        // Entities and envelopes may follow the same link repeatedly within one response graph.
-        // Memoize the SDK Response rather than mapped objects so mapping remains caller-owned
-        // while duplicate HTTP requests are avoided.
-        return $this->responses[$pathOrUrl] ??= $this->runtime->send(
+        $requestOptions = (new RequestOptions())->withPreservedUrlQuery();
+
+        // The supplied link is not the complete request identity: the runtime
+        // adds the method, base URL, and default queries to the memoization key.
+        $requestKey = $this->runtime->requestKey(
             method: Method::GET,
             path: $pathOrUrl,
             pathParams: [],
-            requestOptions: (new RequestOptions())->withPreservedUrlQuery(),
+            requestOptions: $requestOptions
+        );
+
+        // Memoize the response rather than mapped objects so repeated links
+        // avoid HTTP requests while each mapping still creates a new object.
+        return $this->responses[$requestKey] ??= $this->runtime->send(
+            method: Method::GET,
+            path: $pathOrUrl,
+            pathParams: [],
+            requestOptions: $requestOptions,
             pipelineOptions: new PipelineOptions(),
             resolver: $this
         );

@@ -63,13 +63,7 @@ final class Transport
         $options ??= new RequestOptions();
         $pipelineOptions ??= new PipelineOptions();
         $context ??= new Context();
-        $path = $this->buildPath($path, $pathParams);
-        $query = $options->getQuery();
         $headers = $options->getHeaders();
-
-        if (!empty($this->defaultQueries)) {
-            $query = array_merge($this->defaultQueries, $query);
-        }
 
         if (!empty($this->defaultHeaders)) {
             $headers = array_merge($this->defaultHeaders, $headers);
@@ -77,14 +71,13 @@ final class Transport
 
         // Normalize after merging so API defaults and endpoint values
         // follow the same rules before request serialization.
-        $query = $this->normalizeBackedEnums($query);
         // PSR-7 requires header values to be strings,
         // including values from integer-backed enums.
         $headers = $this->normalizeBackedEnums($headers, stringify: true);
 
         $request = $this->createRequest(
             method: $method,
-            url: $this->buildUrl($path, $query, $options->shouldPreserveUrlQuery()),
+            url: $this->resolveUrl($path, $pathParams, $options),
             headers: $headers,
             body: $options->getBody()
         );
@@ -99,6 +92,30 @@ final class Transport
 
         return $this->hookBuilder->applyAfterResponseHooks(
             new ResponseContext($request, $response, $context)
+        );
+    }
+
+    /**
+     * Build the URL exactly as send() will build it, before hooks and plugins
+     * can modify the PSR request. Resolver memoization uses this boundary so it
+     * does not need to duplicate base URL, path, or query-merging rules.
+     */
+    public function resolveUrl(
+        string $path,
+        array $pathParams = [],
+        ?RequestOptions $options = null
+    ): string {
+        $options ??= new RequestOptions();
+        $query = $options->getQuery();
+
+        if (!empty($this->defaultQueries)) {
+            $query = array_merge($this->defaultQueries, $query);
+        }
+
+        return $this->buildUrl(
+            path: $this->buildPath($path, $pathParams),
+            query: $this->normalizeBackedEnums($query),
+            preserveUrlQuery: $options->shouldPreserveUrlQuery()
         );
     }
 

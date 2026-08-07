@@ -57,6 +57,19 @@ final class Runtime
         );
     }
 
+    public function requestKey(
+        string $method,
+        string $path,
+        array $pathParams,
+        RequestOptions $requestOptions
+    ): string {
+        // Keep memoization identity in the runtime instead of coupling resolvers
+        // to URL construction. The lazy transport also preserves later setup changes.
+        $url = ($this->transport)()->resolveUrl($path, $pathParams, $requestOptions);
+
+        return sprintf('%s %s', strtoupper($method), $url);
+    }
+
     /**
      * @throws ClientExceptionInterface
      * @throws \JsonException

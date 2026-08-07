@@ -221,9 +221,14 @@ preserved.
 ## Memoization
 
 Each top-level response graph receives its own resolver. Within that graph, the
-resolver memoizes the SDK `Response` by the exact path or URL passed to it.
-Resolving the same link again avoids another HTTP request, while entity,
-collection, and envelope mapping still creates new typed objects.
+resolver memoizes the SDK `Response` by its transport-resolved URL, including
+the base URL and effective default queries. Equivalent relative and absolute
+links therefore share a memoized response. Resolving the same URL again avoids
+another HTTP request, while entity, collection, and envelope mapping still
+creates new typed objects.
+
+Memoization keys are created before request hooks and client plugins run. URL
+changes made by those layers are not part of the resolver's request identity.
 
 ```php
 $user = $api->users()->find(1);
@@ -238,6 +243,13 @@ entities into shared mutable objects.
 
 Memoization does not cross independent top-level SDK requests. API-level HTTP
 caching can reuse responses across those request graphs.
+
+The resolver does not evict individual entries. Memoized responses remain in
+memory while any response, entity, collection, or envelope from their shared
+response graph keeps the resolver reachable. The complete memoization map is
+released when that graph is no longer referenced. This is normally short-lived,
+but traversing a very large number of paginated links can retain every followed
+response until the traversal is released.
 
 ```php
 $firstUser = $api->users()->find(1);

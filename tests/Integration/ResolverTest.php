@@ -97,6 +97,45 @@ class ResolverTest extends AbstractTestCase
         $this->assertCount(2, $this->client->getRequests());
     }
 
+    public function testResolverMemoizesEquivalentRelativeAndAbsoluteUrls(): void
+    {
+        $this->client->addResponse(new Response(body: <<<'JSON'
+            {
+                "id": 1,
+                "name": "John",
+                "friend": {"url": "/users/2"},
+                "manager": {"url": "https://api.example.com/users/2"}
+            }
+            JSON));
+        $this->client->addResponse(new Response(body: '{"id":2,"name":"Jane"}'));
+
+        $user = $this->api->users()->findLinked(1);
+
+        $this->assertSame('Jane', $user->friend()->getName());
+        $this->assertSame('Jane', $user->manager()?->getName());
+        $this->assertCount(2, $this->client->getRequests());
+    }
+
+    public function testResolverIncludesCurrentDefaultQueriesInMemoizationKey(): void
+    {
+        $this->client->addResponse(new Response(body: '{"id":1,"name":"John","friend":{"url":"/users/2"}}'));
+        $this->client->addResponse(new Response(body: '{"id":2,"name":"Jane"}'));
+        $this->client->addResponse(new Response(body: '{"id":2,"name":"Janet"}'));
+
+        $user = $this->api->users()->findLinked(1);
+
+        $this->assertSame('Jane', $user->friend()->getName());
+
+        $this->api->withDefaultQuery('locale', 'pt');
+
+        $this->assertSame('Janet', $user->friend()->getName());
+        $this->assertSame(
+            'https://api.example.com/users/2?locale=pt',
+            (string) $this->client->getLastRequest()->getUri()
+        );
+        $this->assertCount(3, $this->client->getRequests());
+    }
+
     public function testResolverMemoizationDoesNotLeakAcrossResponseGraphs(): void
     {
         $this->client->addResponse(new Response(body: '{"id":1,"name":"John","friend":{"url":"/users/2"}}'));
