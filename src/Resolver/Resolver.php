@@ -22,14 +22,14 @@ final class Resolver implements ResolverInterface
 
     public function get(string $pathOrUrl): Response
     {
-        // Link following can be called repeatedly by entities/envelopes in the same response graph.
-        // Memoize the SDK Response, not typed objects,
-        // so mapping remains caller-owned while duplicate HTTP requests are avoided.
+        // Entities and envelopes may follow the same link repeatedly within one response graph.
+        // Memoize the SDK Response rather than mapped objects so mapping remains caller-owned
+        // while duplicate HTTP requests are avoided.
         return $this->responses[$pathOrUrl] ??= $this->runtime->send(
             method: Method::GET,
             path: $pathOrUrl,
             pathParams: [],
-            requestOptions: (new RequestOptions())->withQueries($this->queryFromUrl($pathOrUrl)),
+            requestOptions: (new RequestOptions())->withPreservedUrlQuery(),
             pipelineOptions: new PipelineOptions(),
             resolver: $this
         );
@@ -50,20 +50,4 @@ final class Resolver implements ResolverInterface
         return $this->get($pathOrUrl)->envelope($class);
     }
 
-    private function queryFromUrl(string $pathOrUrl): array
-    {
-        // Query values in a followed link must take precedence over API defaults because the
-        // API generated that link. For example, with defaults `page=1&locale=en`, resolving
-        // `/users?page=2` must request `/users?page=2&locale=en`, not page 1. Promoting the
-        // link query to request-local options gives it that precedence during the normal merge.
-        $query = parse_url($pathOrUrl, PHP_URL_QUERY);
-
-        if ($query === null || $query === false || $query === '') {
-            return [];
-        }
-
-        parse_str($query, $values);
-
-        return $values;
-    }
 }

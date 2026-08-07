@@ -71,6 +71,34 @@ class ResolverTest extends AbstractTestCase
         $this->assertCount(2, $this->client->getRequests());
     }
 
+    public function testResolverPreservesRepeatedUrlQueryValues(): void
+    {
+        $this->client->addResponse(new Response(body: '{"data":[],"next":"/users?tag=a&tag=b"}'));
+        $this->client->addResponse(new Response(body: '{"data":[],"next":null}'));
+        $this->api->withDefaultQuery('tag', 'default');
+
+        $this->api->users()->page()->next();
+
+        $this->assertSame(
+            'https://api.example.com/users?tag=a&tag=b&locale=en',
+            (string) $this->client->getLastRequest()->getUri()
+        );
+    }
+
+    public function testResolverPreservesDottedUrlQueryKeys(): void
+    {
+        $this->client->addResponse(new Response(body: '{"data":[],"next":"/users?filter.name=active"}'));
+        $this->client->addResponse(new Response(body: '{"data":[],"next":null}'));
+        $this->api->withDefaultQuery('filter.name', 'default');
+
+        $this->api->users()->page()->next();
+
+        $this->assertSame(
+            'https://api.example.com/users?filter.name=active&locale=en',
+            (string) $this->client->getLastRequest()->getUri()
+        );
+    }
+
     public function testResolverUsesScopedResourceConfig(): void
     {
         $this->client->addResponse(new Response(body: '{"id":1,"name":"John","friend":{"url":"/users/2"}}'));

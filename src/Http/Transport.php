@@ -84,7 +84,7 @@ final class Transport
 
         $request = $this->createRequest(
             method: $method,
-            url: $this->buildUrl($path, $query),
+            url: $this->buildUrl($path, $query, $options->shouldPreserveUrlQuery()),
             headers: $headers,
             body: $options->getBody()
         );
@@ -222,14 +222,24 @@ final class Transport
         );
     }
 
-    private function buildUrl(string $path, array $query = []): string
+    private function buildUrl(string $path, array $query = [], bool $preserveUrlQuery = false): string
     {
         $query = array_filter($query, static fn(mixed $value): bool => $value !== null);
         $appendQuery = http_build_query($query, '', '&', PHP_QUERY_RFC3986);
 
         $url = UrlHelper::join($this->baseUrl, $path);
 
-        return append_query_string($url, $appendQuery, APPEND_QUERY_STRING_REPLACE_DUPLICATE);
+        // A preserved URL query is authoritative. For example, with defaults
+        // `page=1&locale=en`, requesting `/users?page=2` must produce
+        // `/users?page=2&locale=en`. Skipping duplicate defaults also retains repeated values
+        // such as `tag=a&tag=b` and keys such as `filter.name` without reparsing the URL.
+        return append_query_string(
+            $url,
+            $appendQuery,
+            $preserveUrlQuery
+                ? APPEND_QUERY_STRING_SKIP_DUPLICATE
+                : APPEND_QUERY_STRING_REPLACE_DUPLICATE
+        );
     }
 
     private function createRequest(
