@@ -94,5 +94,5 @@ Returning anything else throws an `UnexpectedValueException`.
 
 ## Navigation
 
-- Previous: [Responses](06-responses.md)
-- Next: [HTTP Client](08-http-client.md)
+- Previous: [Resolver](07-resolver.md)
+- Next: [HTTP Client](09-http-client.md)

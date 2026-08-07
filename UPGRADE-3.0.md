@@ -103,7 +103,7 @@ $this->auth()->bearer($token);
 
 Use `chain()` only when an API requires multiple authentication rules on the same request.
 
-See [Authentication](docs/07-authentication.md), [HTTP Client](docs/08-http-client.md), [Cache](docs/09-cache.md), [Logging](docs/10-logging.md), [Plugins](docs/11-plugins.md), and [Hooks](docs/12-hooks.md) for details.
+See [Authentication](docs/08-authentication.md), [HTTP Client](docs/09-http-client.md), [Cache](docs/10-cache.md), [Logging](docs/11-logging.md), [Plugins](docs/12-plugins.md), and [Hooks](docs/13-hooks.md) for details.
 
 ## Defaults And Endpoint Overrides
 
@@ -121,7 +121,7 @@ use ProgrammatorDev\Api\Builder\CacheBuilder;
 
 return $this
     ->endpoint()
-    ->cache(fn (CacheBuilder $cache) => $cache->defaultTtl(60))
+    ->withCache(fn (CacheBuilder $cache) => $cache->defaultTtl(60))
     ->get('/live')
     ->collection(Event::class, key: 'data');
 ```
@@ -143,7 +143,7 @@ API cache config < endpoint cache defaults < resource withCache override
 
 The base package provides the generic override mechanism. API-specific fluent helpers, such as `withIncludes()` or `withStatus()`, should live in the concrete SDK.
 
-See [Resource Authoring: API-Specific Resource Chains](docs/04-resource-authoring.md#api-specific-resource-chains), [Resources: Resource Cache Overrides](docs/05-resources.md#resource-cache-overrides), [Cache: Endpoint Defaults](docs/09-cache.md#endpoint-defaults), and [Cache: Resource Overrides](docs/09-cache.md#resource-overrides) for details.
+See [Resource Authoring: API-Specific Resource Chains](docs/04-resource-authoring.md#api-specific-resource-chains), [Resources: Resource Cache Overrides](docs/05-resources.md#resource-cache-overrides), [Cache: Endpoint Defaults](docs/10-cache.md#endpoint-defaults), and [Cache: Resource Overrides](docs/10-cache.md#resource-overrides) for details.
 
 ## Setup Is The Escape Hatch
 
@@ -177,7 +177,7 @@ The package uses PHP-HTTP discovery for PSR-18 clients and PSR-17 factories. Whe
 
 SDK authors may still require or suggest concrete implementations when they want control over the default HTTP stack.
 
-See [HTTP Client: SDK Author Defaults](docs/08-http-client.md#sdk-author-defaults) and [HTTP Client: SDK User Overrides](docs/08-http-client.md#sdk-user-overrides) for details.
+See [HTTP Client: SDK Author Defaults](docs/09-http-client.md#sdk-author-defaults) and [HTTP Client: SDK User Overrides](docs/09-http-client.md#sdk-user-overrides) for details.
 
 ## API-Specific Behavior Belongs In SDKs
 

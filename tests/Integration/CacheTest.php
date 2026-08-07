@@ -30,6 +30,30 @@ class CacheTest extends AbstractTestCase
         $this->assertCount(1, $client->getRequests());
     }
 
+    public function testApiCacheAppliesToResolverRequestsAcrossResponseGraphs(): void
+    {
+        $client = $this->mockClient(
+            new Response(
+                headers: ['Cache-Control' => 'max-age=60'],
+                body: '{"id":1,"name":"John","friend":{"url":"/users/2"}}'
+            ),
+            new Response(
+                headers: ['Cache-Control' => 'max-age=60'],
+                body: '{"id":2,"name":"Jane"}'
+            )
+        );
+        $api = new FakeApi($client);
+        $api->setup()->cache(new ArrayAdapter())->defaultTtl(60);
+
+        $first = $api->users()->findLinked(1)->friend();
+        $second = $api->users()->findLinked(1)->friend();
+
+        $this->assertNotSame($first, $second);
+        $this->assertSame('Jane', $first->getName());
+        $this->assertSame('Jane', $second->getName());
+        $this->assertCount(2, $client->getRequests());
+    }
+
     public function testEndpointCanOverrideCacheConfiguration(): void
     {
         $client = $this->mockClient(new Response(body: '{"id":1,"name":"John"}'));
@@ -38,6 +62,20 @@ class CacheTest extends AbstractTestCase
 
         $first = $api->users()->createWithEndpointCache(['name' => 'John']);
         $second = $api->users()->createWithEndpointCache(['name' => 'John']);
+
+        $this->assertSame(['id' => 1, 'name' => 'John'], $first->data());
+        $this->assertSame(['id' => 1, 'name' => 'John'], $second->data());
+        $this->assertCount(1, $client->getRequests());
+    }
+
+    public function testDeprecatedEndpointCacheAliasStillConfiguresCache(): void
+    {
+        $client = $this->mockClient(new Response(body: '{"id":1,"name":"John"}'));
+        $api = new FakeApi($client);
+        $api->setup()->cache(new ArrayAdapter())->methods(['GET']);
+
+        $first = $api->users()->createWithDeprecatedEndpointCache(['name' => 'John']);
+        $second = $api->users()->createWithDeprecatedEndpointCache(['name' => 'John']);
 
         $this->assertSame(['id' => 1, 'name' => 'John'], $first->data());
         $this->assertSame(['id' => 1, 'name' => 'John'], $second->data());

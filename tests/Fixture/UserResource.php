@@ -57,7 +57,7 @@ class UserResource extends Resource
     {
         return $this
             ->endpoint()
-            ->cache(fn($cache) => $cache->methods(['POST']))
+            ->withCache(fn($cache) => $cache->methods(['POST']))
             ->json($data)
             ->post('/users');
     }
@@ -66,8 +66,17 @@ class UserResource extends Resource
     {
         return $this
             ->endpoint()
+            ->withCache(fn($cache) => $cache->methods(['POST']))
+            ->withCache(fn($cache) => $cache->methods(['GET']))
+            ->json($data)
+            ->post('/users');
+    }
+
+    public function createWithDeprecatedEndpointCache(array $data): Response
+    {
+        return $this
+            ->endpoint()
             ->cache(fn($cache) => $cache->methods(['POST']))
-            ->cache(fn($cache) => $cache->methods(['GET']))
             ->json($data)
             ->post('/users');
     }
@@ -103,6 +112,22 @@ class UserResource extends Resource
             ->endpoint()
             ->get('/users/{id}', ['id' => $id])
             ->envelope(UserEnvelope::class);
+    }
+
+    public function findLinked(int|string $id): LinkedUser
+    {
+        return $this
+            ->endpoint()
+            ->get('/users/{id}', ['id' => $id])
+            ->entity(LinkedUser::class);
+    }
+
+    public function page(): UserPage
+    {
+        return $this
+            ->endpoint()
+            ->get('/users')
+            ->envelope(UserPage::class);
     }
 
     public function findWithEndpointLocale(int|string $id, string $locale): User

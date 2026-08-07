@@ -24,12 +24,16 @@ Keep the architecture centered on a small set of clear responsibilities:
 - `Setup`: the explicit SDK-user setup and hackability surface exposed through
   `Api::setup()`.
 - `Runtime`: the internal configured runtime used by resources for configuration
-  access and request execution.
+  access, request identity, and request execution.
 - `Resource`: an immutable endpoint group and the primary SDK-author workflow.
 - `Endpoint`: an immutable builder for request-local query, header, and body
   options.
 - `RequestOptions`: the request-local query, header, and body state carried by an
   endpoint.
+- `Context`: the effective SDK config and response-graph capabilities passed
+  through response mapping and hydration.
+- `Resolver`: the explicit, response-graph-scoped API for following linked
+  resources and pagination while reusing the originating runtime.
 - `Response`: the decoded/raw response wrapper and mapping surface.
 - `Entity`: the optional contract for typed response data objects.
 
@@ -94,8 +98,20 @@ cache, hooks, decoding, and error handling.
   options merge, before serialization.
 - Authentication strategies must be explicit. Multiple strategies compose
   through `auth()->chain(...)` rather than relying on implicit precedence.
-- Keep entities as response data/value objects by default. Do not introduce
-  hidden network calls, lazy loading, or transparent proxy behavior.
+- Keep entities as response data/value objects by default. SDK authors may add
+  purpose-built relationship or pagination methods that explicitly defer a
+  request through the context resolver. Do not introduce transparent proxy
+  behavior, automatic property loading, or network calls from ordinary value
+  accessors.
+- Resolver requests must reuse the originating runtime pipeline, including
+  current setup, config overrides, authentication, plugins, API-level cache,
+  hooks, decoding, and error handling. Request-local endpoint modifiers are not
+  inherited by followed links.
+- Resolver memoization is scoped to one response graph. Memoize SDK responses by
+  request identity rather than sharing mapped entities or leaking state across
+  independent top-level requests.
+- Treat query parameters already present in API-provided links as authoritative.
+  Apply missing API defaults without replacing or reparsing link queries.
 - Keep API-specific vocabulary in concrete SDK packages. Concepts such as
   includes, selects, filters, and pagination should build on generic resource
   primitives rather than enter the base package without broad applicability.
@@ -128,6 +144,7 @@ Maintain support for the package's core capabilities:
 - Query and header defaults.
 - Base URL and path construction.
 - Response decoding and transformation.
+- Explicit linked-response resolution and response-graph memoization.
 - Error handling.
 - Test utilities for SDK authors where they provide clear value.
 
@@ -154,6 +171,8 @@ Documentation should explain:
 - How to create and configure a simple SDK.
 - How to author resources and request options.
 - How to map responses to entities, collections, and envelopes.
+- How entities and envelopes can explicitly resolve linked resources and
+  pagination through their hydration context.
 - How to configure authentication, clients, factories, cache, logging, plugins,
   hooks, and errors.
 - How to create API-specific fluent helpers on top of generic primitives.
@@ -186,6 +205,11 @@ For scoped or pipeline behavior, verify isolation and propagation explicitly:
 - Hooks, errors, responses, and hydration observe the same effective context.
 - Cache behavior does not leak request-local state.
 - Independent fluent modifiers compose correctly.
+- Resolver requests use the same effective runtime pipeline as their originating
+  response.
+- Resolver memoization is isolated by response graph and avoids duplicate
+  requests without sharing mapped objects.
+- Linked URL query precedence and request identity match documented behavior.
 
 ## Downstream Validation
 
