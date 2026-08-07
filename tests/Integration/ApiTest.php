@@ -90,6 +90,20 @@ class ApiTest extends AbstractTestCase
         $this->assertSame('https://api.example.com/users/1?locale=en&units=metric', (string) $client->getLastRequest()->getUri());
     }
 
+    public function testRequestQueryTakesPrecedenceOverUrlQueryAndDefaults(): void
+    {
+        $client = $this->mockClient(new Response(body: '{"id":1,"name":"John"}'));
+
+        (new FakeApi($client))
+            ->withDefaultQuery('locale', 'en')
+            ->send(Method::GET, '/users?locale=pt&page=2', query: [
+                'page' => 1,
+                'units' => 'metric',
+            ]);
+
+        $this->assertSame('https://api.example.com/users?locale=en&page=1&units=metric', (string) $client->getLastRequest()->getUri());
+    }
+
     public function testApiCanUseConfigValuesAsDefaultQueries(): void
     {
         $client = $this->mockClient(new Response(body: '{"id":1,"name":"John"}'));

@@ -367,6 +367,10 @@ final class UserEnvelope implements EnvelopeInterface
 
 Keep context usage focused on hydration decisions. Entities should still be data/value objects by default and should not perform hidden network calls.
 
+When an API exposes relationships or pagination as links, an SDK author can opt
+into explicit request-backed methods through the context resolver. See
+[Resolver](07-resolver.md).
+
 ## Resource-Local Configuration
 
 > **Available since version 3.1.0.**

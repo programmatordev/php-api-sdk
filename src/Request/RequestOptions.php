@@ -9,7 +9,8 @@ class RequestOptions
     public function __construct(
         private readonly array $query = [],
         private readonly array $headers = [],
-        private readonly string|StreamInterface|null $body = null
+        private readonly string|StreamInterface|null $body = null,
+        private readonly bool $preserveUrlQuery = false
     ) {}
 
     public function getQuery(): array
@@ -27,6 +28,11 @@ class RequestOptions
         return $this->body;
     }
 
+    public function shouldPreserveUrlQuery(): bool
+    {
+        return $this->preserveUrlQuery;
+    }
+
     public function withQuery(string $name, mixed $value): self
     {
         return $this->withQueries([$name => $value]);
@@ -37,7 +43,8 @@ class RequestOptions
         return new self(
             query: array_merge($this->query, $this->filterNullValues($query)),
             headers: $this->headers,
-            body: $this->body
+            body: $this->body,
+            preserveUrlQuery: $this->preserveUrlQuery
         );
     }
 
@@ -51,7 +58,8 @@ class RequestOptions
         return new self(
             query: $this->query,
             headers: array_merge($this->headers, $headers),
-            body: $this->body
+            body: $this->body,
+            preserveUrlQuery: $this->preserveUrlQuery
         );
     }
 
@@ -60,7 +68,18 @@ class RequestOptions
         return new self(
             query: $this->query,
             headers: $this->headers,
-            body: $body
+            body: $body,
+            preserveUrlQuery: $this->preserveUrlQuery
+        );
+    }
+
+    public function withPreservedUrlQuery(): self
+    {
+        return new self(
+            query: $this->query,
+            headers: $this->headers,
+            body: $this->body,
+            preserveUrlQuery: true
         );
     }
 

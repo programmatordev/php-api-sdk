@@ -6,9 +6,11 @@ use ProgrammatorDev\Api\Builder\ErrorBuilder;
 use ProgrammatorDev\Api\Config\Config;
 use ProgrammatorDev\Api\Context\Context;
 use ProgrammatorDev\Api\Context\ErrorContext;
+use ProgrammatorDev\Api\Contract\ResolverInterface;
 use ProgrammatorDev\Api\Http\Transport;
 use ProgrammatorDev\Api\Request\PipelineOptions;
 use ProgrammatorDev\Api\Request\RequestOptions;
+use ProgrammatorDev\Api\Resolver\Resolver;
 use ProgrammatorDev\Api\Response\Response;
 use ProgrammatorDev\Api\Response\ResponseDecoder;
 use Psr\Http\Client\ClientExceptionInterface;
@@ -55,6 +57,19 @@ final class Runtime
         );
     }
 
+    public function requestKey(
+        string $method,
+        string $path,
+        array $pathParams,
+        RequestOptions $requestOptions
+    ): string {
+        // Keep memoization identity in the runtime instead of coupling resolvers
+        // to URL construction. The lazy transport also preserves later setup changes.
+        $url = ($this->transport)()->resolveUrl($path, $pathParams, $requestOptions);
+
+        return sprintf('%s %s', strtoupper($method), $url);
+    }
+
     /**
      * @throws ClientExceptionInterface
      * @throws \JsonException
@@ -66,9 +81,13 @@ final class Runtime
         string $path,
         array $pathParams,
         RequestOptions $requestOptions,
-        PipelineOptions $pipelineOptions
+        PipelineOptions $pipelineOptions,
+        ?ResolverInterface $resolver = null
     ): Response {
-        $context = new Context($this->config());
+        // Followed links pass their resolver back in
+        // so one response graph shares memoized responses while top-level requests get a fresh resolver scope.
+        $resolver ??= new Resolver($this);
+        $context = new Context($this->config(), $resolver);
 
         $rawResponse = ($this->transport)()->send(
             method: $method,

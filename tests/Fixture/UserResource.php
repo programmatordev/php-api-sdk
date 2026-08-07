@@ -114,6 +114,22 @@ class UserResource extends Resource
             ->envelope(UserEnvelope::class);
     }
 
+    public function findLinked(int|string $id): LinkedUser
+    {
+        return $this
+            ->endpoint()
+            ->get('/users/{id}', ['id' => $id])
+            ->entity(LinkedUser::class);
+    }
+
+    public function page(): UserPage
+    {
+        return $this
+            ->endpoint()
+            ->get('/users')
+            ->envelope(UserPage::class);
+    }
+
     public function findWithEndpointLocale(int|string $id, string $locale): User
     {
         return $this

@@ -107,7 +107,7 @@ public static function fromResponse(Response $response, ?Context $context = null
 
 ## `Context`
 
-`Context` carries SDK config into response mapping.
+`Context` carries SDK config and response resolution into response mapping.
 
 SDK users do not fetch context from `Response`. The package passes context into entity and envelope hydration methods:
 
@@ -132,6 +132,19 @@ When a request is executed through a resource configured with `withConfig()`,
 this returns the effective API configuration plus its resource-local overrides.
 The same effective configuration is available to hooks and error handlers for
 that request. See [Resource-Local Configuration](04-resource-authoring.md#resource-local-configuration).
+
+### `resolver()`
+
+```php
+resolver(): ResolverInterface
+```
+
+Returns the response-graph resolver provided by the API runtime. It can follow
+linked entities, collections, and pagination through the configured SDK runtime.
+Calling it outside an API runtime request throws `RuntimeException`.
+
+See [Resolver](07-resolver.md) for linked-resource authoring, request behavior,
+and memoization scope.
 
 ## `ErrorContext`
 
@@ -173,4 +186,4 @@ It exposes:
 ## Navigation
 
 - Previous: [Resources](05-resources.md)
-- Next: [Authentication](07-authentication.md)
+- Next: [Resolver](07-resolver.md)

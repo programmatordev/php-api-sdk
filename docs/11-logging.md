@@ -51,9 +51,9 @@ The logger plugin runs at priority `10`, after cache.
 
 That means the cache plugin can serve cached responses before the request reaches later plugins. Cache-specific logging is handled by the cache listener instead of relying only on the logger plugin.
 
-See [Plugins](11-plugins.md) for the full internal plugin order.
+See [Plugins](12-plugins.md) for the full internal plugin order.
 
 ## Navigation
 
-- Previous: [Cache](09-cache.md)
-- Next: [Plugins](11-plugins.md)
+- Previous: [Cache](10-cache.md)
+- Next: [Plugins](12-plugins.md)

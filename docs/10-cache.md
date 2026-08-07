@@ -111,9 +111,9 @@ The cache plugin runs at priority `20`, after authentication and before the logg
 
 When logging is configured, cache hit/miss/write events are logged through the cache plugin listener.
 
-See [Logging](10-logging.md) for cache log output.
+See [Logging](11-logging.md) for cache log output.
 
 ## Navigation
 
-- Previous: [HTTP Client](08-http-client.md)
-- Next: [Logging](10-logging.md)
+- Previous: [HTTP Client](09-http-client.md)
+- Next: [Logging](11-logging.md)
