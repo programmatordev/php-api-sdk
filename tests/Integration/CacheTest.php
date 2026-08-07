@@ -44,6 +44,20 @@ class CacheTest extends AbstractTestCase
         $this->assertCount(1, $client->getRequests());
     }
 
+    public function testDeprecatedEndpointCacheAliasStillConfiguresCache(): void
+    {
+        $client = $this->mockClient(new Response(body: '{"id":1,"name":"John"}'));
+        $api = new FakeApi($client);
+        $api->setup()->cache(new ArrayAdapter())->methods(['GET']);
+
+        $first = $api->users()->createWithDeprecatedEndpointCache(['name' => 'John']);
+        $second = $api->users()->createWithDeprecatedEndpointCache(['name' => 'John']);
+
+        $this->assertSame(['id' => 1, 'name' => 'John'], $first->data());
+        $this->assertSame(['id' => 1, 'name' => 'John'], $second->data());
+        $this->assertCount(1, $client->getRequests());
+    }
+
     public function testResourceCacheOverrideWinsOverEndpointCacheDefault(): void
     {
         $client = $this->mockClient(

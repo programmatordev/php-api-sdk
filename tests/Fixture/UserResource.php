@@ -57,7 +57,7 @@ class UserResource extends Resource
     {
         return $this
             ->endpoint()
-            ->cache(fn($cache) => $cache->methods(['POST']))
+            ->withCache(fn($cache) => $cache->methods(['POST']))
             ->json($data)
             ->post('/users');
     }
@@ -66,8 +66,17 @@ class UserResource extends Resource
     {
         return $this
             ->endpoint()
+            ->withCache(fn($cache) => $cache->methods(['POST']))
+            ->withCache(fn($cache) => $cache->methods(['GET']))
+            ->json($data)
+            ->post('/users');
+    }
+
+    public function createWithDeprecatedEndpointCache(array $data): Response
+    {
+        return $this
+            ->endpoint()
             ->cache(fn($cache) => $cache->methods(['POST']))
-            ->cache(fn($cache) => $cache->methods(['GET']))
             ->json($data)
             ->post('/users');
     }

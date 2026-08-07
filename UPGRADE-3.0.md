@@ -121,7 +121,7 @@ use ProgrammatorDev\Api\Builder\CacheBuilder;
 
 return $this
     ->endpoint()
-    ->cache(fn (CacheBuilder $cache) => $cache->defaultTtl(60))
+    ->withCache(fn (CacheBuilder $cache) => $cache->defaultTtl(60))
     ->get('/live')
     ->collection(Event::class, key: 'data');
 ```
