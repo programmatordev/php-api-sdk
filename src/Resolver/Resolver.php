@@ -20,6 +20,9 @@ final class Resolver implements ResolverInterface
         private readonly Runtime $runtime
     ) {}
 
+    /**
+     * @throws \Throwable
+     */
     public function get(string $pathOrUrl): Response
     {
         // Entities and envelopes may follow the same link repeatedly within one response graph.
@@ -35,19 +38,36 @@ final class Resolver implements ResolverInterface
         );
     }
 
+    /**
+     * @template T of EntityInterface
+     * @param class-string<T> $class
+     * @return T
+     * @throws \Throwable
+     */
     public function entity(string $pathOrUrl, string $class, ?string $key = null): EntityInterface
     {
         return $this->get($pathOrUrl)->entity($class, $key);
     }
 
+    /**
+     * @template T of EntityInterface
+     * @param class-string<T> $class
+     * @return T[]
+     * @throws \Throwable
+     */
     public function collection(string $pathOrUrl, string $class, ?string $key = null): array
     {
         return $this->get($pathOrUrl)->collection($class, $key);
     }
 
+    /**
+     * @template T of EnvelopeInterface
+     * @param class-string<T> $class
+     * @return T
+     * @throws \Throwable
+     */
     public function envelope(string $pathOrUrl, string $class): EnvelopeInterface
     {
         return $this->get($pathOrUrl)->envelope($class);
     }
-
 }

@@ -97,6 +97,21 @@ class ResolverTest extends AbstractTestCase
         $this->assertCount(2, $this->client->getRequests());
     }
 
+    public function testResolverMemoizationDoesNotLeakAcrossResponseGraphs(): void
+    {
+        $this->client->addResponse(new Response(body: '{"id":1,"name":"John","friend":{"url":"/users/2"}}'));
+        $this->client->addResponse(new Response(body: '{"id":2,"name":"Jane"}'));
+        $this->client->addResponse(new Response(body: '{"id":1,"name":"John","friend":{"url":"/users/2"}}'));
+        $this->client->addResponse(new Response(body: '{"id":2,"name":"Janet"}'));
+
+        $first = $this->api->users()->findLinked(1)->friend();
+        $second = $this->api->users()->findLinked(1)->friend();
+
+        $this->assertSame('Jane', $first->getName());
+        $this->assertSame('Janet', $second->getName());
+        $this->assertCount(4, $this->client->getRequests());
+    }
+
     public function testEnvelopeCanResolveNextPageOnDemand(): void
     {
         $this->client->addResponse(new Response(body: '{"data":[{"id":1,"name":"John"}],"next":"/users?page=2"}'));
