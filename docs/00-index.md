@@ -35,12 +35,13 @@ SDK packages may still require or suggest concrete PSR-18 and PSR-17 implementat
 - [Resource Authoring](04-resource-authoring.md): deeper guide for resource methods, query/header options, request bodies, entity mapping, collections, envelopes, and API-specific resource chains.
 - [Resources](05-resources.md): resource classes and endpoint request helpers.
 - [Responses](06-responses.md): decoded data, raw responses, entities, collections, envelopes, and context.
-- [Authentication](07-authentication.md): configure bearer, basic, header, query, HTTPlug, and custom authentication.
-- [HTTP Client](08-http-client.md): configure PSR-18 clients and PSR-17 factories.
-- [Cache](09-cache.md): configure PSR-6 HTTP response caching.
-- [Logging](10-logging.md): configure PSR-3 logging and HTTP/cache log output.
-- [Plugins](11-plugins.md): configure HTTPlug middleware and priority ordering.
-- [Hooks](12-hooks.md): run SDK-author callbacks around requests and responses.
+- [Resolver](07-resolver.md): follow linked entities, collections, and pagination through the configured SDK runtime.
+- [Authentication](08-authentication.md): configure bearer, basic, header, query, HTTPlug, and custom authentication.
+- [HTTP Client](09-http-client.md): configure PSR-18 clients and PSR-17 factories.
+- [Cache](10-cache.md): configure PSR-6 HTTP response caching.
+- [Logging](11-logging.md): configure PSR-3 logging and HTTP/cache log output.
+- [Plugins](12-plugins.md): configure HTTPlug middleware and priority ordering.
+- [Hooks](13-hooks.md): run SDK-author callbacks around requests and responses.
 
 ## Upgrading
 

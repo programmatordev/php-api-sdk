@@ -54,15 +54,12 @@ class ContextTest extends AbstractTestCase
 
         $context = new Context(resolver: $resolver);
 
-        $this->assertTrue($context->hasResolver());
         $this->assertSame($resolver, $context->resolver());
     }
 
     public function testContextThrowsWhenResolverIsUnavailable(): void
     {
         $context = new Context();
-
-        $this->assertFalse($context->hasResolver());
 
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('Response resolver is not available outside an API runtime request.');

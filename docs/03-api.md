@@ -208,7 +208,7 @@ Authentication is applied automatically to outgoing requests.
 
 Calling another auth helper replaces the previous authentication. Use `chain()` when multiple authentication rules are required.
 
-See [Authentication](07-authentication.md) for helper methods, HTTPlug authentication objects, and custom auth callbacks.
+See [Authentication](08-authentication.md) for helper methods, HTTPlug authentication objects, and custom auth callbacks.
 
 ### `hooks()`
 
@@ -225,7 +225,7 @@ $this->hooks()->afterResponse($hook);
 
 Hooks are SDK-author extension points. They run around the raw HTTP request and response, before response decoding and error handling.
 
-See [Hooks](12-hooks.md) for hook context objects, return values, and priority behavior.
+See [Hooks](13-hooks.md) for hook context objects, return values, and priority behavior.
 
 ### `plugins()`
 
@@ -241,7 +241,7 @@ $this->plugins()->add($plugin, priority: 16);
 
 Higher priority plugins run earlier. Same-priority plugins are preserved in insertion order.
 
-See [Plugins](11-plugins.md) for internal plugin order and priority guidance.
+See [Plugins](12-plugins.md) for internal plugin order and priority guidance.
 
 ### `cache()`
 
@@ -258,7 +258,7 @@ $this
     ->methods(['GET', 'HEAD']);
 ```
 
-See [Cache](09-cache.md) for cache options and plugin order.
+See [Cache](10-cache.md) for cache options and plugin order.
 
 ### `client()`
 
@@ -281,7 +281,7 @@ $this
     ->streamFactory($streamFactory);
 ```
 
-See [HTTP Client](08-http-client.md) for client and factory configuration.
+See [HTTP Client](09-http-client.md) for client and factory configuration.
 
 ### `logger()`
 
@@ -297,7 +297,7 @@ $this
     ->formatter($formatter);
 ```
 
-See [Logging](10-logging.md) for logger formatting and cache logging.
+See [Logging](11-logging.md) for logger formatting and cache logging.
 
 ## Response Handling
 
