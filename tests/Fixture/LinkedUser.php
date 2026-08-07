@@ -12,7 +12,8 @@ class LinkedUser implements EntityInterface
         private readonly int $id,
         private readonly string $name,
         private readonly string $friendUrl,
-        private readonly ResolverInterface $resolver
+        private readonly ResolverInterface $resolver,
+        private readonly ?string $friendsUrl = null
     ) {}
 
     public static function fromArray(array $data, ?Context $context = null): static
@@ -25,7 +26,8 @@ class LinkedUser implements EntityInterface
             id: $data['id'],
             name: $data['name'],
             friendUrl: $data['friend']['url'],
-            resolver: $context->resolver()
+            resolver: $context->resolver(),
+            friendsUrl: $data['friends']['url'] ?? null
         );
     }
 
@@ -42,5 +44,17 @@ class LinkedUser implements EntityInterface
     public function friend(): User
     {
         return $this->resolver->entity($this->friendUrl, User::class);
+    }
+
+    /**
+     * @return User[]
+     */
+    public function friends(): array
+    {
+        if ($this->friendsUrl === null) {
+            return [];
+        }
+
+        return $this->resolver->collection($this->friendsUrl, User::class, key: 'data');
     }
 }

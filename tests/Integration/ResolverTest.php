@@ -5,6 +5,7 @@ namespace ProgrammatorDev\Api\Test\Integration;
 use Http\Mock\Client;
 use Nyholm\Psr7\Response;
 use ProgrammatorDev\Api\Test\Fixture\FakeApi;
+use ProgrammatorDev\Api\Test\Fixture\User;
 use ProgrammatorDev\Api\Test\Support\AbstractTestCase;
 
 class ResolverTest extends AbstractTestCase
@@ -52,6 +53,33 @@ class ResolverTest extends AbstractTestCase
             'https://relationships.example.com/users/2?locale=en',
             (string) $this->client->getLastRequest()->getUri()
         );
+    }
+
+    public function testResolverMapsLinkedCollectionOnDemand(): void
+    {
+        $this->client->addResponse(new Response(
+            body: '{"id":1,"name":"John","friend":{"url":"/users/2"},"friends":{"url":"/users/related"}}'
+        ));
+        $this->client->addResponse(new Response(
+            body: '{"data":[{"id":2,"name":"Jane"},{"id":3,"name":"Jack"}]}'
+        ));
+
+        $user = $this->api->users()->findLinked(1);
+
+        $this->assertCount(1, $this->client->getRequests());
+
+        $friends = $user->friends();
+
+        $this->assertContainsOnlyInstancesOf(User::class, $friends);
+        $this->assertSame(['Jane', 'Jack'], array_map(
+            static fn(User $friend): string => $friend->getName(),
+            $friends
+        ));
+        $this->assertSame(
+            'https://api.example.com/users/related?locale=en',
+            (string) $this->client->getLastRequest()->getUri()
+        );
+        $this->assertCount(2, $this->client->getRequests());
     }
 
     public function testResolverMemoizesResponsesWithinTheSameContext(): void
