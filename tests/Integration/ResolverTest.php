@@ -82,7 +82,7 @@ class ResolverTest extends AbstractTestCase
         $this->assertCount(2, $this->client->getRequests());
     }
 
-    public function testResolverMemoizesResponsesWithinTheSameContext(): void
+    public function testResolverMemoizesResponsesWithinTheSameResponseGraph(): void
     {
         $this->client->addResponse(new Response(body: '{"id":1,"name":"John","friend":{"url":"/users/2"}}'));
         $this->client->addResponse(new Response(body: '{"id":2,"name":"Jane"}'));
