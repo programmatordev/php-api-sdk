@@ -38,6 +38,22 @@ class ResolverTest extends AbstractTestCase
         $this->assertCount(2, $this->client->getRequests());
     }
 
+    public function testResolverPreservesAbsoluteLinkedUrl(): void
+    {
+        $this->client->addResponse(new Response(
+            body: '{"id":1,"name":"John","friend":{"url":"https://relationships.example.com/users/2"}}'
+        ));
+        $this->client->addResponse(new Response(body: '{"id":2,"name":"Jane"}'));
+
+        $friend = $this->api->users()->findLinked(1)->friend();
+
+        $this->assertSame('Jane', $friend->getName());
+        $this->assertSame(
+            'https://relationships.example.com/users/2?locale=en',
+            (string) $this->client->getLastRequest()->getUri()
+        );
+    }
+
     public function testResolverMemoizesResponsesWithinTheSameContext(): void
     {
         $this->client->addResponse(new Response(body: '{"id":1,"name":"John","friend":{"url":"/users/2"}}'));
