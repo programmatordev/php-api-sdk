@@ -238,12 +238,14 @@ SDK authors can configure endpoint-specific cache defaults on the endpoint build
 ```php
 return $this
     ->endpoint()
-    ->cache(fn (CacheBuilder $cache) => $cache->defaultTtl(60))
+    ->withCache(fn (CacheBuilder $cache) => $cache->defaultTtl(60))
     ->get('/users')
     ->collection(User::class, key: 'data');
 ```
 
 Endpoint cache defaults are immutable and apply only to that request. They require API-level cache configuration because the global cache setup provides the PSR-6 pool.
+
+`Endpoint::cache()` is deprecated since version 3.2.0. Use `Endpoint::withCache()` instead.
 
 ## Resource Cache Overrides
 

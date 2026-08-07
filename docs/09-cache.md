@@ -70,7 +70,7 @@ public function live(): FixtureCollection
 {
     return $this
         ->endpoint()
-        ->cache(fn (CacheBuilder $cache) => $cache->defaultTtl(60))
+        ->withCache(fn (CacheBuilder $cache) => $cache->defaultTtl(60))
         ->get('/fixtures/live')
         ->envelope(FixtureCollection::class);
 }
@@ -79,6 +79,8 @@ public function live(): FixtureCollection
 This is useful when the SDK author knows that one endpoint should behave differently from the global default. For example, realtime endpoints may default to a short TTL while stable lookup endpoints may default to a longer TTL.
 
 Endpoint defaults do not mutate the API cache builder and do not affect later requests.
+
+`Endpoint::cache()` is deprecated since version 3.2.0. Use `Endpoint::withCache()` instead.
 
 ## Resource Overrides
 

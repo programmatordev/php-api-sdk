@@ -23,11 +23,21 @@ class Endpoint
     /**
      * @param callable(\ProgrammatorDev\Api\Builder\CacheBuilder): mixed $configure
      */
-    public function cache(callable $configure): static
+    public function withCache(callable $configure): static
     {
         return $this->withPipelineOptions(
             $this->pipelineOptions->withDefault(PipelineOption::CACHE, $configure)
         );
+    }
+
+    /**
+     * @deprecated since 3.2.0. Use withCache().
+     *
+     * @param callable(\ProgrammatorDev\Api\Builder\CacheBuilder): mixed $configure
+     */
+    public function cache(callable $configure): static
+    {
+        return $this->withCache($configure);
     }
 
     /**
