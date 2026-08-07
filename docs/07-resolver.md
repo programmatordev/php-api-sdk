@@ -37,7 +37,7 @@ final class User implements EntityInterface
         private readonly int $id,
         private readonly string $name,
         private readonly string $email,
-        private readonly ?string $managerUrl,
+        private readonly string $managerUrl,
         private readonly ResolverInterface $resolver,
     ) {}
 
@@ -47,17 +47,13 @@ final class User implements EntityInterface
             id: $data['id'],
             name: $data['name'],
             email: $data['email'],
-            managerUrl: $data['manager']['url'] ?? null,
+            managerUrl: $data['manager']['url'],
             resolver: $context->resolver(),
         );
     }
 
-    public function manager(): ?self
+    public function manager(): self
     {
-        if ($this->managerUrl === null) {
-            return null;
-        }
-
         return $this->resolver->entity($this->managerUrl, self::class);
     }
 
