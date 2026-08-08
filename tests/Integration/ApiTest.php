@@ -7,6 +7,8 @@ use ProgrammatorDev\Api\Api;
 use ProgrammatorDev\Api\Context\RequestContext;
 use ProgrammatorDev\Api\Context\ResponseContext;
 use ProgrammatorDev\Api\Http\Method;
+use ProgrammatorDev\Api\Resource;
+use ProgrammatorDev\Api\Runtime;
 use ProgrammatorDev\Api\Test\Fixture\FakeApi;
 use ProgrammatorDev\Api\Test\Fixture\HeaderPlugin;
 use ProgrammatorDev\Api\Test\Support\AbstractTestCase;
@@ -30,6 +32,30 @@ class ApiTest extends AbstractTestCase
             'timezone' => 'UTC',
             'units' => 'metric',
         ], $api->config()->all());
+    }
+
+    public function testSdkAuthorCanPassTypedConstructorDependenciesToResource(): void
+    {
+        $api = new class('secret') extends Api {
+            public function __construct(
+                private readonly string $apiKey
+            ) {
+                parent::__construct();
+            }
+
+            public function links(): ConstructorDependencyResource
+            {
+                return $this->resourceWith(
+                    ConstructorDependencyResource::class,
+                    apiKey: $this->apiKey
+                );
+            }
+        };
+
+        $this->assertSame(
+            'https://api.example.com/files/report%201.pdf?api_key=secret',
+            $api->links()->url('report 1.pdf')
+        );
     }
 
     public function testApiCanSendPublicRequest(): void
@@ -234,4 +260,23 @@ class ApiTest extends AbstractTestCase
 enum ApiRequestValue: string
 {
     case ACTIVE = 'active';
+}
+
+final class ConstructorDependencyResource extends Resource
+{
+    public function __construct(
+        Runtime $runtime,
+        private readonly string $apiKey
+    ) {
+        parent::__construct($runtime);
+    }
+
+    public function url(string $file): string
+    {
+        return sprintf(
+            'https://api.example.com/files/%s?api_key=%s',
+            rawurlencode($file),
+            rawurlencode($this->apiKey)
+        );
+    }
 }

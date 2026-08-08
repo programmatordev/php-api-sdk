@@ -39,6 +39,61 @@ final class ExampleApi extends Api
 
 `Api::resource()` creates a fresh resource instance. Resource-chain infrastructure overrides, such as `withCache()`, are immutable, so fluent customizations do not leak into later calls.
 
+## Resource Constructor Dependencies
+
+> **Available since version 3.3.0.**
+
+Use `resourceWith()` when a resource needs typed, SDK-author-owned data that
+should not be placed in the shared SDK config. The runtime is injected
+automatically as the first constructor argument.
+
+```php
+use ProgrammatorDev\Api\Api;
+use ProgrammatorDev\Api\Resource;
+use ProgrammatorDev\Api\Runtime;
+
+final class ExampleApi extends Api
+{
+    public function __construct(
+        private readonly string $apiKey,
+    ) {
+        parent::__construct();
+    }
+
+    public function assets(): AssetResource
+    {
+        return $this->resourceWith(
+            AssetResource::class,
+            apiKey: $this->apiKey,
+        );
+    }
+}
+
+final class AssetResource extends Resource
+{
+    public function __construct(
+        Runtime $runtime,
+        private readonly string $apiKey,
+    ) {
+        parent::__construct($runtime);
+    }
+
+    public function url(string $file): string
+    {
+        return sprintf(
+            'https://cdn.example.com/assets/%s?key=%s',
+            rawurlencode($file),
+            rawurlencode($this->apiKey),
+        );
+    }
+}
+```
+
+This keeps the dependency private to the concrete API and resource. Use
+`Config` for SDK options that should also be available to contexts, entities,
+envelopes, hooks, and error handlers. Credentials used for HTTP authentication
+should still be configured through `auth()`.
+
 ## Endpoint Requests
 
 Use `endpoint()` inside resource methods to create the request builder:
