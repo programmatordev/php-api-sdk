@@ -104,7 +104,19 @@ abstract class Api
      */
     protected function resource(string $class): Resource
     {
-        return new $class($this->runtime());
+        // Keep the original protected signature compatible with SDKs that override it.
+        return $this->resourceWith($class);
+    }
+
+    /**
+     * @template T of Resource
+     * @param class-string<T> $class
+     * @return T
+     * @todo Merge constructor argument forwarding into resource() in the next major release.
+     */
+    protected function resourceWith(string $class, mixed ...$arguments): Resource
+    {
+        return new $class($this->runtime(), ...$arguments);
     }
 
     protected function baseUrl(?string $baseUrl): static

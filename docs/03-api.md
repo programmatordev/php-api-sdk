@@ -111,6 +111,22 @@ Protected helper for creating resource instances from an API class.
 
 See [Resource Authoring](04-resource-authoring.md) for the recommended API-to-resource pattern.
 
+### `resourceWith()`
+
+> **Available since version 3.3.0.**
+
+```php
+resourceWith(string $class, mixed ...$arguments): Resource
+```
+
+Protected helper for creating a resource with typed SDK-author constructor
+dependencies. The resource `Runtime` is provided automatically as the first
+constructor argument; additional positional or named arguments are forwarded
+after it.
+
+See [Resource Constructor Dependencies](04-resource-authoring.md#resource-constructor-dependencies)
+for the complete authoring pattern.
+
 ## Request Defaults
 
 ### `baseUrl()`
