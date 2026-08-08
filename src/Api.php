@@ -107,6 +107,17 @@ abstract class Api
         return new $class($this->runtime());
     }
 
+    /**
+     * @template T of Resource
+     * @param class-string<T> $class
+     * @return T
+     * @todo Merge constructor argument forwarding into resource() in the next major release.
+     */
+    protected function resourceWith(string $class, mixed ...$arguments): Resource
+    {
+        return new $class($this->runtime(), ...$arguments);
+    }
+
     protected function baseUrl(?string $baseUrl): static
     {
         $this->baseUrl = $baseUrl;
