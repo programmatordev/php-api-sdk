@@ -104,8 +104,7 @@ abstract class Api
      */
     protected function resource(string $class): Resource
     {
-        // Keep the original protected signature compatible with SDKs that override it.
-        return $this->resourceWith($class);
+        return new $class($this->runtime());
     }
 
     /**
